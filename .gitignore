@@ -9,3 +9,5 @@
 *.cf
 *.hf
 .vscode
+main
+.cache

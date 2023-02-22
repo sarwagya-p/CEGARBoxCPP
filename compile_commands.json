@@ -1,0 +1,594 @@
+[
+  {
+    "arguments": [
+      "/usr/bin/g++",
+      "-c",
+      "-std=c++17",
+      "-O3",
+      "-Wall",
+      "-g",
+      "-o",
+      "main",
+      "./Formula/Diamond/Diamond.cpp"
+    ],
+    "directory": "/home/cormac/school/honours/code/CEGARBoxCPP",
+    "file": "/home/cormac/school/honours/code/CEGARBoxCPP/Formula/Diamond/Diamond.cpp",
+    "output": "/home/cormac/school/honours/code/CEGARBoxCPP/main"
+  },
+  {
+    "arguments": [
+      "/usr/bin/g++",
+      "-c",
+      "-std=c++17",
+      "-O3",
+      "-Wall",
+      "-g",
+      "-o",
+      "main",
+      "./Formula/Formula/Formula.cpp"
+    ],
+    "directory": "/home/cormac/school/honours/code/CEGARBoxCPP",
+    "file": "/home/cormac/school/honours/code/CEGARBoxCPP/Formula/Formula/Formula.cpp",
+    "output": "/home/cormac/school/honours/code/CEGARBoxCPP/main"
+  },
+  {
+    "arguments": [
+      "/usr/bin/g++",
+      "-c",
+      "-std=c++17",
+      "-O3",
+      "-Wall",
+      "-g",
+      "-o",
+      "main",
+      "./Formula/False/False.cpp"
+    ],
+    "directory": "/home/cormac/school/honours/code/CEGARBoxCPP",
+    "file": "/home/cormac/school/honours/code/CEGARBoxCPP/Formula/False/False.cpp",
+    "output": "/home/cormac/school/honours/code/CEGARBoxCPP/main"
+  },
+  {
+    "arguments": [
+      "/usr/bin/g++",
+      "-c",
+      "-std=c++17",
+      "-O3",
+      "-Wall",
+      "-g",
+      "-o",
+      "main",
+      "./Formula/Box/Box.cpp"
+    ],
+    "directory": "/home/cormac/school/honours/code/CEGARBoxCPP",
+    "file": "/home/cormac/school/honours/code/CEGARBoxCPP/Formula/Box/Box.cpp",
+    "output": "/home/cormac/school/honours/code/CEGARBoxCPP/main"
+  },
+  {
+    "arguments": [
+      "/usr/bin/g++",
+      "-c",
+      "-std=c++17",
+      "-O3",
+      "-Wall",
+      "-g",
+      "-o",
+      "main",
+      "./Formula/True/True.cpp"
+    ],
+    "directory": "/home/cormac/school/honours/code/CEGARBoxCPP",
+    "file": "/home/cormac/school/honours/code/CEGARBoxCPP/Formula/True/True.cpp",
+    "output": "/home/cormac/school/honours/code/CEGARBoxCPP/main"
+  },
+  {
+    "arguments": [
+      "/usr/bin/g++",
+      "-c",
+      "-std=c++17",
+      "-O3",
+      "-Wall",
+      "-g",
+      "-o",
+      "main",
+      "./Formula/Not/Not.cpp"
+    ],
+    "directory": "/home/cormac/school/honours/code/CEGARBoxCPP",
+    "file": "/home/cormac/school/honours/code/CEGARBoxCPP/Formula/Not/Not.cpp",
+    "output": "/home/cormac/school/honours/code/CEGARBoxCPP/main"
+  },
+  {
+    "arguments": [
+      "/usr/bin/g++",
+      "-c",
+      "-std=c++17",
+      "-O3",
+      "-Wall",
+      "-g",
+      "-o",
+      "main",
+      "./Formula/Atom/Atom.cpp"
+    ],
+    "directory": "/home/cormac/school/honours/code/CEGARBoxCPP",
+    "file": "/home/cormac/school/honours/code/CEGARBoxCPP/Formula/Atom/Atom.cpp",
+    "output": "/home/cormac/school/honours/code/CEGARBoxCPP/main"
+  },
+  {
+    "arguments": [
+      "/usr/bin/g++",
+      "-c",
+      "-std=c++17",
+      "-O3",
+      "-Wall",
+      "-g",
+      "-o",
+      "main",
+      "./Formula/And/And.cpp"
+    ],
+    "directory": "/home/cormac/school/honours/code/CEGARBoxCPP",
+    "file": "/home/cormac/school/honours/code/CEGARBoxCPP/Formula/And/And.cpp",
+    "output": "/home/cormac/school/honours/code/CEGARBoxCPP/main"
+  },
+  {
+    "arguments": [
+      "/usr/bin/g++",
+      "-c",
+      "-std=c++17",
+      "-O3",
+      "-Wall",
+      "-g",
+      "-o",
+      "main",
+      "./Formula/Or/Or.cpp"
+    ],
+    "directory": "/home/cormac/school/honours/code/CEGARBoxCPP",
+    "file": "/home/cormac/school/honours/code/CEGARBoxCPP/Formula/Or/Or.cpp",
+    "output": "/home/cormac/school/honours/code/CEGARBoxCPP/main"
+  },
+  {
+    "arguments": [
+      "/usr/bin/g++",
+      "-c",
+      "-std=c++17",
+      "-O3",
+      "-Wall",
+      "-g",
+      "-o",
+      "main",
+      "./Prover/Prover/Prover.cpp"
+    ],
+    "directory": "/home/cormac/school/honours/code/CEGARBoxCPP",
+    "file": "/home/cormac/school/honours/code/CEGARBoxCPP/Prover/Prover/Prover.cpp",
+    "output": "/home/cormac/school/honours/code/CEGARBoxCPP/main"
+  },
+  {
+    "arguments": [
+      "/usr/bin/g++",
+      "-c",
+      "-std=c++17",
+      "-O3",
+      "-Wall",
+      "-g",
+      "-o",
+      "main",
+      "./Prover/Literal/Literal.cpp"
+    ],
+    "directory": "/home/cormac/school/honours/code/CEGARBoxCPP",
+    "file": "/home/cormac/school/honours/code/CEGARBoxCPP/Prover/Literal/Literal.cpp",
+    "output": "/home/cormac/school/honours/code/CEGARBoxCPP/main"
+  },
+  {
+    "arguments": [
+      "/usr/bin/g++",
+      "-c",
+      "-std=c++17",
+      "-O3",
+      "-Wall",
+      "-g",
+      "-o",
+      "main",
+      "./Prover/GlobalSolutionMemo/GlobalSolutionMemo.cpp"
+    ],
+    "directory": "/home/cormac/school/honours/code/CEGARBoxCPP",
+    "file": "/home/cormac/school/honours/code/CEGARBoxCPP/Prover/GlobalSolutionMemo/GlobalSolutionMemo.cpp",
+    "output": "/home/cormac/school/honours/code/CEGARBoxCPP/main"
+  },
+  {
+    "arguments": [
+      "/usr/bin/g++",
+      "-c",
+      "-std=c++17",
+      "-O3",
+      "-Wall",
+      "-g",
+      "-o",
+      "main",
+      "./Prover/LocalSolutionMemo/LocalSolutionMemo.cpp"
+    ],
+    "directory": "/home/cormac/school/honours/code/CEGARBoxCPP",
+    "file": "/home/cormac/school/honours/code/CEGARBoxCPP/Prover/LocalSolutionMemo/LocalSolutionMemo.cpp",
+    "output": "/home/cormac/school/honours/code/CEGARBoxCPP/main"
+  },
+  {
+    "arguments": [
+      "/usr/bin/g++",
+      "-c",
+      "-std=c++17",
+      "-O3",
+      "-Wall",
+      "-g",
+      "-o",
+      "main",
+      "./Prover/MinisatProver/MinisatProver.cpp"
+    ],
+    "directory": "/home/cormac/school/honours/code/CEGARBoxCPP",
+    "file": "/home/cormac/school/honours/code/CEGARBoxCPP/Prover/MinisatProver/MinisatProver.cpp",
+    "output": "/home/cormac/school/honours/code/CEGARBoxCPP/main"
+  },
+  {
+    "arguments": [
+      "/usr/bin/g++",
+      "-c",
+      "-std=c++17",
+      "-O3",
+      "-Wall",
+      "-g",
+      "-o",
+      "main",
+      "./Prover/TrieformProver/TrieformProverB/TrieformProverB.cpp"
+    ],
+    "directory": "/home/cormac/school/honours/code/CEGARBoxCPP",
+    "file": "/home/cormac/school/honours/code/CEGARBoxCPP/Prover/TrieformProver/TrieformProverB/TrieformProverB.cpp",
+    "output": "/home/cormac/school/honours/code/CEGARBoxCPP/main"
+  },
+  {
+    "arguments": [
+      "/usr/bin/g++",
+      "-c",
+      "-std=c++17",
+      "-O3",
+      "-Wall",
+      "-g",
+      "-o",
+      "main",
+      "./Prover/TrieformProver/TrieformProverK5/TrieformProverK5.cpp"
+    ],
+    "directory": "/home/cormac/school/honours/code/CEGARBoxCPP",
+    "file": "/home/cormac/school/honours/code/CEGARBoxCPP/Prover/TrieformProver/TrieformProverK5/TrieformProverK5.cpp",
+    "output": "/home/cormac/school/honours/code/CEGARBoxCPP/main"
+  },
+  {
+    "arguments": [
+      "/usr/bin/g++",
+      "-c",
+      "-std=c++17",
+      "-O3",
+      "-Wall",
+      "-g",
+      "-o",
+      "main",
+      "./Prover/TrieformProver/TrieformProverK45/TrieformProverK45.cpp"
+    ],
+    "directory": "/home/cormac/school/honours/code/CEGARBoxCPP",
+    "file": "/home/cormac/school/honours/code/CEGARBoxCPP/Prover/TrieformProver/TrieformProverK45/TrieformProverK45.cpp",
+    "output": "/home/cormac/school/honours/code/CEGARBoxCPP/main"
+  },
+  {
+    "arguments": [
+      "/usr/bin/g++",
+      "-c",
+      "-std=c++17",
+      "-O3",
+      "-Wall",
+      "-g",
+      "-o",
+      "main",
+      "./Prover/TrieformProver/TrieformProverKB/TrieformProverKB.cpp"
+    ],
+    "directory": "/home/cormac/school/honours/code/CEGARBoxCPP",
+    "file": "/home/cormac/school/honours/code/CEGARBoxCPP/Prover/TrieformProver/TrieformProverKB/TrieformProverKB.cpp",
+    "output": "/home/cormac/school/honours/code/CEGARBoxCPP/main"
+  },
+  {
+    "arguments": [
+      "/usr/bin/g++",
+      "-c",
+      "-std=c++17",
+      "-O3",
+      "-Wall",
+      "-g",
+      "-o",
+      "main",
+      "./Prover/TrieformProver/TrieformProverDB/TrieformProverDB.cpp"
+    ],
+    "directory": "/home/cormac/school/honours/code/CEGARBoxCPP",
+    "file": "/home/cormac/school/honours/code/CEGARBoxCPP/Prover/TrieformProver/TrieformProverDB/TrieformProverDB.cpp",
+    "output": "/home/cormac/school/honours/code/CEGARBoxCPP/main"
+  },
+  {
+    "arguments": [
+      "/usr/bin/g++",
+      "-c",
+      "-std=c++17",
+      "-O3",
+      "-Wall",
+      "-g",
+      "-o",
+      "main",
+      "./Prover/TrieformProver/TrieformProverK/TrieformProverK.cpp"
+    ],
+    "directory": "/home/cormac/school/honours/code/CEGARBoxCPP",
+    "file": "/home/cormac/school/honours/code/CEGARBoxCPP/Prover/TrieformProver/TrieformProverK/TrieformProverK.cpp",
+    "output": "/home/cormac/school/honours/code/CEGARBoxCPP/main"
+  },
+  {
+    "arguments": [
+      "/usr/bin/g++",
+      "-c",
+      "-std=c++17",
+      "-O3",
+      "-Wall",
+      "-g",
+      "-o",
+      "main",
+      "./Prover/TrieformProver/TrieformProverD45/TrieformProverD45.cpp"
+    ],
+    "directory": "/home/cormac/school/honours/code/CEGARBoxCPP",
+    "file": "/home/cormac/school/honours/code/CEGARBoxCPP/Prover/TrieformProver/TrieformProverD45/TrieformProverD45.cpp",
+    "output": "/home/cormac/school/honours/code/CEGARBoxCPP/main"
+  },
+  {
+    "arguments": [
+      "/usr/bin/g++",
+      "-c",
+      "-std=c++17",
+      "-O3",
+      "-Wall",
+      "-g",
+      "-o",
+      "main",
+      "./Prover/TrieformProver/TrieformProverK4/TrieformProverK4.cpp"
+    ],
+    "directory": "/home/cormac/school/honours/code/CEGARBoxCPP",
+    "file": "/home/cormac/school/honours/code/CEGARBoxCPP/Prover/TrieformProver/TrieformProverK4/TrieformProverK4.cpp",
+    "output": "/home/cormac/school/honours/code/CEGARBoxCPP/main"
+  },
+  {
+    "arguments": [
+      "/usr/bin/g++",
+      "-c",
+      "-std=c++17",
+      "-O3",
+      "-Wall",
+      "-g",
+      "-o",
+      "main",
+      "./Prover/TrieformProver/TrieformProverT/TrieformProverT.cpp"
+    ],
+    "directory": "/home/cormac/school/honours/code/CEGARBoxCPP",
+    "file": "/home/cormac/school/honours/code/CEGARBoxCPP/Prover/TrieformProver/TrieformProverT/TrieformProverT.cpp",
+    "output": "/home/cormac/school/honours/code/CEGARBoxCPP/main"
+  },
+  {
+    "arguments": [
+      "/usr/bin/g++",
+      "-c",
+      "-std=c++17",
+      "-O3",
+      "-Wall",
+      "-g",
+      "-o",
+      "main",
+      "./Prover/TrieformProver/TrieformProverD5/TrieformProverD5.cpp"
+    ],
+    "directory": "/home/cormac/school/honours/code/CEGARBoxCPP",
+    "file": "/home/cormac/school/honours/code/CEGARBoxCPP/Prover/TrieformProver/TrieformProverD5/TrieformProverD5.cpp",
+    "output": "/home/cormac/school/honours/code/CEGARBoxCPP/main"
+  },
+  {
+    "arguments": [
+      "/usr/bin/g++",
+      "-c",
+      "-std=c++17",
+      "-O3",
+      "-Wall",
+      "-g",
+      "-o",
+      "main",
+      "./Prover/TrieformProver/TrieformProverS5/TrieformProverS5.cpp"
+    ],
+    "directory": "/home/cormac/school/honours/code/CEGARBoxCPP",
+    "file": "/home/cormac/school/honours/code/CEGARBoxCPP/Prover/TrieformProver/TrieformProverS5/TrieformProverS5.cpp",
+    "output": "/home/cormac/school/honours/code/CEGARBoxCPP/main"
+  },
+  {
+    "arguments": [
+      "/usr/bin/g++",
+      "-c",
+      "-std=c++17",
+      "-O3",
+      "-Wall",
+      "-g",
+      "-o",
+      "main",
+      "./Prover/TrieformProver/TrieformProverS4/TrieformProverS4.cpp"
+    ],
+    "directory": "/home/cormac/school/honours/code/CEGARBoxCPP",
+    "file": "/home/cormac/school/honours/code/CEGARBoxCPP/Prover/TrieformProver/TrieformProverS4/TrieformProverS4.cpp",
+    "output": "/home/cormac/school/honours/code/CEGARBoxCPP/main"
+  },
+  {
+    "arguments": [
+      "/usr/bin/g++",
+      "-c",
+      "-std=c++17",
+      "-O3",
+      "-Wall",
+      "-g",
+      "-o",
+      "main",
+      "./Prover/TrieformProver/TrieformProverD4/TrieformProverD4.cpp"
+    ],
+    "directory": "/home/cormac/school/honours/code/CEGARBoxCPP",
+    "file": "/home/cormac/school/honours/code/CEGARBoxCPP/Prover/TrieformProver/TrieformProverD4/TrieformProverD4.cpp",
+    "output": "/home/cormac/school/honours/code/CEGARBoxCPP/main"
+  },
+  {
+    "arguments": [
+      "/usr/bin/g++",
+      "-c",
+      "-std=c++17",
+      "-O3",
+      "-Wall",
+      "-g",
+      "-o",
+      "main",
+      "./Prover/TrieformProver/TrieformProverKB5/TrieformProverKB5.cpp"
+    ],
+    "directory": "/home/cormac/school/honours/code/CEGARBoxCPP",
+    "file": "/home/cormac/school/honours/code/CEGARBoxCPP/Prover/TrieformProver/TrieformProverKB5/TrieformProverKB5.cpp",
+    "output": "/home/cormac/school/honours/code/CEGARBoxCPP/main"
+  },
+  {
+    "arguments": [
+      "/usr/bin/g++",
+      "-c",
+      "-std=c++17",
+      "-O3",
+      "-Wall",
+      "-g",
+      "-o",
+      "main",
+      "./Prover/TrieformProver/TrieformProverD/TrieformProverD.cpp"
+    ],
+    "directory": "/home/cormac/school/honours/code/CEGARBoxCPP",
+    "file": "/home/cormac/school/honours/code/CEGARBoxCPP/Prover/TrieformProver/TrieformProverD/TrieformProverD.cpp",
+    "output": "/home/cormac/school/honours/code/CEGARBoxCPP/main"
+  },
+  {
+    "arguments": [
+      "/usr/bin/g++",
+      "-c",
+      "-std=c++17",
+      "-O3",
+      "-Wall",
+      "-g",
+      "-o",
+      "main",
+      "./ParseFormulaNew/ParseFormulaNew.cpp"
+    ],
+    "directory": "/home/cormac/school/honours/code/CEGARBoxCPP",
+    "file": "/home/cormac/school/honours/code/CEGARBoxCPP/ParseFormulaNew/ParseFormulaNew.cpp",
+    "output": "/home/cormac/school/honours/code/CEGARBoxCPP/main"
+  },
+  {
+    "arguments": [
+      "/usr/bin/g++",
+      "-c",
+      "-std=c++17",
+      "-O3",
+      "-Wall",
+      "-g",
+      "-o",
+      "main",
+      "./ParseFormula/ParseFormula.cpp"
+    ],
+    "directory": "/home/cormac/school/honours/code/CEGARBoxCPP",
+    "file": "/home/cormac/school/honours/code/CEGARBoxCPP/ParseFormula/ParseFormula.cpp",
+    "output": "/home/cormac/school/honours/code/CEGARBoxCPP/main"
+  },
+  {
+    "arguments": [
+      "/usr/bin/g++",
+      "-c",
+      "-std=c++17",
+      "-O3",
+      "-Wall",
+      "-g",
+      "-o",
+      "main",
+      "./Bitset/Bitset.cpp"
+    ],
+    "directory": "/home/cormac/school/honours/code/CEGARBoxCPP",
+    "file": "/home/cormac/school/honours/code/CEGARBoxCPP/Bitset/Bitset.cpp",
+    "output": "/home/cormac/school/honours/code/CEGARBoxCPP/main"
+  },
+  {
+    "arguments": [
+      "/usr/bin/g++",
+      "-c",
+      "-std=c++17",
+      "-O3",
+      "-Wall",
+      "-g",
+      "-o",
+      "main",
+      "./main.cpp"
+    ],
+    "directory": "/home/cormac/school/honours/code/CEGARBoxCPP",
+    "file": "/home/cormac/school/honours/code/CEGARBoxCPP/main.cpp",
+    "output": "/home/cormac/school/honours/code/CEGARBoxCPP/main"
+  },
+  {
+    "arguments": [
+      "/usr/bin/g++",
+      "-c",
+      "-std=c++17",
+      "-O3",
+      "-Wall",
+      "-g",
+      "-o",
+      "main",
+      "./Clausifier/Trieform/Trieform.cpp"
+    ],
+    "directory": "/home/cormac/school/honours/code/CEGARBoxCPP",
+    "file": "/home/cormac/school/honours/code/CEGARBoxCPP/Clausifier/Trieform/Trieform.cpp",
+    "output": "/home/cormac/school/honours/code/CEGARBoxCPP/main"
+  },
+  {
+    "arguments": [
+      "/usr/bin/g++",
+      "-c",
+      "-std=c++17",
+      "-O3",
+      "-Wall",
+      "-g",
+      "-o",
+      "main",
+      "./Clausifier/FormulaTriple/FormulaTriple.cpp"
+    ],
+    "directory": "/home/cormac/school/honours/code/CEGARBoxCPP",
+    "file": "/home/cormac/school/honours/code/CEGARBoxCPP/Clausifier/FormulaTriple/FormulaTriple.cpp",
+    "output": "/home/cormac/school/honours/code/CEGARBoxCPP/main"
+  },
+  {
+    "arguments": [
+      "/usr/bin/g++",
+      "-c",
+      "-std=c++17",
+      "-O3",
+      "-Wall",
+      "-g",
+      "-o",
+      "main",
+      "./Clausifier/TrieformFactory/TrieformFactory.cpp"
+    ],
+    "directory": "/home/cormac/school/honours/code/CEGARBoxCPP",
+    "file": "/home/cormac/school/honours/code/CEGARBoxCPP/Clausifier/TrieformFactory/TrieformFactory.cpp",
+    "output": "/home/cormac/school/honours/code/CEGARBoxCPP/main"
+  },
+  {
+    "arguments": [
+      "/usr/bin/g++",
+      "-c",
+      "-std=c++17",
+      "-O3",
+      "-Wall",
+      "-g",
+      "-o",
+      "main",
+      "./Clausifier/Cache/Cache.cpp"
+    ],
+    "directory": "/home/cormac/school/honours/code/CEGARBoxCPP",
+    "file": "/home/cormac/school/honours/code/CEGARBoxCPP/Clausifier/Cache/Cache.cpp",
+    "output": "/home/cormac/school/honours/code/CEGARBoxCPP/main"
+  }
+]

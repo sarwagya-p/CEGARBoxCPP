@@ -118,7 +118,7 @@ bool MinisatProver::modelSatisfiesAssump(Literal assumption) {
 }
 
 literal_set MinisatProver::convertConflictToAssumps(
-    Minisat::vec<Minisat::Lit> &conflictLits) {
+    Minisat::LSet &conflictLits) {
   literal_set conflict;
   for (int i = 0; i < conflictLits.size(); i++) {
     conflict.insert(Literal(nameMap[Minisat::var(conflictLits[i])],
