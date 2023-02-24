@@ -15,6 +15,10 @@ Box::Box(int modality, int power, shared_ptr<Formula> subformula) {
   } else {
     subformula_ = subformula;
   }
+  std::hash<FormulaType> ftype_hash;
+  std::hash<int> int_hash;
+  size_t totalHash = ftype_hash(getType());
+  boxHash_ = totalHash + int_hash(modality_) + int_hash(power_) + subformula_->hash();
 }
 
 Box::~Box() {
@@ -121,9 +125,5 @@ bool Box::operator!=(const Formula &other) const {
 }
 
 size_t Box::hash() const {
-  std::hash<FormulaType> ftype_hash;
-  std::hash<int> int_hash;
-  size_t totalHash = ftype_hash(getType());
-  return totalHash + int_hash(modality_) + int_hash(power_) +
-         subformula_->hash();
+  return boxHash_;
 }

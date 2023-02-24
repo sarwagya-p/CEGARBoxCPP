@@ -18,6 +18,7 @@ class Box : public Formula, public enable_shared_from_this<Box> {
 private:
   int modality_, power_;
   shared_ptr<Formula> subformula_;
+  int boxHash_;
 
 public:
   Box(int modality, int power, shared_ptr<Formula> subformula);

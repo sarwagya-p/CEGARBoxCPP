@@ -19,6 +19,7 @@ using namespace std;
 class And : public Formula, public enable_shared_from_this<And> {
 private:
   formula_set andSet_;
+  int andHash_;
 
 public:
   And(const formula_set &andSet);

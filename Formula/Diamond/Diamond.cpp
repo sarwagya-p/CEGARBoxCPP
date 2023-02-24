@@ -15,6 +15,11 @@ Diamond::Diamond(int modality, int power, shared_ptr<Formula> subformula) {
   } else {
     subformula_ = subformula;
   }
+  std::hash<FormulaType> ftype_hash;
+  std::hash<int> int_hash;
+  size_t totalHash = ftype_hash(getType());
+  diaHash_ = totalHash + int_hash(modality_) + int_hash(power_) +
+         subformula_->hash();
 }
 
 Diamond::~Diamond() {
@@ -123,9 +128,5 @@ bool Diamond::operator!=(const Formula &other) const {
 }
 
 size_t Diamond::hash() const {
-  std::hash<FormulaType> ftype_hash;
-  std::hash<int> int_hash;
-  size_t totalHash = ftype_hash(getType());
-  return totalHash + int_hash(modality_) + int_hash(power_) +
-         subformula_->hash();
+  return diaHash_;
 }

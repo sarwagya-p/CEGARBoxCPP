@@ -1,15 +1,21 @@
 #include "Or.h"
 
 Or::Or(const formula_set &orSet) {
+  std::hash<FormulaType> ftype_hash;
+  size_t totalHash = ftype_hash(getType());
+
   for (shared_ptr<Formula> formula : orSet) {
     Or *orFormula = dynamic_cast<Or *>(formula.get());
     if (orFormula) {
       const formula_set *subformulas = orFormula->getSubformulasReference();
+      for (auto x : *subformulas) totalHash += x->hash();
       orSet_.insert(subformulas->begin(), subformulas->end());
     } else {
       orSet_.insert(formula);
+      totalHash += formula->hash();
     }
   }
+  orHash_ = totalHash;
 }
 Or::~Or() {
 #if DEBUG_DESTRUCT
@@ -182,12 +188,7 @@ bool Or::operator==(const Formula &other) const {
 bool Or::operator!=(const Formula &other) const { return !(operator==(other)); }
 
 size_t Or::hash() const {
-  std::hash<FormulaType> ftype_hash;
-  size_t totalHash = ftype_hash(getType());
-  for (shared_ptr<Formula> formula : orSet_) {
-    totalHash += formula->hash();
-  }
-  return totalHash;
+    return orHash_;
 }
 
 int Or::getLength() const { return orSet_.size(); }

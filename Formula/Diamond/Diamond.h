@@ -16,6 +16,7 @@ using namespace std;
 class Diamond : public Formula, public enable_shared_from_this<Diamond> {
 private:
   int modality_, power_;
+  int diaHash_ = -1;
   shared_ptr<Formula> subformula_;
 
 public:

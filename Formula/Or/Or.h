@@ -18,6 +18,7 @@ using namespace std;
 class Or : public Formula, public enable_shared_from_this<Or> {
 private:
   formula_set orSet_;
+  int orHash_;
 
 public:
   Or(const formula_set &orSet);
