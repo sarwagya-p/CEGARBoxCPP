@@ -138,6 +138,21 @@ Solution MinisatProver::solve(const literal_set &assumptions) {
   return solution;
 }
 
+void MinisatProver::reduce_conflict(literal_set& conflict) {
+    literal_set all_lits = conflict;
+    for (auto lit_to_remove : all_lits) {
+        literal_set new_conflict;
+        for (auto x : conflict) if (x != lit_to_remove) new_conflict.insert(x);
+        if (new_conflict.size() < conflict.size()) {
+            Solution sol = solve(new_conflict);
+            if (!sol.satisfiable) {
+                cout << "REMOVE SUCCESS\n";
+                conflict = sol.conflict;
+            }
+        }
+    }
+}
+
 void MinisatProver::addClause(literal_set clause) {
   solver->addClause(*convertAssumptions(clause));
 }

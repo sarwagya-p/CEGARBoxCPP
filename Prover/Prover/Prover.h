@@ -117,6 +117,7 @@ public:
   virtual modal_names_map prepareSAT(FormulaTriple clauses,
                                      name_set extra = name_set()) = 0;
   virtual Solution solve(const literal_set &assumptions = literal_set()) = 0;
+  virtual void reduce_conflict(literal_set& conflict) = 0;
   virtual void addClause(literal_set clause) = 0;
 
   virtual bool modelSatisfiesAssump(Literal assumption) = 0;

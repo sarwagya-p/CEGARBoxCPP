@@ -84,6 +84,8 @@ Solution TrieformProverK::prove(literal_set assumptions) {
   Solution solution = prover->solve(assumptions);
 
   if (!solution.satisfiable) {
+      cout << "Learning clause" << endl;
+    prover->reduce_conflict(solution.conflict);
     updateSolutionMemo(assumptionsBitset, solution);
     return solution;
   }

@@ -55,6 +55,7 @@ public:
   modal_names_map prepareSAT(FormulaTriple clauses,
                              name_set extra = name_set());
   Solution solve(const literal_set &assumptions = literal_set());
+  void reduce_conflict(literal_set& conflict);
   void addClause(literal_set clause);
 
   void printModel();
