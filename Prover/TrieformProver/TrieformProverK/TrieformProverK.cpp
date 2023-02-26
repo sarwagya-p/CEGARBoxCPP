@@ -84,6 +84,7 @@ Solution TrieformProverK::prove(literal_set assumptions) {
   Solution solution = prover->solve(assumptions);
 
   if (!solution.satisfiable) {
+    prover->reduce_conflict(solution.conflict);
     updateSolutionMemo(assumptionsBitset, solution);
     return solution;
   }

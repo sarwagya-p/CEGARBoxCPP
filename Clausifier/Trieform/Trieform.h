@@ -9,6 +9,7 @@
 #include "../../Formula/Formula/Formula.h"
 #include "../../Formula/Or/Or.h"
 #include "../../Prover/MinisatProver/MinisatProver.h"
+#include "../../Prover/IpasirProver/IpasirProver.h"
 #include "../Cache/Cache.h"
 #include "../FormulaTriple/FormulaTriple.h"
 #include <climits>
@@ -80,7 +81,7 @@ protected:
   trie_map subtrieMap;
   unordered_set<int> futureModalities;
 
-  shared_ptr<Prover> prover = shared_ptr<Prover>(new MinisatProver());
+  shared_ptr<Prover> prover = shared_ptr<Prover>(new IpasirProver());
 
   vector<int> modality;
 
