@@ -135,6 +135,7 @@ public:
   unordered_set<int> getFutureModalities();
 
   void preprocessTense();
+  void doResiduation();
 };
 
 #endif
