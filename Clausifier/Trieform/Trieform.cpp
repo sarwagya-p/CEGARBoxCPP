@@ -57,12 +57,33 @@ void Trieform::propagateClauses(const shared_ptr<Formula> &formula) {
 
   case FBox: {
     Box *b = dynamic_cast<Box *>(formula.get());
-    shared_ptr<Trieform> subtrie = getSubtrieOrEmpty(b->getModality());
-    for (int i = 1; i < b->getPower(); i++) {
-      subtrie = subtrie->getSubtrieOrEmpty(b->getModality());
+    if (!stringModalContexts) {
+        shared_ptr<Trieform> subtrie = getSubtrieOrEmpty(b->getModality());
+        for (int i = 1; i < b->getPower(); i++) {
+          subtrie = subtrie->getSubtrieOrEmpty(b->getModality());
+        }
+        subtrie->propagateClauses(b->getSubformula());
+    } else {
+    if (b->getPower() == 1 && b->getSubformula()->isPrimitive()) {
+      clauses.addBoxClause(b->getModality(), True::create(),
+                               b->getSubformula());
+      ensureSubtrieExistence(b->getModality());
+    } else {
+      shared_ptr<Formula> boxReduced = b->constructBoxReduced();
+      vector<int> newModality = constructNewModality(b->getModality());
+
+      shared_ptr<Formula> repVariable;
+      if (!cache.contains(boxReduced, newModality)) {
+        repVariable = cache.createVariableFor(boxReduced, newModality);
+        getSubtrieOrEmpty(b->getModality())
+            ->sequenceClausify(boxReduced, repVariable);
+      } else {
+        repVariable =
+            cache.getVariableRepresenting(boxReduced, newModality);
+      }
+      clauses.addBoxClause(b->getModality(), True::create(), repVariable);
     }
-    subtrie->propagateClauses(b->getSubformula());
-  } break;
+  }} break;
 
   case FDiamond: {
     Diamond *d = dynamic_cast<Diamond *>(formula.get());
@@ -328,7 +349,7 @@ shared_ptr<Trieform> Trieform::getSubtrieOrEmpty(int subModality) {
   futureModalities.insert(subModality);
 
   vector<int> newModality = constructNewModality(subModality);
-
+    
   shared_ptr<Trieform> subtrie = shared_ptr<Trieform>(create(newModality));
   subtrieMap[subModality] = subtrie;
 

@@ -73,7 +73,6 @@ protected:
                               modal_lit_implication &modalLits,
                               modal_lit_implication &modalFromRight);
 
-  Literal toLiteral(shared_ptr<Formula> formula);
 
   virtual void prepareFalse() = 0;
   virtual void prepareExtras(name_set extra) = 0;
@@ -88,6 +87,8 @@ protected:
 public:
   Prover();
   ~Prover();
+
+  Literal toLiteral(shared_ptr<Formula> formula);
 
   string getPrimitiveName(shared_ptr<Formula> formula);
 

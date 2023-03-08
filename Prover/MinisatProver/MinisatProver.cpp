@@ -64,6 +64,7 @@ void MinisatProver::prepareModalClauses(modal_clause_set modal_clauses,
                           Minisat::lbool((uint8_t)1));
     }
     newExtra[clause.modality].insert(getPrimitiveName(clause.right));
+
     createModalImplication(clause.modality, toLiteral(clause.left),
                            toLiteral(clause.right), modalLits, modalFromRight);
   }

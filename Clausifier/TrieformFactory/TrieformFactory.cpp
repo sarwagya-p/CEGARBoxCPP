@@ -3,6 +3,13 @@
 shared_ptr<Trieform>
 TrieformFactory::makeTrie(const shared_ptr<Formula> &formula,
                           SolverConstraints constraints) {
+  if (constraints.tense) {
+    // Solve $root -> formula
+    formula_set orSet;
+    orSet.insert(Not::create(Atom::create("$root")));
+    orSet.insert(formula);
+    return makeTrieKt(Or::create(orSet));
+  }
   if ((constraints.reflexive && constraints.euclidean) ||
       (constraints.symmetric && constraints.euclidean) ||
       (constraints.reflexive && constraints.symmetric &&

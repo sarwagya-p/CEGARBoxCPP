@@ -83,6 +83,9 @@ protected:
   shared_ptr<Prover> prover = shared_ptr<Prover>(new MinisatProver());
 
   vector<int> modality;
+  
+  // Store as [1][1] b or (T -> [1] a) & [1] (a -> [1] b)
+  bool stringModalContexts = false;
 
 public:
   Trieform();
@@ -112,16 +115,16 @@ public:
   void removeSubtrie(int subModality);
 
   void reduceClauses();
-  void removeTrueAndFalse();
+  virtual void removeTrueAndFalse();
 
-  string toString();
+  virtual string toString();
 
   static Cache &getCache();
   const FormulaTriple &getClauses();
   shared_ptr<Prover> &getProver();
   shared_ptr<Trieform> getParent();
 
-  bool isSatisfiable();
+  virtual bool isSatisfiable();
 
   virtual Solution prove(literal_set assumptions = literal_set()) = 0;
   virtual void preprocess() = 0;
