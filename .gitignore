@@ -11,3 +11,5 @@
 .vscode
 main
 .cache
+callgrind*
+.ccls

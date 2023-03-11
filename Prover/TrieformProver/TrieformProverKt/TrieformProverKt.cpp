@@ -72,6 +72,7 @@ void TrieformProverKt::getStats() {
 }
 
 shared_ptr<TrieformProverKt> TrieformProverKt::convertToGrid(vector<int>& modalContext) {
+    cout << "Searching for MC: " << modalContext[1] << endl;
     if (all_trieforms.find(modalContext) == all_trieforms.end()) {
         all_trieforms[modalContext] = shared_ptr<TrieformProverKt>(new TrieformProverKt);
     }     
@@ -100,6 +101,7 @@ void TrieformProverKt::preprocess() {
 
 shared_ptr<TrieformProverKt> TrieformProverKt::createGridTrie() {
   getStats();
+  if (numRelations == -1) numRelations = 0;
   vector<int> modal_context (numRelations+1);
   auto replacement = convertToGrid(modal_context);
   replacement->numRelations = numRelations;
@@ -114,6 +116,9 @@ bool TrieformProverKt::isSatisfiable() {
 }
 
 Solution TrieformProverKt::prove(literal_set assumptions) {
+  // cout << "Attempting to prove: " << endl;
+  //for (auto x : assumptions) {cout << x.getName() << " ";}
+  //cout << endl;
   // Check solution memo
   shared_ptr<Bitset> assumptionsBitset =
       convertAssumptionsToBitset(assumptions);
@@ -124,6 +129,7 @@ Solution TrieformProverKt::prove(literal_set assumptions) {
   }
 
   if (isInHistory(history, assumptionsBitset)) {
+      cout << "Using history" << endl;
     return {true, literal_set()};
   }
 
@@ -325,26 +331,31 @@ void TrieformProverKt::prepareSAT(name_set extra_unused) {
             extra.insert("$root");
         }
 
-        for (int jump : {-1, 1}) for (int relation = 1; relation <= numRelations; ++relation) {
-            modalContext[relation] += jump;
-            
-            if (all_trieforms.find(modalContext) == all_trieforms.end()) continue;
-
-            auto ancestorTrie = all_trieforms[modalContext];
-            for (ModalClause clause : ancestorTrie->getClauses().getBoxClauses()) {
-                if (clause.modality == -jump) {
-                    extra.insert(ancestorTrie->getProver()->getPrimitiveName(clause.right));
+         for (int relation = 1; relation <= numRelations; ++relation) {
+            for (int jump : {-1, 1}){
+                modalContext[relation] += jump;
+                
+                if (all_trieforms.find(modalContext) != all_trieforms.end()) {
+                    auto ancestorTrie = all_trieforms[modalContext];
+                    for (ModalClause clause : ancestorTrie->getClauses().getBoxClauses()) {
+                        if (clause.modality == -jump) {
+                            extra.insert(ancestorTrie->getProver()->getPrimitiveName(clause.right));
+                        }
+                    }
+                    for (ModalClause clause : ancestorTrie->getClauses().getDiamondClauses()) {
+                        if (clause.modality == -jump) {
+                            extra.insert(ancestorTrie->getProver()->getPrimitiveName(clause.right));
+                        }
+                    }
                 }
-            }
-            for (ModalClause clause : ancestorTrie->getClauses().getDiamondClauses()) {
-                if (clause.modality == -jump) {
-                    extra.insert(ancestorTrie->getProver()->getPrimitiveName(clause.right));
-                }
-            }
-            
-            modalContext[relation] -= jump;
 
-        }
+                
+                modalContext[relation] -= jump;
+
+            }
+
+
+         }
           for (string name : extra) {
                 modTrie.second->idMap[name] = modTrie.second->assumptionsSize++;
           }
