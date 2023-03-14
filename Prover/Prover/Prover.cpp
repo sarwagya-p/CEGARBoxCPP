@@ -89,6 +89,45 @@ literal_set Prover::getNotAllDiamondLeft(int modality) {
   return notAllDiamondLeft;
 }
 
+
+literal_set Prover::rememberTriggeredImplications() {
+    // Required for Tense where we might reuse SAT solvers inbetween calculating the conflict
+    literal_set triggeredImplications;
+    for (auto x : boxLits) {
+        for (auto literalImplication : x.second) {
+            if (modelSatisfiesAssump(literalImplication.first)) {
+                triggeredImplications.insert(literalImplication.first);
+            }
+        }
+    }
+    for (auto x : diamondLits) {
+        for (auto literalImplication : x.second) {
+            if (modelSatisfiesAssump(literalImplication.first)) {
+                triggeredImplications.insert(literalImplication.first);
+            }
+        }
+    }
+    return triggeredImplications;
+}
+
+vector<literal_set> Prover::getNotProblemBoxClauses(int modality,
+                                                    literal_set conflicts, literal_set& triggeredImplications) {
+  vector<literal_set> notProblemBoxClauses;
+  for (Literal conflict : conflicts) {
+    literal_set problemLeft;
+    for (auto literalImplication : boxLits[modality]) {
+      if ((triggeredImplications.find(literalImplication.first) != triggeredImplications.end()) &&
+          (literalImplication.second.find(conflict) !=
+              literalImplication.second.end())) {
+        problemLeft.insert(~literalImplication.first);
+      }
+    }
+    if (problemLeft.size() > 0) {
+      notProblemBoxClauses.push_back(problemLeft);
+    }
+  }
+  return notProblemBoxClauses;
+};
 vector<literal_set> Prover::getNotProblemBoxClauses(int modality,
                                                     literal_set conflicts) {
   vector<literal_set> notProblemBoxClauses;
@@ -108,6 +147,17 @@ vector<literal_set> Prover::getNotProblemBoxClauses(int modality,
   return notProblemBoxClauses;
 };
 
+literal_set Prover::getNotDiamondLeft(int modality, Literal diamond, literal_set& triggeredImplications) {
+  literal_set notDiamondLeft;
+  for (auto literalImplication : diamondLits[modality]) {
+    if ((triggeredImplications.find(literalImplication.first) != triggeredImplications.end()) &&
+        (literalImplication.second.find(diamond) !=
+            literalImplication.second.end())) {
+      notDiamondLeft.insert(~literalImplication.first);
+    }
+  }
+  return notDiamondLeft;
+}
 literal_set Prover::getNotDiamondLeft(int modality, Literal diamond) {
   literal_set notDiamondLeft;
   for (auto literalImplication : diamondLits[modality]) {
@@ -127,6 +177,18 @@ diamond_queue Prover::getPrioritisedTriggeredDiamonds(int modality) {
   diamond_queue prioritisedTriggeredDiamonds;
   literal_set triggeredBoxes = getTriggeredBoxClauses()[modality];
   literal_set triggeredDiamonds = getTriggeredDiamondClauses()[modality];
+  for (Literal diamond : triggeredDiamonds) {
+    if (triggeredBoxes.find(diamond) == triggeredBoxes.end()) {
+      prioritisedTriggeredDiamonds.push({diamond, lastFail[diamond]});
+    }
+  }
+  return prioritisedTriggeredDiamonds;
+}
+
+
+diamond_queue Prover::getPrioritisedTriggeredDiamonds(int modality, literal_set& triggeredBoxes, literal_set& triggeredDiamonds) {
+  // Note MUST avoid box clauses
+  diamond_queue prioritisedTriggeredDiamonds;
   for (Literal diamond : triggeredDiamonds) {
     if (triggeredBoxes.find(diamond) == triggeredBoxes.end()) {
       prioritisedTriggeredDiamonds.push({diamond, lastFail[diamond]});

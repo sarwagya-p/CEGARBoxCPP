@@ -33,6 +33,9 @@ public:
   void insertSat(const shared_ptr<Bitset> &assumptions);
   void insertUnsat(const shared_ptr<Bitset> &assumptions,
                    const literal_set &unsatCore);
+    
+  void merge(LocalSolutionMemo &other);
+  void clear();
 };
 
 #endif

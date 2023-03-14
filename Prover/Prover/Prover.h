@@ -99,16 +99,24 @@ public:
   modal_literal_map getTriggeredDiamondClauses();
 
   literal_set getNotDiamondLeft(int modality, Literal diamond);
+  literal_set getNotDiamondLeft(int modality, Literal diamond, literal_set& triggeredImplications);
   literal_set getNotAllDiamondLeft(int modality);
   vector<literal_set> getNotProblemBoxClauses(int modality,
                                               literal_set conflicts);
+  vector<literal_set> getNotProblemBoxClauses(int modality,
+                                              literal_set conflicts,
+                                              literal_set& triggeredImplications);
 
   literal_set getNotBoxTriggerers(Literal right, int modality);
   literal_set getNotDiamondTriggerers(Literal right, int modality);
+  literal_set rememberTriggeredImplications();
 
   diamond_queue getPrioritisedTriggeredDiamonds(
       int modality); // NOTE ENSURE THIS AVOIDS BOXES
 
+  diamond_queue getPrioritisedTriggeredDiamonds(
+      int modality, literal_set& triggeredBoxes, literal_set& triggeredDiamonds);
+  // NOTE ENSURE THIS AVOIDS BOXES
   void calculateTriggeredModalClauses();
 
   void updateLastFail(Literal diamondRight);
