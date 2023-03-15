@@ -110,6 +110,7 @@ public:
   literal_set getNotBoxTriggerers(Literal right, int modality);
   literal_set getNotDiamondTriggerers(Literal right, int modality);
   literal_set rememberTriggeredImplications();
+  virtual literal_set getModel() = 0;
 
   diamond_queue getPrioritisedTriggeredDiamonds(
       int modality); // NOTE ENSURE THIS AVOIDS BOXES

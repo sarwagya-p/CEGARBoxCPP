@@ -18,10 +18,11 @@ protected:
     vector<int> modalContext;
   int numRelations = -1;
   unsigned int assumptionsSize = 0;
+  vector<literal_set> pastModels;
 
   // For restarting
-  int enteredTime = -1;
     bool shouldRestart = false;
+  unsigned int restartUntil = 0;
 
   LocalSolutionMemo localMemo;
   LocalSolutionMemo probationMemo;
@@ -29,9 +30,11 @@ protected:
   shared_ptr<Bitset> convertAssumptionsToBitset(literal_set literals);
   void updateSolutionMemo(const shared_ptr<Bitset> &assumptions,
                           Solution solution);
+  unsigned int checkClauseAgainstPastModels(literal_set clause);
   
 int isInHistory(vector<shared_ptr<Bitset>> history, shared_ptr<Bitset> bitset);
 vector<shared_ptr<Bitset>> history;
+shared_ptr<Bitset> fleshedOutAssumptionBitset(literal_set model);
 public:
   TrieformProverKt();
   ~TrieformProverKt();

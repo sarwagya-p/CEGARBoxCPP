@@ -153,3 +153,14 @@ void MinisatProver::printModel() {
 int MinisatProver::getLiteralId(Literal literal) {
   return variableMap[literal.getName()];
 }
+
+literal_set MinisatProver::getModel() {
+    literal_set model;
+    for (auto varName : nameMap) {
+        model.insert(
+            Literal(varName.second, Minisat::toInt(solver->modelValue(varName.first)))
+        );
+    }
+    return model;
+                            
+}

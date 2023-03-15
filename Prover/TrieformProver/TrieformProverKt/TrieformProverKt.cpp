@@ -54,6 +54,16 @@ TrieformProverKt::convertAssumptionsToBitset(literal_set literals) {
     return bitset;
 }
 
+shared_ptr<Bitset>
+TrieformProverKt::fleshedOutAssumptionBitset(literal_set model) {
+    shared_ptr<Bitset> bitset =
+        shared_ptr<Bitset>(new Bitset(2 * assumptionsSize)); 
+    for (auto x : idMap) {
+        Literal lit = Literal{x.first, 0};
+        bitset->set(2 * x.second + (model.find(lit) != model.end()));
+    }
+    return bitset;
+}
 void TrieformProverKt::updateSolutionMemo(const shared_ptr<Bitset> &assumptions,
         Solution solution) {
     if (solution.satisfiable) {
@@ -118,9 +128,11 @@ bool TrieformProverKt::isSatisfiable() {
 
 Solution TrieformProverKt::prove(literal_set assumptions) {
     //cout << endl;
-    //cout << "Prove frame" << endl;
-    //cout << "Attempting to prove: " << endl;
-    //for (auto x : assumptions) {cout << x.toString() << " ";}
+    //cout << endl << "SIZES: " << pastModels.size() << " " << history.size() << endl;
+    //if (pastModels.size() != history.size()) {
+    //    cout << "WTF" << endl;
+    //}
+    
     for (auto x : all_trieforms) {
         if (this == x.second.get()) {
             //cout << "At sum: " << x.first[1] << endl;
@@ -170,7 +182,9 @@ Solution TrieformProverKt::prove(literal_set assumptions) {
         //cout << "Is UNSAT" << endl;
         return solution;
     }
-
+    literal_set currentModel = prover->getModel();
+    //cout << "ACTUAL" << endl;
+    assumptionsBitset = fleshedOutAssumptionBitset(currentModel);
     prover->calculateTriggeredDiamondsClauses();
     modal_literal_map triggeredDiamonds = prover->getTriggeredDiamondClauses();
 
@@ -188,6 +202,7 @@ Solution TrieformProverKt::prove(literal_set assumptions) {
     //cout << endl;
     prover->calculateTriggeredBoxClauses();
     modal_literal_map triggeredBoxes = prover->getTriggeredBoxClauses();
+        
 
     for (auto modalitySubtrie : subtrieMap) {
         // Handle each modality
@@ -202,18 +217,19 @@ Solution TrieformProverKt::prove(literal_set assumptions) {
             // The fired diamonds are a subset of the boxes - we thus can create one
             // world.
             //cout << "Create 1" << endl;
-
+            
+            pastModels.push_back(currentModel);
             history.push_back(assumptionsBitset);
             Solution childSolution =
                 modalitySubtrie.second.get()->prove(triggeredBoxes[modalitySubtrie.first]);
             history.pop_back();
+            pastModels.pop_back();
 
             if (childSolution.shouldRestart) {
                 //cout << "Backtracking time" << endl;
-                if (shouldRestart && history.empty()) {
+                if (restartUntil == history.size()) {
                     // restart current node
                     //cout << "Restarting current node" << history.size() << endl;
-                    shouldRestart = false;
                     return prove(assumptions);
                 } else {
                     // Keep backtracking until we should restart
@@ -238,6 +254,8 @@ Solution TrieformProverKt::prove(literal_set assumptions) {
                 //for (auto x :  learnClause) cout << x.toString() << " ";
                 //cout << endl;
                 prover->addClause(learnClause);
+                restartUntil = history.size();
+                restartUntil = min(restartUntil, checkClauseAgainstPastModels(learnClause));
             }
         } else {
             bool diamondFailed = false;
@@ -257,18 +275,19 @@ Solution TrieformProverKt::prove(literal_set assumptions) {
                 childAssumptions.insert(diamond);
 
 
+                pastModels.push_back(currentModel);
                 history.push_back(assumptionsBitset);
                 // Run the solver for the next level
                 Solution childSolution =
                     modalitySubtrie.second.get()->prove(childAssumptions);
                 history.pop_back();
+                pastModels.pop_back();
 
                 if (childSolution.shouldRestart) {
                     //cout << "Backtracking time" << endl;
-                    if (shouldRestart && history.empty()) {
+                    if (restartUntil == history.size()) {
                         // restart current node
-                        //cout << "Restarting current node" << history.size()  << endl;
-                        shouldRestart = false;
+                        //cout << "Restarting current node" << history.size() << endl;
                         return prove(assumptions);
                     } else {
                         // Keep backtracking until we should restart
@@ -280,7 +299,7 @@ Solution TrieformProverKt::prove(literal_set assumptions) {
                 if (childSolution.satisfiable) {
                     continue;
                 }
-                
+
                 diamondFailed = true;
 
                 // Otherwise there must have been a conflict
@@ -307,6 +326,8 @@ Solution TrieformProverKt::prove(literal_set assumptions) {
                         //for (auto x :  learnClause) cout << x.toString() << " ";
                         //cout << endl;
                         prover->addClause(learnClause);
+                        restartUntil = history.size();
+                        restartUntil = min(restartUntil, checkClauseAgainstPastModels(learnClause));
                     }
 
                     // Find new result
@@ -321,18 +342,17 @@ Solution TrieformProverKt::prove(literal_set assumptions) {
                         //for (auto x :  learnClause) cout << x.toString() << " ";
                         //cout << endl;
                         prover->addClause(learnClause);
+                        restartUntil = history.size();
+                        restartUntil = min(restartUntil, checkClauseAgainstPastModels(learnClause));
                     }
                 }
             }
             if (!diamondFailed) continue;
         }
 
-        //cout << "Restarting" << endl;
-        if (history.empty()) {
+        if (history.size() == restartUntil) {
             return prove(assumptions);
-        }  else {
-            //cout << "Must restart at: " << modalContext[1] << endl;
-            shouldRestart = true;
+        } else {
             return {true, literal_set(), true};
         }
     }
@@ -468,4 +488,19 @@ void TrieformProverKt::prepareSAT(name_set extra_unused) {
         }
         modTrie.second->prover->prepareSAT(modTrie.second->clauses, extra);
     }
+}
+
+unsigned int TrieformProverKt::checkClauseAgainstPastModels(literal_set clause) {
+    for (unsigned int i = 0; i < pastModels.size(); i++) {
+        bool contains = true;
+        for (Literal x : clause) {
+            if (pastModels[i].find(x) == pastModels[i].end()) {
+                contains = false;
+                break;
+            }
+
+        }
+        if (contains) return i;
+    }
+    return pastModels.size();
 }
