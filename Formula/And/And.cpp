@@ -143,6 +143,7 @@ shared_ptr<Formula> And::modalFlatten() {
 
 shared_ptr<Formula> And::create(formula_set andSet) {
   shared_ptr<Formula> falseFormula = False::create();
+    
   if (andSet.count(falseFormula)) {
     return falseFormula;
   }

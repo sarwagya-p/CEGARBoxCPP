@@ -3,6 +3,7 @@
 
 #include "../../Bitset/Bitset.h"
 #include "../Literal/Literal.h"
+#include "../ProbationSolutionMemo/ProbationSolutionMemo.h"
 #include <memory>
 #include <vector>
 
@@ -34,8 +35,6 @@ public:
   void insertUnsat(const shared_ptr<Bitset> &assumptions,
                    const literal_set &unsatCore);
     
-  void merge(LocalSolutionMemo &other);
-  void clear();
 };
 
 #endif

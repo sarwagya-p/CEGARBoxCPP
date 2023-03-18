@@ -1,7 +1,7 @@
 #include "TrieformProverKt.h"
 
 map<vector<int>, shared_ptr<TrieformProverKt>> TrieformProverKt::all_trieforms;
-pair<int, set<vector<int>>> TrieformProverKt::probationMemoTracker = {-1, {}};
+ProbationSolutionMemo TrieformProverKt::probationMemo;
 
 shared_ptr<Trieform>
 TrieformFactory::makeTrieKt(const shared_ptr<Formula> &formula,
@@ -60,7 +60,7 @@ TrieformProverKt::fleshedOutAssumptionBitset(literal_set model) {
         shared_ptr<Bitset>(new Bitset(2 * assumptionsSize)); 
     for (auto x : idMap) {
         Literal lit = Literal{x.first, 0};
-        bitset->set(2 * x.second + (model.find(lit) != model.end()));
+        bitset->set(2 * x.second + (model.find(lit) == model.end()));
     }
     return bitset;
 }
@@ -82,21 +82,21 @@ void TrieformProverKt::getStats() {
     }
 }
 
-shared_ptr<TrieformProverKt> TrieformProverKt::convertToGrid(vector<int>& modalContext) {
-    if (all_trieforms.find(modalContext) == all_trieforms.end()) {
-        all_trieforms[modalContext] = shared_ptr<TrieformProverKt>(new TrieformProverKt);
-        all_trieforms[modalContext]->modalContext = modalContext;
+shared_ptr<TrieformProverKt> TrieformProverKt::convertToGrid(vector<int>& modal_context) {
+    if (all_trieforms.find(modal_context) == all_trieforms.end()) {
+        all_trieforms[modal_context] = shared_ptr<TrieformProverKt>(new TrieformProverKt);
+        all_trieforms[modal_context]->modalContext = make_shared<vector<int>>(modal_context);
     }     
 
-    shared_ptr<TrieformProverKt> gridTrieform = all_trieforms[modalContext];
+    shared_ptr<TrieformProverKt> gridTrieform = all_trieforms[modal_context];
 
     gridTrieform->clauses.extendClauses(getClauses());
 
     for (auto modalSubtrie: subtrieMap) {
 
-        modalContext[abs(modalSubtrie.first)] += (modalSubtrie.first > 0) ? 1 : -1;
-        shared_ptr<TrieformProverKt> gridTrieformSuccessor = dynamic_cast<TrieformProverKt*>(modalSubtrie.second.get())->convertToGrid(modalContext); 
-        modalContext[abs(modalSubtrie.first)] -= (modalSubtrie.first > 0) ? 1 : -1;
+        modal_context[abs(modalSubtrie.first)] += (modalSubtrie.first > 0) ? 1 : -1;
+        shared_ptr<TrieformProverKt> gridTrieformSuccessor = dynamic_cast<TrieformProverKt*>(modalSubtrie.second.get())->convertToGrid(modal_context); 
+        modal_context[abs(modalSubtrie.first)] -= (modalSubtrie.first > 0) ? 1 : -1;
 
         gridTrieform->subtrieMap[modalSubtrie.first] = gridTrieformSuccessor;
         gridTrieformSuccessor->subtrieMap[-modalSubtrie.first] = gridTrieform;
@@ -123,45 +123,61 @@ shared_ptr<TrieformProverKt> TrieformProverKt::createGridTrie() {
 bool TrieformProverKt::isSatisfiable() {
     literal_set assumps;
     assumps.insert(Literal("$root", true));
-    return prove(assumps).satisfiable;
+    return prove(0, assumps).satisfiable;
 }
 
 Solution TrieformProverKt::prove(literal_set assumptions) {
-    //cout << endl;
-    //cout << endl << "SIZES: " << pastModels.size() << " " << history.size() << endl;
+    return prove(0, assumptions);
+}
+
+Solution TrieformProverKt::prove(int depth, literal_set assumptions) {
+    ////cout << "Depth :" << depth << " " << endl;
+    ////cout << "Depth :" << depth << " " << endl << "SIZES: " << pastModels.size() << " " << history.size() << endl;
     //if (pastModels.size() != history.size()) {
-    //    cout << "WTF" << endl;
+    //    //cout << "Depth :" << depth << " " << "WTF" << endl;
     //}
+    ProbationSolutionMemoState probationState = probationMemo.getState();
+
+    //cout << endl;
+    //cout << "Depth :" << depth << " " << "PROVE CONTEXT\n" << endl;
+    for  (auto x : assumptions) {
+        //cout <<  x.toString() << " ";
+    }
+    //cout << endl;
     
     for (auto x : all_trieforms) {
         if (this == x.second.get()) {
-            //cout << "At sum: " << x.first[1] << endl;
+            //cout << "Depth :" << depth << " " << "At sum: " << x.first[1] << endl;
         }
     }
-    //cout << "History size: " << history.size() << endl;
-    //cout << "Probation: " << probationMemoTracker.first  << " " << probationMemoTracker.second.size() << endl;
-    ////cout << endl;
+    //cout << "Depth :" << depth << " " << "At depth: " << depth << endl;
+    //cout << "Depth :" << depth << " " << "History size and depths: " << history.size() << endl;
+    for (auto x : history) {
+        //cout <<  x.first << " ";
+    }
+    //cout << endl;
+
     // Check solution memo
     shared_ptr<Bitset> assumptionsBitset =
         convertAssumptionsToBitset(assumptions);
     LocalSolutionMemoResult memoResult = localMemo.getFromMemo(assumptionsBitset);
     if (memoResult.inSatMemo) {
-        //cout << "sat from actual memo" << endl;
+        //cout << "Depth :" << depth << " " << "sat from actual memo" << endl;
         return memoResult.result;
+    }
+    
+    ProbationSolutionMemoResult probationMemoResult = probationMemo.getFromMemo(modalContext, assumptionsBitset);
+
+    if (probationMemoResult.inSatMemo) {
+        //cout << "Depth :" << depth << " " << "sat from probation: " << probationMemo.minimalRoot << endl;
+        return probationMemoResult.result;
     }
 
-    memoResult = probationMemo.getFromMemo(assumptionsBitset);
-    if (memoResult.inSatMemo) {
-        //cout << "sat from probation" << endl;
-        return memoResult.result;
-    }
 
     int inHistory = isInHistory(history, assumptionsBitset);
     if (inHistory != -1) {
-        if (probationMemoTracker.first == -1) probationMemoTracker.first = inHistory; 
-        else probationMemoTracker.first = min(probationMemoTracker.first, inHistory);
-        probationMemoTracker.second.insert(modalContext);
-        //cout << "Using history" << endl;
+        probationMemo.updateMinimalRoot(inHistory);
+        //cout << "Depth :" << depth << " " << "Using history: " << inHistory << endl;
         return {true, literal_set()};
     }
 
@@ -171,66 +187,79 @@ Solution TrieformProverKt::prove(literal_set assumptions) {
     if (!solution.satisfiable) {
         //updateSolutionMemo(assumptionsBitset, solution);
         // Clear probationCache
-        for (auto x : probationMemoTracker.second) {
-            auto trieform = all_trieforms[x];
-            trieform->probationMemo.clear();
+        probationMemo.setState(probationState);
+
+        /*
+        if (depth == probationMemoTracker.first) {
+            for (auto x : probationMemoTracker.second) {
+                auto trieform = all_trieforms[x];
+                trieform->probationMemo.clear();
+            }
+            probationMemoTracker.first = -1;
+            probationMemoTracker.second.clear();
         }
-        probationMemoTracker.first = -1;
-        probationMemoTracker.second.clear();
-
-
-        //cout << "Is UNSAT" << endl;
+        */
+        //cout << "Depth :" << depth << " " << "Is UNSAT" << endl;
         return solution;
     }
     literal_set currentModel = prover->getModel();
-    //cout << "ACTUAL" << endl;
+    //cout << "Depth :" << depth << " " << "Current model: ";
+    for (auto x : currentModel) {
+        //cout << x.toString() << " ";
+    }
+    //cout << "Depth :" << depth << " " << endl;
+    ////cout << "Depth :" << depth << " " << "ACTUAL" << endl;
     assumptionsBitset = fleshedOutAssumptionBitset(currentModel);
     prover->calculateTriggeredDiamondsClauses();
     modal_literal_map triggeredDiamonds = prover->getTriggeredDiamondClauses();
 
-    // If there are no fired diamonds, it is satisfiable
-    if (triggeredDiamonds.size() == 0) {
-        updateSolutionMemo(assumptionsBitset, solution);
-        return solution;
-    }
+    // Only bother if the number of fired diamonds is non zero 
+    if (triggeredDiamonds.size() != 0) {
+        ////cout << "Depth :" << depth << " " << "Proving IS SAT (by no diamonds): " << endl;
+   
 
     literal_set triggeredImplications = prover->rememberTriggeredImplications();
-    //cout << "TRIG IMP: ";
+    //cout << "Depth :" << depth << " " << "TRIG IMP: ";
     for (auto x : triggeredImplications) {
-        //cout << x.toString() << " ";
+        //cout << "Depth :" << depth << " " << x.toString() << " ";
     }
-    //cout << endl;
+    //cout << "Depth :" << depth << " " << endl;
     prover->calculateTriggeredBoxClauses();
     modal_literal_map triggeredBoxes = prover->getTriggeredBoxClauses();
         
 
     for (auto modalitySubtrie : subtrieMap) {
         // Handle each modality
-        //cout << "Checking modality: " << modalitySubtrie.first << endl;
+        ////cout << "Depth :" << depth << " " << "Checking modality: " << modalitySubtrie.first << endl;
         if (triggeredDiamonds[modalitySubtrie.first].size() == 0) {
             // If there are no triggered diamonds of a certain modality we can skip it
-            //cout << "Skipping: " << endl;
+            ////cout << "Depth :" << depth << " " << "Skipping: " << endl;
             continue;
         }
         if (isSubsetOf(triggeredDiamonds[modalitySubtrie.first],
                     triggeredBoxes[modalitySubtrie.first])) {
             // The fired diamonds are a subset of the boxes - we thus can create one
             // world.
-            //cout << "Create 1" << endl;
+            ////cout << "Depth :" << depth << " " << "Create 1" << endl;
             
             pastModels.push_back(currentModel);
-            history.push_back(assumptionsBitset);
+            history.push_back({depth, assumptionsBitset});
             Solution childSolution =
-                modalitySubtrie.second.get()->prove(triggeredBoxes[modalitySubtrie.first]);
+                dynamic_cast<TrieformProverKt*>(modalitySubtrie.second.get())->prove(depth+1, triggeredBoxes[modalitySubtrie.first]);
             history.pop_back();
             pastModels.pop_back();
 
             if (childSolution.shouldRestart) {
-                //cout << "Backtracking time" << endl;
-                if (restartUntil == history.size()) {
+                //cout << "Depth :" << depth << " " << "Backtracking time" << endl;
+                    probationMemo.setState(probationState);
+
+                if (shouldRestart && restartUntil == history.size()) {
                     // restart current node
-                    //cout << "Restarting current node" << history.size() << endl;
-                    return prove(assumptions);
+                    //cout << "Depth :" << depth << " " << "Restarting current node" << history.size() << endl;
+                    shouldRestart = false;
+
+
+                    return prove(depth, assumptions);
                 } else {
                     // Keep backtracking until we should restart
                     return childSolution;
@@ -250,16 +279,16 @@ Solution TrieformProverKt::prove(literal_set assumptions) {
                     prover->getNotAllDiamondLeft(modalitySubtrie.first));
             // Add ~leftDiamond=>\/~leftProbemBox
             for (literal_set learnClause : generateClauses(badImplications)) {
-                //cout << "Learning clause 1: ";
-                //for (auto x :  learnClause) cout << x.toString() << " ";
-                //cout << endl;
+                //cout << "Depth :" << depth << " " << "Learning clause 1: ";
+                for (auto x :  learnClause) //cout << "Depth :" << depth << " " << x.toString() << " ";
+                //cout << "Depth :" << depth << " " << endl;
                 prover->addClause(learnClause);
                 restartUntil = history.size();
                 restartUntil = min(restartUntil, checkClauseAgainstPastModels(learnClause));
             }
         } else {
             bool diamondFailed = false;
-            //cout << "Create 2" << endl;
+            ////cout << "Depth :" << depth << " " << "Create 2" << endl;
             // The fired diamonds are not a subset of the fired boxes, we need to
             // create one world for each diamond clause
             diamond_queue diamondPriority =
@@ -269,28 +298,32 @@ Solution TrieformProverKt::prove(literal_set assumptions) {
                 // Create a world for each diamond
                 Literal diamond = diamondPriority.top().literal;
                 diamondPriority.pop();
-                //cout << "Checking out child Diamond: " << diamond.toString() << " Remaining: " << diamondPriority.size() << endl;
+                ////cout << "Depth :" << depth << " " << "Checking out child Diamond: " << diamond.toString() << " Remaining: " << diamondPriority.size() << endl;
                 literal_set childAssumptions =
                     literal_set(triggeredBoxes[modalitySubtrie.first]);
                 childAssumptions.insert(diamond);
 
 
                 pastModels.push_back(currentModel);
-                history.push_back(assumptionsBitset);
+                history.push_back({depth, assumptionsBitset});
                 // Run the solver for the next level
                 Solution childSolution =
-                    modalitySubtrie.second.get()->prove(childAssumptions);
+                    dynamic_cast<TrieformProverKt*>(modalitySubtrie.second.get())->prove(depth+1, childAssumptions);
                 history.pop_back();
                 pastModels.pop_back();
 
                 if (childSolution.shouldRestart) {
-                    //cout << "Backtracking time" << endl;
-                    if (restartUntil == history.size()) {
+                    //cout << "Depth :" << depth << " " << "Backtracking time" << endl;
+                    probationMemo.setState(probationState);
+                    if (shouldRestart && restartUntil == history.size()) {
                         // restart current node
-                        //cout << "Restarting current node" << history.size() << endl;
-                        return prove(assumptions);
+                        //cout << "Depth :" << depth << " " << "Restarting current node" << history.size() << endl;
+                        shouldRestart = false;
+                        return prove(depth, assumptions);
                     } else {
                         // Keep backtracking until we should restart
+
+
                         return childSolution;
                     }
                 }
@@ -306,7 +339,7 @@ Solution TrieformProverKt::prove(literal_set assumptions) {
                 vector<literal_set> badImplications = prover->getNotProblemBoxClauses(
                         modalitySubtrie.first, childSolution.conflict, triggeredImplications);
 
-                //cout << "Pure conflict: ";
+                //cout << "Depth :" << depth << " " << "Pure conflict: ";
                 for (auto x : childSolution.conflict) {
                     //cout << x.toString() << " ";
                 }
@@ -322,9 +355,9 @@ Solution TrieformProverKt::prove(literal_set assumptions) {
                             prover->getNotDiamondLeft(modalitySubtrie.first, diamond, triggeredImplications));
 
                     for (literal_set learnClause : generateClauses(badImplications)) {
-                        //cout << "Learning clause 2: ";
-                        //for (auto x :  learnClause) cout << x.toString() << " ";
-                        //cout << endl;
+                        //cout << "Depth :" << depth << " " << "Learning clause 2: ";
+                        for (auto x :  learnClause) //cout << "Depth :" << depth << " " << x.toString() << " ";
+                        //cout << "Depth :" << depth << " " << endl;
                         prover->addClause(learnClause);
                         restartUntil = history.size();
                         restartUntil = min(restartUntil, checkClauseAgainstPastModels(learnClause));
@@ -338,43 +371,62 @@ Solution TrieformProverKt::prove(literal_set assumptions) {
                             prover->getNotAllDiamondLeft(modalitySubtrie.first));
                     // Add ~leftDiamond=>\/~leftProbemBox
                     for (literal_set learnClause : generateClauses(badImplications)) {
-                        //cout << "Learning clause 3: ";
-                        //for (auto x :  learnClause) cout << x.toString() << " ";
-                        //cout << endl;
+                        //cout << "Depth :" << depth << " " << "Learning clause 3: ";
+                        for (auto x :  learnClause) //cout << "Depth :" << depth << " " << x.toString() << " ";
+                        //cout << "Depth :" << depth << " " << endl;
                         prover->addClause(learnClause);
                         restartUntil = history.size();
                         restartUntil = min(restartUntil, checkClauseAgainstPastModels(learnClause));
                     }
                 }
+                break;
             }
+            //cout << "Depth :" << depth << " " << "Diamond failed: " << diamondFailed << endl;
             if (!diamondFailed) continue;
         }
+        
+        probationMemo.setState(probationState);
 
+        //cout << "Depth :" << depth << " " << "BACKTRACK TIME: " << history.size() << " " << restartUntil << endl;
+        if (restartUntil > history.size()) {
+            //cout << "Depth :" << depth << " " << "WTF MAN" << endl;
+        }
         if (history.size() == restartUntil) {
-            return prove(assumptions);
+            return prove(depth, assumptions);
         } else {
+            shouldRestart = true;
             return {true, literal_set(), true};
         }
     }
-    // If we reached here the solution is satisfiable under all modalities
-    //cout << "Is sat" << endl;
-    if (probationMemoTracker.first == -1) {
-        updateSolutionMemo(assumptionsBitset, solution);
-    } else if ((int)history.size() + 1 == probationMemoTracker.first) {
-        // Move probation cache to actual cache
-        for (auto x : probationMemoTracker.second) {
-            auto trieform = all_trieforms[x];
-            trieform->localMemo.merge(trieform->probationMemo);
-            trieform->probationMemo.clear();
-        }
-        probationMemoTracker.first = -1;
-        probationMemoTracker.second.clear();
-    } else if ((int) history.size() + 1 > probationMemoTracker.first) {
-        probationMemoTracker.second.insert(modalContext);
-        probationMemo.insertSat(assumptionsBitset);
-    } else {
-        //cout << "WTFFF SHOULDN'T BE HERE" << endl;
     }
+    // If we reached here the solution is satisfiable under all modalities
+    //cout << "Depth :" << depth << " " << "Is sat, full model:" << endl;
+    for (auto x : currentModel) {
+        //cout << x.toString() << " ";
+    }
+    //cout << "Depth :" << depth << " " << endl;
+
+    
+
+    if (probationMemo.minimalRoot == -1) {
+        //cout << "Depth :" << depth << " " << "Going straight to actual cache" << endl;
+        for (auto x : assumptions) //cout << x.toString() << " ";
+        //cout << endl;
+        updateSolutionMemo(assumptionsBitset, solution);
+    } else if (depth == probationMemo.minimalRoot) {
+        //cout << "Depth :" << depth << " " << "Moving probation cache to actual cache" << endl;
+        // Move probation cache to actual cache
+        for (auto x : probationMemo.getSatSols()) {
+            auto trieform = all_trieforms[*x.first];
+            trieform->localMemo.insertSat(x.second);
+        }
+        probationMemo.setState({-1, 0});
+    } else if (depth > probationMemo.minimalRoot) {
+        probationMemo.insertSat(modalContext, assumptionsBitset);
+    } else {
+        //cout << "Depth :" << depth << " " << probationMemo.minimalRoot << " "  << "WTFFF SHOULDN'T BE HERE" << endl;
+    }
+    //cout << "Depth :" << depth << " " << "Returning solution: " <<  solution.satisfiable << endl;
     return solution;
 }
 
@@ -432,11 +484,11 @@ string TrieformProverKt::toString() {
     return trieString; 
 }
 
-int TrieformProverKt::isInHistory(vector<shared_ptr<Bitset>> history,
+int TrieformProverKt::isInHistory(vector<pair<int, shared_ptr<Bitset>>> history,
         shared_ptr<Bitset> bitset) {
     for (unsigned i = history.size(); i-- > 0; ) {
-        if (history[i]->contains(*bitset))
-            return i;
+        if (history[i].second->contains(*bitset))
+            return history[i].first;
     }
     return -1;
 }
@@ -448,6 +500,7 @@ void TrieformProverKt::removeTrueAndFalse() {
 }
 
 void TrieformProverKt::prepareSAT(name_set extra_unused) {
+    //cout << "Preparing SAT" << endl;
     for (auto modTrie : all_trieforms) {
         vector<string> clauseComponents = modTrie.second->clauses.toStringComponents();
 
@@ -492,15 +545,14 @@ void TrieformProverKt::prepareSAT(name_set extra_unused) {
 
 unsigned int TrieformProverKt::checkClauseAgainstPastModels(literal_set clause) {
     for (unsigned int i = 0; i < pastModels.size(); i++) {
-        bool contains = true;
+        bool contains = false;
         for (Literal x : clause) {
-            if (pastModels[i].find(x) == pastModels[i].end()) {
-                contains = false;
+            if (pastModels[i].find(x) != pastModels[i].end()) {
+                contains = true;
                 break;
             }
-
         }
-        if (contains) return i;
+        if (!contains) return i;
     }
     return pastModels.size();
 }

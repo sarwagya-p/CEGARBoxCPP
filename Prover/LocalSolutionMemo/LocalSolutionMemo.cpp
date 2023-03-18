@@ -37,12 +37,3 @@ void LocalSolutionMemo::insertUnsat(const shared_ptr<Bitset> &assumptions,
   unsatSols.push_back({assumptions, unsatCore});
 }
 
-void LocalSolutionMemo::merge(LocalSolutionMemo &other) {
-    for (auto x : other.satSols) {
-        insertSat(x);
-    }
-    other.satSols.clear();
-}
-void LocalSolutionMemo::clear() {
-    satSols.clear();
-}

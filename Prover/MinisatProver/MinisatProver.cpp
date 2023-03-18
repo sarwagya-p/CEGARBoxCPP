@@ -158,7 +158,7 @@ literal_set MinisatProver::getModel() {
     literal_set model;
     for (auto varName : nameMap) {
         model.insert(
-            Literal(varName.second, Minisat::toInt(solver->modelValue(varName.first)))
+            Literal(varName.second, 1 - Minisat::toInt(solver->modelValue(varName.first)))
         );
     }
     return model;

@@ -5,6 +5,7 @@
 #include "../../../Clausifier/Trieform/Trieform.h"
 #include "../../../Clausifier/TrieformFactory/TrieformFactory.h"
 #include "../../LocalSolutionMemo/LocalSolutionMemo.h"
+#include "../../ProbationSolutionMemo/ProbationSolutionMemo.h"
 #include <memory>
 #include <string>
 #include <unordered_map>
@@ -15,34 +16,34 @@ using namespace std;
 
 class TrieformProverKt : public Trieform {
 protected:
-    vector<int> modalContext;
+  shared_ptr<vector<int>> modalContext;
   int numRelations = -1;
   unsigned int assumptionsSize = 0;
   vector<literal_set> pastModels;
 
   // For restarting
-    bool shouldRestart = false;
+  bool shouldRestart = false;
   unsigned int restartUntil = 0;
 
   LocalSolutionMemo localMemo;
-  LocalSolutionMemo probationMemo;
   unordered_map<string, unsigned int> idMap;
   shared_ptr<Bitset> convertAssumptionsToBitset(literal_set literals);
   void updateSolutionMemo(const shared_ptr<Bitset> &assumptions,
                           Solution solution);
   unsigned int checkClauseAgainstPastModels(literal_set clause);
   
-int isInHistory(vector<shared_ptr<Bitset>> history, shared_ptr<Bitset> bitset);
-vector<shared_ptr<Bitset>> history;
+int isInHistory(vector<pair<int, shared_ptr<Bitset>>> history, shared_ptr<Bitset> bitset);
+vector<pair<int, shared_ptr<Bitset>>> history;
 shared_ptr<Bitset> fleshedOutAssumptionBitset(literal_set model);
 public:
   TrieformProverKt();
   ~TrieformProverKt();
   
   static map<vector<int>, shared_ptr<TrieformProverKt>> all_trieforms;
-  static pair<int, set<vector<int>>> probationMemoTracker;
+  static ProbationSolutionMemo probationMemo;
   virtual shared_ptr<TrieformProverKt> convertToGrid(vector<int>& modal_context);
   Solution prove(literal_set assumptions = literal_set());
+  Solution prove(int depth, literal_set assumptions = literal_set());
   virtual void getStats();
   virtual void preprocess();
   static void doResiduation();

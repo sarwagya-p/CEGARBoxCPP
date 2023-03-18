@@ -387,6 +387,7 @@ vector<int> Trieform::constructNewModality(int subModality) {
 
 string Trieform::toString() {
   vector<string> clauseComponents = clauses.toStringComponents();
+  sort(clauseComponents.begin(), clauseComponents.end());
 
   string levelModality = "";
   int previousSeenModality = INT_MIN;
@@ -526,7 +527,10 @@ void Trieform::combineBoxLeft() {
 
   for (auto value : sameBoxLeft) {
     shared_ptr<Formula> formula = And::create(value.second);
-    if (formula->getType() != FAnd) {
+    if (formula->getType() == FTrue) {}
+    else if (formula->getType() == FFalse) {
+      clauses.addBoxClause(value.first.modality, value.first.common, formula);
+    } else if (formula->getType() != FAnd) {
       clauses.addBoxClause(value.first.modality, value.first.common,
                            *value.second.begin());
     } else {
