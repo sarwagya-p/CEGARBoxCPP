@@ -36,3 +36,4 @@ void LocalSolutionMemo::insertUnsat(const shared_ptr<Bitset> &assumptions,
   }
   unsatSols.push_back({assumptions, unsatCore});
 }
+

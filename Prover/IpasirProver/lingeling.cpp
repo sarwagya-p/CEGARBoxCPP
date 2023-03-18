@@ -47,6 +47,7 @@ void Lingeling::add_clauses(const vector<vector<int>>& inClauses) {
 bool Lingeling::solve(const vector<int>& assumptions) {
   last_assumptions = assumptions;
   for (int i=0; i<assumptions.size(); i++){
+      max_var = max(max_var, assumptions[i]);
     ipasir_assume(solver, assumptions[i]);
   }
   int rawOutput = ipasir_solve(solver);

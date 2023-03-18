@@ -1,6 +1,7 @@
 #include "Bitset/Bitset.h"
 #include "Clausifier/Trieform/Trieform.h"
 #include "Clausifier/TrieformFactory/TrieformFactory.h"
+#include "Prover/TrieformProver/TrieformProverKt/TrieformProverKt.h"
 #include "Formula/And/And.h"
 #include "Formula/Atom/Atom.h"
 #include "Formula/Box/Box.h"
@@ -44,7 +45,6 @@ static struct argp_option options[] = {
 struct arguments_struct {
   string filename = "file.p";
   SolverConstraints settings;
-  bool tense = false;
   bool valid = false;
   bool verbose = false;
 };
@@ -58,8 +58,7 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
   case 't':
     arguments->settings.reflexive = true;
     break;
-  case 'b':
-    arguments->settings.symmetric = true;
+  case 'b': arguments->settings.symmetric = true;
     break;
   case '4':
     arguments->settings.transitive = true;
@@ -71,7 +70,7 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
     arguments->settings.euclidean = true;
     break;
   case 'n':
-    arguments->tense = true;
+    arguments->settings.tense = true;
     break;
   case 'a':
     arguments->valid = true;
@@ -234,9 +233,13 @@ void solve(arguments_struct &args) {
     cout << "Reduced trie:" << endl << trie->toString() << endl;
     cout << "Reduced cache:" << endl << trie->getCache().toString() << endl;
   }
-
+/*
   if (args.tense) {
     trie->preprocessTense();
+  }
+  */
+  if (args.settings.tense) {
+      trie = dynamic_cast<TrieformProverKt*>(trie.get())->createGridTrie();
   }
   trie->preprocess();
   // cout << "Processed trie:" << endl << trie->toString() << endl;

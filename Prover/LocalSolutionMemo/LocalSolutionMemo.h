@@ -3,6 +3,7 @@
 
 #include "../../Bitset/Bitset.h"
 #include "../Literal/Literal.h"
+#include "../ProbationSolutionMemo/ProbationSolutionMemo.h"
 #include <memory>
 #include <vector>
 
@@ -33,6 +34,7 @@ public:
   void insertSat(const shared_ptr<Bitset> &assumptions);
   void insertUnsat(const shared_ptr<Bitset> &assumptions,
                    const literal_set &unsatCore);
+    
 };
 
 #endif

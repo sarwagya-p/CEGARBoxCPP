@@ -1,5 +1,5 @@
 #include "Trieform.h"
-
+#include <numeric>
 Cache Trieform::cache = Cache("x");
 
 Trieform::Trieform() {}
@@ -57,12 +57,33 @@ void Trieform::propagateClauses(const shared_ptr<Formula> &formula) {
 
   case FBox: {
     Box *b = dynamic_cast<Box *>(formula.get());
-    shared_ptr<Trieform> subtrie = getSubtrieOrEmpty(b->getModality());
-    for (int i = 1; i < b->getPower(); i++) {
-      subtrie = subtrie->getSubtrieOrEmpty(b->getModality());
+    if (!stringModalContexts) {
+        shared_ptr<Trieform> subtrie = getSubtrieOrEmpty(b->getModality());
+        for (int i = 1; i < b->getPower(); i++) {
+          subtrie = subtrie->getSubtrieOrEmpty(b->getModality());
+        }
+        subtrie->propagateClauses(b->getSubformula());
+    } else {
+    if (b->getPower() == 1 && b->getSubformula()->isPrimitive()) {
+      clauses.addBoxClause(b->getModality(), True::create(),
+                               b->getSubformula());
+      ensureSubtrieExistence(b->getModality());
+    } else {
+      shared_ptr<Formula> boxReduced = b->constructBoxReduced();
+      vector<int> newModality = constructNewModality(b->getModality());
+
+      shared_ptr<Formula> repVariable;
+      if (!cache.contains(boxReduced, newModality)) {
+        repVariable = cache.createVariableFor(boxReduced, newModality);
+        getSubtrieOrEmpty(b->getModality())
+            ->sequenceClausify(boxReduced, repVariable);
+      } else {
+        repVariable =
+            cache.getVariableRepresenting(boxReduced, newModality);
+      }
+      clauses.addBoxClause(b->getModality(), True::create(), repVariable);
     }
-    subtrie->propagateClauses(b->getSubformula());
-  } break;
+  }} break;
 
   case FDiamond: {
     Diamond *d = dynamic_cast<Diamond *>(formula.get());
@@ -89,10 +110,15 @@ void Trieform::propagateClauses(const shared_ptr<Formula> &formula) {
 
   case FOr: {
     Or *o = dynamic_cast<Or *>(formula.get());
+
     if (o->getLength() == 2) {
       vector<shared_ptr<Formula>> formulas;
       for (shared_ptr<Formula> subformula : o->getSubformulas()) {
-        formulas.push_back(subformula);
+        if (cache.contains(subformula))
+            formulas.push_back(cache.getVariableRepresenting(subformula));
+        else 
+        
+            formulas.push_back(subformula);
       }
 
       if (formulas[0]->getType() == FBox && formulas[1]->isPrimitive()) {
@@ -105,7 +131,15 @@ void Trieform::propagateClauses(const shared_ptr<Formula> &formula) {
       } else if (formulas[0]->isPrimitive() &&
                  formulas[1]->getType() == FDiamond) {
         orDiamondClausify(formulas[1], formulas[0]);
-      } else {
+      } else if (((formulas[0]->getType() == FDiamond) ||
+                 (formulas[0]->getType() == FBox)) && 
+                (formulas[1]->getType() == FDiamond)) {
+          orDiamondClausify(formulas[1], nameFor(formulas[0]));
+      } else if (((formulas[0]->getType() == FDiamond) ||
+                 (formulas[0]->getType() == FBox)) && 
+                (formulas[1]->getType() == FBox)) {
+        orBoxClausify(formulas[1], nameFor(formulas[0]));  
+      }  else {
         propagateOr(formula);
       }
     } else {
@@ -315,7 +349,7 @@ shared_ptr<Trieform> Trieform::getSubtrieOrEmpty(int subModality) {
   futureModalities.insert(subModality);
 
   vector<int> newModality = constructNewModality(subModality);
-
+    
   shared_ptr<Trieform> subtrie = shared_ptr<Trieform>(create(newModality));
   subtrieMap[subModality] = subtrie;
 
@@ -353,6 +387,7 @@ vector<int> Trieform::constructNewModality(int subModality) {
 
 string Trieform::toString() {
   vector<string> clauseComponents = clauses.toStringComponents();
+  sort(clauseComponents.begin(), clauseComponents.end());
 
   string levelModality = "";
   int previousSeenModality = INT_MIN;
@@ -389,8 +424,6 @@ string Trieform::toString() {
     } else {
       trieString += clauseComponents[clauseComponents.size() - 1];
     }
-  } else {
-    trieString += levelModality + " is empty...";
   }
 
   for (auto modTrie : subtrieMap) {
@@ -494,7 +527,10 @@ void Trieform::combineBoxLeft() {
 
   for (auto value : sameBoxLeft) {
     shared_ptr<Formula> formula = And::create(value.second);
-    if (formula->getType() != FAnd) {
+    if (formula->getType() == FTrue) {}
+    else if (formula->getType() == FFalse) {
+      clauses.addBoxClause(value.first.modality, value.first.common, formula);
+    } else if (formula->getType() != FAnd) {
       clauses.addBoxClause(value.first.modality, value.first.common,
                            *value.second.begin());
     } else {
@@ -691,7 +727,6 @@ void Trieform::overShadow(shared_ptr<Trieform> shadowTrie, int skipModality) {
 void Trieform::conditionalOverShadow(shared_ptr<Trieform> shadowTrie,
                                      shared_ptr<Formula> condition,
                                      vector<int> prefix, int skipModality) {
-  // cout << "Performing Shadow Local " << modality.size() << endl;
   const FormulaTriple shadowClauses = shadowTrie->getClauses();
   formula_set andSet;
   for (const Clause &clause : shadowClauses.getClauses()) {
@@ -718,8 +753,10 @@ void Trieform::conditionalOverShadow(shared_ptr<Trieform> shadowTrie,
     leftOrSet.insert(Box::create(prefix, Or::create(rightOrSet)));
     andSet.insert(Or::create(leftOrSet));
   }
-  propagateClauses(And::create(andSet));
 
+  auto sum = std::accumulate(prefix.begin(), prefix.end(), 0);
+    cout << "Propagating: " << sum << ": " << And::create(andSet)->toString() << endl;
+  propagateClauses(And::create(andSet));
   // Shadow Trie is one level down
   for (auto modalSubtrie : shadowTrie->getTrieMap()) {
     if (modalSubtrie.first == skipModality) {
@@ -729,6 +766,22 @@ void Trieform::conditionalOverShadow(shared_ptr<Trieform> shadowTrie,
     conditionalOverShadow(modalSubtrie.second, condition, prefix);
     prefix.pop_back();
   }
+}
+
+void Trieform::doResiduation() {
+  for (auto modalSubtrie : subtrieMap) {
+    modalSubtrie.second->doResiduation();
+    
+
+    for (ModalClause futureModalClause :
+         modalSubtrie.second->getClauses().getBoxClauses()) {
+      if (futureModalClause.modality == -modalSubtrie.first) {
+        clauses.addBoxClause({modalSubtrie.first,
+                              futureModalClause.right->negate(),
+                              futureModalClause.left->negate()});
+      }
+    }
+}
 }
 
 void Trieform::preprocessTense() {
@@ -746,7 +799,7 @@ void Trieform::preprocessTense() {
             vector<int>(), modalSubtrie.first);
       }
     }
-
+    /*
     for (ModalClause futureModalClause :
          modalSubtrie.second->getClauses().getBoxClauses()) {
       if (futureModalClause.modality == -modalSubtrie.first) {
@@ -755,5 +808,6 @@ void Trieform::preprocessTense() {
                               futureModalClause.left->negate()});
       }
     }
+    */
   }
 }

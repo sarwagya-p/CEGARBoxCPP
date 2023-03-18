@@ -48,6 +48,7 @@ literal_set setDifference(literal_set set1, literal_set set2);
 struct Solution {
   bool satisfiable;
   literal_set conflict;
+  bool shouldRestart = false;
 };
 
 #endif

@@ -59,6 +59,8 @@ public:
   void addClause(literal_set clause);
 
   void printModel();
+
+  literal_set getModel();
 };
 
 #endif

@@ -73,7 +73,6 @@ protected:
                               modal_lit_implication &modalLits,
                               modal_lit_implication &modalFromRight);
 
-  Literal toLiteral(shared_ptr<Formula> formula);
 
   virtual void prepareFalse() = 0;
   virtual void prepareExtras(name_set extra) = 0;
@@ -89,6 +88,8 @@ public:
   Prover();
   ~Prover();
 
+  Literal toLiteral(shared_ptr<Formula> formula);
+
   string getPrimitiveName(shared_ptr<Formula> formula);
 
   void calculateTriggeredBoxClauses();
@@ -98,16 +99,25 @@ public:
   modal_literal_map getTriggeredDiamondClauses();
 
   literal_set getNotDiamondLeft(int modality, Literal diamond);
+  literal_set getNotDiamondLeft(int modality, Literal diamond, literal_set& triggeredImplications);
   literal_set getNotAllDiamondLeft(int modality);
   vector<literal_set> getNotProblemBoxClauses(int modality,
                                               literal_set conflicts);
+  vector<literal_set> getNotProblemBoxClauses(int modality,
+                                              literal_set conflicts,
+                                              literal_set& triggeredImplications);
 
   literal_set getNotBoxTriggerers(Literal right, int modality);
   literal_set getNotDiamondTriggerers(Literal right, int modality);
+  literal_set rememberTriggeredImplications();
+  virtual literal_set getModel() = 0;
 
   diamond_queue getPrioritisedTriggeredDiamonds(
       int modality); // NOTE ENSURE THIS AVOIDS BOXES
 
+  diamond_queue getPrioritisedTriggeredDiamonds(
+      int modality, literal_set& triggeredBoxes, literal_set& triggeredDiamonds);
+  // NOTE ENSURE THIS AVOIDS BOXES
   void calculateTriggeredModalClauses();
 
   void updateLastFail(Literal diamondRight);

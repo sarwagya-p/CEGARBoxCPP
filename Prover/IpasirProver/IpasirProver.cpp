@@ -141,17 +141,20 @@ Solution IpasirProver::solve(const literal_set &assumptions) {
   Solution solution;
   shared_ptr<vector<int>> vecAssumps =
       convertAssumptions(assumptions);
+  /*
   cout << "SOLVING: " << endl;
   for (auto x : assumptions) cout << x.toString() << " ";
   cout << endl;
+  */
   solution.satisfiable = solver->solve(*vecAssumps);
   if (!solution.satisfiable) {
     solution.conflict = convertConflictToAssumps(solver->used_assumptions());
+    /*
       cout << "CONFLICT: " << endl;
       for (auto x : solution.conflict) cout << x.toString() << " ";
       cout << endl;
+      */
   } else {
-      cout << "SATISFIABLE" << endl;
   }
   return solution;
 }
@@ -166,4 +169,15 @@ int IpasirProver::getLiteralId(Literal literal) {
 
 void IpasirProver::printModel() {
     cout << "NOT IMPLEMENTED" << endl;
+}
+
+literal_set IpasirProver::getModel() {
+    literal_set model;
+    for (auto x : solver->get_model()) {
+        model.insert(
+            Literal(nameMap[abs(x)], x > 0)
+        );
+    }
+    return model;
+    
 }

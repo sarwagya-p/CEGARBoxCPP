@@ -46,6 +46,7 @@ private:
   bool modelSatisfiesAssump(Literal assumption);
 
   virtual int getLiteralId(Literal literal);
+  literal_set getModel();
 
 public:
   IpasirProver();
