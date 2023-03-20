@@ -63,6 +63,11 @@ private:
   literal_set getNotModalTriggerers(Literal right, int modality,
                                     modal_lit_implication &modalFromRight);
 
+
+    vector<literal_set> generateClauses(vector<literal_set> literalCombinations);
+    vector<literal_set> checkClauses(int modality, vector<literal_set> clauses, literal_set badClause);
+    vector<literal_set> createConflictGroups(int modality, literal_set nextModalContextConflict);
+
 protected:
   modal_lit_implication boxLits;
   modal_lit_implication diamondLits;
@@ -132,6 +137,10 @@ public:
 
   virtual bool modelSatisfiesAssump(Literal assumption) = 0;
   bool modelSatisfiesAssumps(literal_set assumptions);
+
+  vector<literal_set> getClauses(int modality, literal_set conflict);
+  vector<literal_set> getClauses(int modality, vector<literal_set> conflicts);
+    vector<literal_set> negatedClauses(vector<literal_set> clauses);  
 };
 
 #endif

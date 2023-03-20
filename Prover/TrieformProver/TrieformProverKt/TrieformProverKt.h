@@ -19,22 +19,24 @@ protected:
   shared_ptr<vector<int>> modalContext;
   int numRelations = -1;
   unsigned int assumptionsSize = 0;
-  vector<literal_set> pastModels;
+  vector<pair<int, literal_set>> pastModels;
 
   // For restarting
   bool shouldRestart = false;
-  unsigned int restartUntil = 0;
+  static int restartUntil;
 
   LocalSolutionMemo localMemo;
   unordered_map<string, unsigned int> idMap;
   shared_ptr<Bitset> convertAssumptionsToBitset(literal_set literals);
   void updateSolutionMemo(const shared_ptr<Bitset> &assumptions,
                           Solution solution);
-  unsigned int checkClauseAgainstPastModels(literal_set clause);
+  unsigned int checkClauseAgainstPastModels(int restartUntil, literal_set clause);
   
 int isInHistory(vector<pair<int, shared_ptr<Bitset>>> history, shared_ptr<Bitset> bitset);
 vector<pair<int, shared_ptr<Bitset>>> history;
 shared_ptr<Bitset> fleshedOutAssumptionBitset(literal_set model);
+vector<literal_set> getAllConflicts(int modality, vector<literal_set> nextModalContextConflicts);
+
 public:
   TrieformProverKt();
   ~TrieformProverKt();
@@ -44,6 +46,7 @@ public:
   virtual shared_ptr<TrieformProverKt> convertToGrid(vector<int>& modal_context);
   Solution prove(literal_set assumptions = literal_set());
   Solution prove(int depth, literal_set assumptions = literal_set());
+  vector<literal_set> allConflicts;
   virtual void getStats();
   virtual void preprocess();
   static void doResiduation();

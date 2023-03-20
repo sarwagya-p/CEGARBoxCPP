@@ -81,7 +81,7 @@ protected:
   trie_map subtrieMap;
   unordered_set<int> futureModalities;
 
-  shared_ptr<Prover> prover = shared_ptr<Prover>(new IpasirProver());
+  shared_ptr<Prover> prover = shared_ptr<Prover>(new MinisatProver());
 
   vector<int> modality;
   
