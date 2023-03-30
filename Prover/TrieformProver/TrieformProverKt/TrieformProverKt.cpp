@@ -141,14 +141,11 @@ Solution  TrieformProverKt::prove(int depth, literal_set assumptions) {
     //}
     ProbationSolutionMemoState probationState = probationMemo.getState();
 
-    /*
-    cout << endl;
-    cout << "Depth :" << depth << " " << "PROVE CONTEXT\n" << endl;
+    cout << "Depth :" << depth << " " << "proving: ";
     for  (auto x : assumptions) {
         cout <<  x.toString() << " ";
     }
     cout << endl;
-    */
     
 
     for (auto x : all_trieforms) {
@@ -273,6 +270,9 @@ Solution  TrieformProverKt::prove(int depth, literal_set assumptions) {
 
                
                 for (literal_set learnClause : prover->getClauses(modalitySubtrie.first, prover->negatedClauses(childNode->allConflicts))) {
+
+                    //cout << "Learn clause: ";
+                    //for (auto x : learnClause) cout << x.toString() << " "; cout << endl;
                     allConflicts.push_back(learnClause);
                     prover->addClause(learnClause);
                     restartUntil = checkClauseAgainstPastModels(restartUntil, learnClause);
@@ -335,6 +335,9 @@ Solution  TrieformProverKt::prove(int depth, literal_set assumptions) {
                     }
                     */
                     for (literal_set learnClause : prover->getClauses(modalitySubtrie.first, prover->negatedClauses(childNode->allConflicts))) {
+
+                 //   cout << "Learn (bonus) clause: ";
+                //for (auto x : learnClause) cout << x.toString() << " "; cout << endl;
                 //cout << "Learning Bonus clause: ";
                 //for (auto x : learnClause) cout << x.toString() << " ";
                 //cout << endl;
@@ -369,7 +372,15 @@ Solution  TrieformProverKt::prove(int depth, literal_set assumptions) {
 
             // Unsat while creating a successor
             restartUntil = depth;
+            /*
+                    cout << "conflict: ";
+                    for (auto x : childSolution.conflict) cout << x.toString() << " "; cout << endl;
+                    */
             for (literal_set learnClause : prover->getClauses(modalitySubtrie.first, childSolution.conflict)) {
+                /*
+                    cout << "Learn clause: ";
+                    for (auto x : learnClause) cout << x.toString() << " "; cout << endl;
+                    */
                 //cout << "Learning clause: ";
                 //for (auto x : learnClause) cout << x.toString() << " ";
                 //cout << endl;

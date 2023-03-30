@@ -25,6 +25,8 @@ public:
   TrieformProverK();
   ~TrieformProverK();
 
+  vector<literal_set> allConflicts;
+
   virtual Solution prove(literal_set assumptions = literal_set());
   virtual void preprocess();
   virtual void prepareSAT(name_set extra = name_set());
@@ -34,6 +36,7 @@ public:
   virtual shared_ptr<Trieform> create(const shared_ptr<Formula> &formula,
                                       const vector<int> &newModality);
   virtual shared_ptr<Trieform> create(const vector<int> &newModality);
+  bool clauseConflictsWithModel(literal_set clause, literal_set model);
 };
 
 #endif

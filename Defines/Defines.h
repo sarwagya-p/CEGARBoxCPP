@@ -10,7 +10,7 @@ using namespace std;
 
 #define DEBUG_DESTRUCT false
 #define DEBUG_TIME false
-#define DEBUG_PROGRESS false
+#define DEBUG_PROGRESS true
 #define DEBUG_NORMAL_CACHE false
 #define DEBUG_REDUCED_CACHE false
 #define DEBUG_INITIAL_TRIE false

@@ -182,6 +182,14 @@ diamond_queue Prover::getPrioritisedTriggeredDiamonds(int modality) {
             prioritisedTriggeredDiamonds.push({diamond, lastFail[diamond]});
         }
     }
+
+    // If we have no triggered diamonds, we are in D \subset B case
+    // We create one world
+    if (prioritisedTriggeredDiamonds.size() == 0) {
+        Literal diamond = *triggeredDiamonds.begin();
+        prioritisedTriggeredDiamonds.push({diamond, lastFail[diamond]});
+    }
+
     return prioritisedTriggeredDiamonds;
 }
 
@@ -191,9 +199,18 @@ diamond_queue Prover::getPrioritisedTriggeredDiamonds(int modality, literal_set&
     diamond_queue prioritisedTriggeredDiamonds;
     for (Literal diamond : triggeredDiamonds) {
         if (triggeredBoxes.find(diamond) == triggeredBoxes.end()) {
+            cout << "TriggeredDiamond: " << diamond.toString() << endl;
             prioritisedTriggeredDiamonds.push({diamond, lastFail[diamond]});
         }
     }
+    // If we have no triggered diamonds, we are in D \subset B case
+    // We create one world
+    /*
+    if (prioritisedTriggeredDiamonds.size() == 0) {
+        Literal diamond = *triggeredDiamonds.begin();
+        prioritisedTriggeredDiamonds.push({diamond, lastFail[diamond]});
+    }
+    */
     return prioritisedTriggeredDiamonds;
 }
 
@@ -318,8 +335,23 @@ vector<literal_set> Prover::negatedClauses(vector<literal_set> clauses) {
 }
 
 vector<literal_set> Prover::getClauses(int modality, literal_set conflict) {
-    return negatedClauses(checkClauses(modality, generateClauses(createConflictGroups(modality, conflict)), conflict));
+    if (conflict.size() != 0) {
+        return negatedClauses(checkClauses(modality, generateClauses(createConflictGroups(modality, conflict)), conflict));
+    }else {
+        //cout << "WACKY STUFF HERE: " << endl;
+        //cout << "DIAMONDS: ";
+        vector<literal_set> clauses;
+        for (auto x : diamondLits[modality]) {
+            if (x.second.empty()) continue;
+            literal_set litset;
+            litset.insert(~x.first);
+            //cout << (~x.first).toString() << " "; 
+            clauses.push_back(litset);
+        } //                                   cout << endl;
+        return clauses;
+    }
 }
+
 vector<literal_set> Prover::getClauses(int modality, vector<literal_set> conflicts) {
     vector<literal_set> result;
     for (auto conflict : conflicts) {

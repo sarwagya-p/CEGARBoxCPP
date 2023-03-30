@@ -82,6 +82,8 @@ TrieformProverK::fleshedOutAssumptionBitset(literal_set model) {
 }
 
 Solution TrieformProverK::prove(literal_set assumptions) {
+    cout << "Proving: ";
+    for (auto x : assumptions) cout << x.toString() << " "; cout << endl;
     // Check solution memo
     shared_ptr<Bitset> assumptionsBitset =
         convertAssumptionsToBitset(assumptions);
@@ -108,98 +110,113 @@ Solution TrieformProverK::prove(literal_set assumptions) {
     prover->calculateTriggeredBoxClauses();
     modal_literal_map triggeredBoxes = prover->getTriggeredBoxClauses();
 
+    for (auto modalitySubtrie : subtrieMap) {
+        // Handle each modality
+        if (triggeredDiamonds[modalitySubtrie.first].size() == 0) {
+            // If there are no triggered diamonds of a certain modality we can skip it
+            cout << " NO CHILDREN" << endl;
+            continue;
+        }
 
-    // If there are no fired diamonds, it is satisfiable
-    if (triggeredDiamonds.size() != 0) {
-        for (auto modalitySubtrie : subtrieMap) {
-            // Handle each modality
-            if (triggeredDiamonds[modalitySubtrie.first].size() == 0) {
-                // If there are no triggered diamonds of a certain modality we can skip it
-                continue;
-            }
+        Solution childSolution;
+        TrieformProverK* childNode = dynamic_cast<TrieformProverK*>(modalitySubtrie.second.get());
+
             if (isSubsetOf(triggeredDiamonds[modalitySubtrie.first],
                         triggeredBoxes[modalitySubtrie.first])) {
                 // The fired diamonds are a subset of the boxes - we thus can create one
                 // world.
-                Solution childSolution =
-                    modalitySubtrie.second->prove(triggeredBoxes[modalitySubtrie.first]);
-                // If the one world solution is satisfiable, then we're all good
+                //cout << "Depth :" << depth << " " << "Create 1" << endl;
+
+
+                childSolution =
+                    childNode->prove(triggeredBoxes[modalitySubtrie.first]);
+
                 if (childSolution.satisfiable) {
                     continue;
                 }
-                // Otherwise, as the diamonds are a subset of the boxes, the left
-                // implications of the problem box clauses cannot be true with any diamond
-                // clause of this modality
-                vector<literal_set> badImplications = prover->getNotProblemBoxClauses(
-                        modalitySubtrie.first, childSolution.conflict);
-                badImplications.push_back(
-                        prover->getNotAllDiamondLeft(modalitySubtrie.first));
-                // Add ~leftDiamond=>\/~leftProbemBox
-                for (literal_set learnClause : generateClauses(badImplications)) {
-                    prover->addClause(learnClause);
-                }
-                // Find new result
-                return prove(assumptions);
             } else {
-                // The fired diamonds are not a subset of the fired boxes, we need to
-                // create one world for each diamond clause
-                diamond_queue diamondPriority =
-                    prover->getPrioritisedTriggeredDiamonds(modalitySubtrie.first);
 
-                while (!diamondPriority.empty()) {
-                    // Create a world for each diamond
-                    Literal diamond = diamondPriority.top().literal;
-                    diamondPriority.pop();
 
-                    literal_set childAssumptions =
-                        literal_set(triggeredBoxes[modalitySubtrie.first]);
-                    childAssumptions.insert(diamond);
 
-                    // Run the solver for the next level
-                    Solution childSolution =
-                        modalitySubtrie.second->prove(childAssumptions);
+        // The fired diamonds are not a subset of the fired boxes, we need to
+        // create one world for each diamond clause
+        bool diamondFailed = false;
 
-                    // If it is satisfiable create the next world
-                    if (childSolution.satisfiable) {
-                        continue;
-                    }
-
-                    // Otherwise there must have been a conflict
-                    vector<literal_set> badImplications = prover->getNotProblemBoxClauses(
-                            modalitySubtrie.first, childSolution.conflict);
-
-                    if (childSolution.conflict.find(diamond) !=
-                            childSolution.conflict.end()) {
-                        // The diamond clause, either on its own or together with box clauses,
-                        // caused a conflict. We must add diamond implies OR NOT problem
-                        // box clauses.
-                        prover->updateLastFail(diamond);
-                        badImplications.push_back(
-                                prover->getNotDiamondLeft(modalitySubtrie.first, diamond));
-
-                        for (literal_set learnClause : generateClauses(badImplications)) {
-                            prover->addClause(learnClause);
-                        }
-
-                        // Find new result
-                        return prove(assumptions);
-                    } else {
-                        // Only the box clauses caused a conflict, so we must add each diamond
-                        // clause implies OR NOT problem box lefts
-                        badImplications.push_back(
-                                prover->getNotAllDiamondLeft(modalitySubtrie.first));
-                        // Add ~leftDiamond=>\/~leftProbemBox
-                        for (literal_set learnClause : generateClauses(badImplications)) {
-                            prover->addClause(learnClause);
-                        }
-                        // Find new result
-                        return prove(assumptions);
-                    }
-                }
-            }
+        cout << "MODEL: ";
+        for (auto lit : currentModel) {
+            cout << lit.toString() << " ";
         }
+        cout << endl;
+        diamond_queue diamondPriority =
+            prover->getPrioritisedTriggeredDiamonds(modalitySubtrie.first, triggeredBoxes[modalitySubtrie.first], triggeredDiamonds[modalitySubtrie.first]);
+        while (!diamondPriority.empty()) {
+            // Create a world for each diamond
+            Literal diamond = diamondPriority.top().literal;
+            diamondPriority.pop();
+
+            literal_set childAssumptions =
+                literal_set(triggeredBoxes[modalitySubtrie.first]);
+            childAssumptions.insert(diamond);
+
+            // Run the solver for the next level
+            childSolution = childNode->prove(childAssumptions);
+
+            // Clause propagation
+            /*
+            bool shouldRestart = false;
+            for (literal_set learnClause : prover->getClauses(modalitySubtrie.first, prover->negatedClauses(childNode->allConflicts))) {
+                for (auto x : learnClause) cout << x.toString() << " "; cout << endl;
+                allConflicts.push_back(learnClause);
+                prover->addClause(learnClause);
+                shouldRestart |= clauseConflictsWithModel(learnClause, currentModel);
+            }
+            if (shouldRestart) {
+                return prove(assumptions);
+            }
+            childNode->allConflicts.clear();
+            */
+
+            // If it is satisfiable create the next world
+            if (childSolution.satisfiable) {
+                // Don't check any more if we only required one
+                if (isSubsetOf(triggeredDiamonds[modalitySubtrie.first], 
+                            triggeredBoxes[modalitySubtrie.first])) break;
+                else continue;
+            }
+            diamondFailed = true;
+            break;
+        }
+
+        if (!diamondFailed) continue;
+            }
+
+        cout << "FAILURE HAPPENED: " << endl;
+        for (auto x : childSolution.conflict) cout << x.toString() << " "; cout << endl;
+        for (literal_set learnClause : prover->getClauses(modalitySubtrie.first, childSolution.conflict)) {
+            cout << "Learn clause: ";
+            for (auto x : learnClause) cout << x.toString() << " "; cout << endl;
+            allConflicts.push_back(learnClause);
+            prover->addClause(learnClause);
+        }
+        return prove(assumptions);
     }
     // If we reached here the solution is satisfiable under all modalities
-    updateSolutionMemo(assumptionsBitset, solution);
+    //updateSolutionMemo(assumptionsBitset, solution);
     return solution;
+}
+
+
+
+bool TrieformProverK::clauseConflictsWithModel(literal_set clause, literal_set model) {
+    bool contains = false;
+    for (Literal x : clause) {
+        if (model.find(x) != model.end()) {
+            contains = true;
+            break;
+        }
+    }
+    if (contains) {
+        return false;
+    }
+    return true;
 }

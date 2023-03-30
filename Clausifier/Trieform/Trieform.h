@@ -86,7 +86,7 @@ protected:
   vector<int> modality;
   
   // Store as [1][1] b or (T -> [1] a) & [1] (a -> [1] b)
-  bool stringModalContexts = false;
+  bool stringModalContexts = true;
 
 public:
   Trieform();
