@@ -28,6 +28,7 @@ public:
   virtual Solution prove(literal_set assumptions = literal_set());
   virtual void preprocess();
   virtual void prepareSAT(name_set extra = name_set());
+  virtual shared_ptr<Bitset> fleshedOutAssumptionBitset(literal_set model);
 
   virtual shared_ptr<Trieform> create(const shared_ptr<Formula> &formula);
   virtual shared_ptr<Trieform> create(const shared_ptr<Formula> &formula,
