@@ -56,7 +56,7 @@ void TrieformProverK45::transitiveMakePersistence() {
 
     // Make persistence
     shared_ptr<Formula> persistent =
-        persistentCache.getVariableOrCreate(boxClause.right);
+        persistentCache->getVariableOrCreate(boxClause.right);
     persistentBoxes.insert({boxClause.modality, persistent, persistent});
 
     formula_set leftSet;

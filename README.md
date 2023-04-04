@@ -1,7 +1,10 @@
 # CEGARBoxCPP
 
+sudo apt install libgoogle-glog-dev
+
 ## Authorship
-All files in this repository were authored by Robert McArthur.
+Robert McArthur and Cormac Kikkert
+
 ## Dependencies
 This project requires minisat installed to run and compile. Instruction for installing minisat are available [here](https://github.com/niklasso/minisat).
 

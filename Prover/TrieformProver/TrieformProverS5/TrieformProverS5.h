@@ -13,7 +13,7 @@ using namespace std;
 
 class TrieformProverS5 : public Trieform {
 protected:
-  static Cache persistentCache;
+  static shared_ptr<Cache> persistentCache;
 
   static unsigned int assumptionsSize;
   static GlobalSolutionMemo globalMemo;

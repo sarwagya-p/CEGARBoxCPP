@@ -82,9 +82,13 @@ TrieformProverK::fleshedOutAssumptionBitset(literal_set model) {
 }
 
 Solution TrieformProverK::prove(literal_set assumptions) {
-    cout << "Proving: ";
-    for (auto x : assumptions) cout << x.toString() << " "; cout << endl;
+    return prove(0, assumptions);
+}
+
+Solution TrieformProverK::prove(int depth, literal_set assumptions) {
     // Check solution memo
+    cout << "Depth: " << depth << " Proving: ";
+    for (auto x : assumptions) cout << x.toString() << " "; cout << endl;
     shared_ptr<Bitset> assumptionsBitset =
         convertAssumptionsToBitset(assumptions);
     LocalSolutionMemoResult memoResult = localMemo.getFromMemo(assumptionsBitset);
@@ -114,41 +118,19 @@ Solution TrieformProverK::prove(literal_set assumptions) {
         // Handle each modality
         if (triggeredDiamonds[modalitySubtrie.first].size() == 0) {
             // If there are no triggered diamonds of a certain modality we can skip it
-            cout << " NO CHILDREN" << endl;
             continue;
         }
 
         Solution childSolution;
         TrieformProverK* childNode = dynamic_cast<TrieformProverK*>(modalitySubtrie.second.get());
 
-            if (isSubsetOf(triggeredDiamonds[modalitySubtrie.first],
-                        triggeredBoxes[modalitySubtrie.first])) {
-                // The fired diamonds are a subset of the boxes - we thus can create one
-                // world.
-                //cout << "Depth :" << depth << " " << "Create 1" << endl;
-
-
-                childSolution =
-                    childNode->prove(triggeredBoxes[modalitySubtrie.first]);
-
-                if (childSolution.satisfiable) {
-                    continue;
-                }
-            } else {
-
-
-
         // The fired diamonds are not a subset of the fired boxes, we need to
         // create one world for each diamond clause
         bool diamondFailed = false;
 
-        cout << "MODEL: ";
-        for (auto lit : currentModel) {
-            cout << lit.toString() << " ";
-        }
-        cout << endl;
         diamond_queue diamondPriority =
             prover->getPrioritisedTriggeredDiamonds(modalitySubtrie.first, triggeredBoxes[modalitySubtrie.first], triggeredDiamonds[modalitySubtrie.first]);
+
         while (!diamondPriority.empty()) {
             // Create a world for each diamond
             Literal diamond = diamondPriority.top().literal;
@@ -159,7 +141,7 @@ Solution TrieformProverK::prove(literal_set assumptions) {
             childAssumptions.insert(diamond);
 
             // Run the solver for the next level
-            childSolution = childNode->prove(childAssumptions);
+            childSolution = childNode->prove(depth+1, childAssumptions);
 
             // Clause propagation
             /*
@@ -188,20 +170,20 @@ Solution TrieformProverK::prove(literal_set assumptions) {
         }
 
         if (!diamondFailed) continue;
-            }
-
-        cout << "FAILURE HAPPENED: " << endl;
-        for (auto x : childSolution.conflict) cout << x.toString() << " "; cout << endl;
+        
+        cout << "Depth: " << depth << "Failed: " << endl; 
         for (literal_set learnClause : prover->getClauses(modalitySubtrie.first, childSolution.conflict)) {
-            cout << "Learn clause: ";
-            for (auto x : learnClause) cout << x.toString() << " "; cout << endl;
             allConflicts.push_back(learnClause);
+            for (auto x : learnClause) cout << x.toString() << " "; cout << endl;
             prover->addClause(learnClause);
         }
-        return prove(assumptions);
+        return prove(depth, assumptions);
     }
     // If we reached here the solution is satisfiable under all modalities
-    //updateSolutionMemo(assumptionsBitset, solution);
+    cout << "Depth: " << depth << " SAT";
+    cout << "MODEL: ";
+    for (auto x : currentModel) cout << x.toString() << " "; cout << endl;
+    updateSolutionMemo(assumptionsBitset, solution);
     return solution;
 }
 
@@ -219,4 +201,85 @@ bool TrieformProverK::clauseConflictsWithModel(literal_set clause, literal_set m
         return false;
     }
     return true;
+}
+
+/******************************************************************************
+ *                                                                            *
+ *                               LOCAL REDUCTIONS                             *
+ *                                                                            *
+ * ***************************************************************************/
+
+void TrieformProverK::boxClausesT() {
+  for (ModalClause modalClause : clauses.getBoxClauses()) {
+    formula_set newOr;
+    newOr.insert(Not::create(modalClause.left)->negatedNormalForm());
+    newOr.insert(modalClause.right);
+    clauses.addClause(Or::create(newOr));
+  }
+  for (auto modalSubtrie : subtrieMap) {
+    dynamic_cast<TrieformProverK*>(modalSubtrie.second.get())
+        ->boxClausesT();
+  }
+}
+
+
+void TrieformProverK::modalContextsT() {
+  for (auto modalSubtrie : subtrieMap) {
+    dynamic_cast<TrieformProverK*>(modalSubtrie.second.get())
+        ->modalContextsT();
+    overShadow(modalSubtrie.second, modalSubtrie.first);
+  }
+}
+
+void TrieformProverK::localReductionT() {
+    boxClausesT();
+    modalContextsT();
+}
+
+void TrieformProverK::localReductionD() {
+  for (auto modalitySubtrie : subtrieMap) {
+    propagateClauses(Diamond::create(modalitySubtrie.first, 1, True::create()));
+    dynamic_cast<TrieformProverK*>(modalitySubtrie.second.get())
+        ->localReductionD();
+  }
+}
+
+shared_ptr<modal_clause_set> TrieformProverK::getAllBoxClauses5() {
+    shared_ptr<modal_clause_set> res = make_shared<modal_clause_set>();
+    res->insert(clauses.getBoxClauses().begin(), clauses.getBoxClauses().end());
+  for (auto modalitySubtrie : subtrieMap) {
+      shared_ptr<modal_clause_set> other = (dynamic_cast<TrieformProverK*>(modalitySubtrie.second.get()))->getAllBoxClauses5();
+      res->insert(other->begin(), other->end());
+  }
+  return res;
+}
+
+void TrieformProverK::localReduction5() {
+    cout << "DOING LOCAL REDUCTION 5" << endl;
+
+    // Collect all box clauses 
+    shared_ptr<modal_clause_set> boxClauses = getAllBoxClauses5();
+    modal_clause_set presistentBoxes;
+
+    for (ModalClause boxClause : *boxClauses) {
+        cout << "DEALING WITH BOX" << endl;
+        shared_ptr<Formula> lit = Not::create(boxClause.left)->negatedNormalForm();
+        presistentBoxes.insert({boxClause.modality, lit, lit});
+
+    }
+
+    boxClauses->insert(presistentBoxes.begin(), presistentBoxes.end());
+    globallyAddBoxClauses(boxClauses); 
+}
+
+
+void TrieformProverK::globallyAddBoxClauses(shared_ptr<modal_clause_set> boxClauses) {
+    for (ModalClause boxClause : *boxClauses) {
+        clauses.addBoxClause(boxClause); 
+    }
+
+    
+  for (auto modalSubtrie : subtrieMap) {
+      dynamic_cast<TrieformProverK*>(modalSubtrie.second.get())->globallyAddBoxClauses(boxClauses);
+    }
 }

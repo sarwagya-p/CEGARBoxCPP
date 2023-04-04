@@ -49,7 +49,7 @@ private:
   virtual int getLiteralId(Literal literal);
 
 public:
-  MinisatProver();
+  MinisatProver(bool onesat = false);
   ~MinisatProver();
 
   modal_names_map prepareSAT(FormulaTriple clauses,
@@ -61,6 +61,10 @@ public:
   void printModel();
 
   literal_set getModel();
+
+
+    static shared_ptr<Minisat::SimpSolver> completeSolver;
+    shared_ptr<Minisat::SimpSolver> calcSolver;
 };
 
 #endif

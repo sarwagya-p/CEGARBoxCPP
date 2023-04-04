@@ -1,6 +1,7 @@
 #include "IpasirProver.h"
 
-IpasirProver::IpasirProver() {
+shared_ptr<Lingeling> IpasirProver::completeSolver = make_shared<Lingeling>();
+IpasirProver::IpasirProver(bool onesat) {
   // solver->random_var_freq = 0;
   // solver->rnd_init_act = true;
   // solver->ccmin_mode = 1;
@@ -9,6 +10,12 @@ IpasirProver::IpasirProver() {
   // solver->luby_restart = false;
   // solver->
   // solver->eliminate(true);
+  if (onesat) {
+    calcSolver = completeSolver;
+
+  } else {
+      calcSolver = solver;
+  }
 }
 IpasirProver::~IpasirProver() {}
 

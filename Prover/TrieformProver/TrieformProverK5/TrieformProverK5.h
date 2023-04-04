@@ -13,7 +13,7 @@ using namespace std;
 
 class TrieformProverK5 : public Trieform {
 protected:
-  static Cache persistentCache;
+  static shared_ptr<Cache> persistentCache;
   unsigned int assumptionsSize = 0;
   LocalSolutionMemo localMemo;
   unordered_map<string, unsigned int> idMap;

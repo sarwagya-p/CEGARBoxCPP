@@ -1,6 +1,6 @@
 #include "TrieformProverKB5.h"
 
-Cache TrieformProverKB5::persistentCache = Cache("P");
+shared_ptr<Cache> TrieformProverKB5::persistentCache = make_shared<PrefixCache>("P");
 
 shared_ptr<Trieform>
 TrieformFactory::makeTrieKB5(const shared_ptr<Formula> &formula,
@@ -86,7 +86,7 @@ void TrieformProverKB5::makePersistence() {
 
     // Make persistence
     shared_ptr<Formula> persistent =
-        persistentCache.getVariableOrCreate(boxClause.right);
+        persistentCache->getVariableOrCreate(boxClause.right);
     persistentBoxes.insert({boxClause.modality, persistent, persistent});
 
     formula_set leftSet;

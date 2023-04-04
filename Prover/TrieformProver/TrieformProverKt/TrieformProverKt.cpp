@@ -122,11 +122,6 @@ shared_ptr<TrieformProverKt> TrieformProverKt::createGridTrie() {
     //replacement.buildConnections();
 }
 
-bool TrieformProverKt::isSatisfiable() {
-    literal_set assumps;
-    assumps.insert(Literal("$root", true));
-    return prove(assumps).satisfiable;
-}
 
 Solution TrieformProverKt::prove(literal_set assumptions) {
     return prove(0, assumptions);
@@ -141,11 +136,13 @@ Solution  TrieformProverKt::prove(int depth, literal_set assumptions) {
     //}
     ProbationSolutionMemoState probationState = probationMemo.getState();
 
+    /*
     cout << "Depth :" << depth << " " << "proving: ";
     for  (auto x : assumptions) {
         cout <<  x.toString() << " ";
     }
     cout << endl;
+    */
     
 
     for (auto x : all_trieforms) {
@@ -155,9 +152,9 @@ Solution  TrieformProverKt::prove(int depth, literal_set assumptions) {
     }
     //cout << "Depth :" << depth << " " << "At depth: " << depth << endl;
     //cout << "Depth :" << depth << " " << "History size and depths: " << history.size() << endl;
-    for (auto x : history) {
+    //for (auto x : history) {
         //cout <<  x.first << " ";
-    }
+    //}
     //cout << endl;
 
     // Check solution memo
@@ -377,13 +374,6 @@ Solution  TrieformProverKt::prove(int depth, literal_set assumptions) {
                     for (auto x : childSolution.conflict) cout << x.toString() << " "; cout << endl;
                     */
             for (literal_set learnClause : prover->getClauses(modalitySubtrie.first, childSolution.conflict)) {
-                /*
-                    cout << "Learn clause: ";
-                    for (auto x : learnClause) cout << x.toString() << " "; cout << endl;
-                    */
-                //cout << "Learning clause: ";
-                //for (auto x : learnClause) cout << x.toString() << " ";
-                //cout << endl;
                 allConflicts.push_back(learnClause);
                 prover->addClause(learnClause);
                 restartUntil = checkClauseAgainstPastModels(restartUntil, learnClause);
@@ -563,4 +553,15 @@ unsigned int TrieformProverKt::checkClauseAgainstPastModels(int restartUntil, li
         };
     }
     return restartUntil;
+}
+
+void TrieformProverKt::reduceClauses() {
+    for (auto modTrie : all_trieforms) {
+        auto modalContext = modTrie.first;
+
+
+        modTrie.second->combineBoxLeft();
+        modTrie.second->combineBoxRight();
+        modTrie.second->combineDiamondRight();
+    }
 }

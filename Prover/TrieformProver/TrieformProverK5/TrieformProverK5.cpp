@@ -1,6 +1,6 @@
 #include "TrieformProverK5.h"
 
-Cache TrieformProverK5::persistentCache = Cache("P");
+shared_ptr<Cache> TrieformProverK5::persistentCache = make_shared<PrefixCache>("P");
 
 shared_ptr<Trieform>
 TrieformFactory::makeTrieK5(const shared_ptr<Formula> &formula,
@@ -75,11 +75,11 @@ void TrieformProverK5::propagateEuclideaness() {
         clause.modality != modality[modality.size() - 1]) {
       formula_set newOr;
       newOr.insert(clause.left->negate());
-      if (cache.inverseContains(clause.right)) {
+      if (cache->inverseContains(clause.right)) {
         newOr.insert(Box::create(
             clause.modality, 1,
             Diamond::create(clause.modality, 1,
-                            cache.getInverseFormula(clause.right))));
+                            cache->getInverseFormula(clause.right))));
       } else {
         newOr.insert(
             Box::create(clause.modality, 1,
@@ -146,7 +146,7 @@ void TrieformProverK5::makePersistence() {
       // Make persistence (Pb=>[]Pb). Don't need to add Pb=>Pb
 
       shared_ptr<Formula> persistent =
-          persistentCache.getVariableOrCreate(boxClause.right);
+          persistentCache->getVariableOrCreate(boxClause.right);
       persistentBoxes.insert({boxClause.modality, persistent, persistent});
       persistentBoxes.insert(
           {boxClause.modality, persistent->negate(), persistent->negate()});

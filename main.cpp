@@ -2,6 +2,7 @@
 #include "Clausifier/Trieform/Trieform.h"
 #include "Clausifier/TrieformFactory/TrieformFactory.h"
 #include "Prover/TrieformProver/TrieformProverKt/TrieformProverKt.h"
+#include "Prover/TrieformProver/TrieformProverK/TrieformProverK.h"
 #include "Formula/And/And.h"
 #include "Formula/Atom/Atom.h"
 #include "Formula/Box/Box.h"
@@ -39,6 +40,8 @@ static struct argp_option options[] = {
     {"euclidean", 'e', 0, 0, "Enables transitivity."},
     {"tense", 'n', 0, 0, "Enables Tense Logic."},
     {"valid", 'a', 0, 0, "Prove validity."},
+    {"onesat", '1', 0, 0, "Use 1 SAT Solver."},
+    {"localReduction", 'l', 0, 0, "Perform a local reduction into K"},
     {"verbose", 'v', 0, 0, "Verbosity."},
     {0, 0, 0, 0, 0, 0}};
 
@@ -77,6 +80,12 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
     break;
   case 'v':
     arguments->verbose = true;
+    break;
+  case '1':
+    arguments->settings.oneSat = true;
+    break;
+  case 'l':
+    arguments->settings.localReduction = true;
     break;
   case ARGP_KEY_ARG:
     return 0;
@@ -211,7 +220,6 @@ void solve(arguments_struct &args) {
   // cout << "Initial trie:" << endl << trie->toString() << endl;
   // cout << "Correct trie:" << endl << otherTrie->toString() << endl;
 
-  trie->reduceClauses();
   // otherTrie->reduceClauses();
 
 #if DEBUG_TIME
@@ -241,6 +249,14 @@ void solve(arguments_struct &args) {
   if (args.settings.tense) {
       trie = dynamic_cast<TrieformProverKt*>(trie.get())->createGridTrie();
   }
+  trie->reduceClauses();
+
+  if (args.settings.localReduction) {
+     if  (args.settings.reflexive)   dynamic_cast<TrieformProverK*>(trie.get())->localReductionT();
+     if  (args.settings.euclidean)   dynamic_cast<TrieformProverK*>(trie.get())->localReduction5();
+     if  (args.settings.serial)   dynamic_cast<TrieformProverK*>(trie.get())->localReductionD();
+  }
+
   trie->preprocess();
   // cout << "Processed trie:" << endl << trie->toString() << endl;
   // otherTrie->preprocess();
@@ -259,8 +275,10 @@ void solve(arguments_struct &args) {
 
   trie->removeTrueAndFalse();
   // otherTrie->removeTrueAndFalse();
-
-  trie->prepareSAT();
+  if (args.settings.oneSat)
+      trie->prepareSAT(name_set {"$root"});
+  else 
+      trie->prepareSAT();
   // otherTrie->prepareSAT();
 
 #if DEBUG_TIME
@@ -274,8 +292,9 @@ void solve(arguments_struct &args) {
   if (args.verbose) {
     cout << "Prepared SAT" << endl;
   }
+    
+  bool satisfiable = trie->isSatisfiable(args.settings.oneSat || args.settings.tense);
 
-  bool satisfiable = trie->isSatisfiable();
   if (args.valid) {
     cout << (satisfiable ? "Invalid" : "Valid") << endl;
   } else {

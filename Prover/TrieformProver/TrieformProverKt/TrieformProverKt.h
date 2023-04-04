@@ -53,7 +53,6 @@ public:
   virtual void buildConnections();
   virtual void removeTrueAndFalse();
   virtual void prepareSAT(name_set extra = name_set());
-  virtual bool isSatisfiable();
 
   virtual shared_ptr<Trieform> create(const shared_ptr<Formula> &formula);
   virtual shared_ptr<Trieform> create(const shared_ptr<Formula> &formula,
@@ -62,6 +61,9 @@ public:
   string toString();
 
   shared_ptr<TrieformProverKt> createGridTrie();
+
+
+    virtual void reduceClauses();
 };
 
 #endif

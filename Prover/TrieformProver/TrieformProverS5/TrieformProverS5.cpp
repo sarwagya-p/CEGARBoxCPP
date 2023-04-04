@@ -1,6 +1,6 @@
 #include "TrieformProverS5.h"
 
-Cache TrieformProverS5::persistentCache = Cache("P");
+shared_ptr<Cache> TrieformProverS5::persistentCache = make_shared<PrefixCache>("P");
 
 unsigned int TrieformProverS5::assumptionsSize = 0;
 GlobalSolutionMemo TrieformProverS5::globalMemo = GlobalSolutionMemo();
@@ -120,7 +120,7 @@ void TrieformProverS5::makePersistence() {
 
     // Make persistence (Pb=>[]Pb). Don't need to add Pb=>Pb
     shared_ptr<Formula> persistent =
-        persistentCache.getVariableOrCreate(boxClause.right);
+        persistentCache->getVariableOrCreate(boxClause.right);
     persistentBoxes.insert({boxClause.modality, persistent, persistent});
 
     // Add a=>Pb

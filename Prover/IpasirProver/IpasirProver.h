@@ -49,7 +49,7 @@ private:
   literal_set getModel();
 
 public:
-  IpasirProver();
+  IpasirProver(bool onesat = false);
   ~IpasirProver();
 
   modal_names_map prepareSAT(FormulaTriple clauses,
@@ -58,6 +58,9 @@ public:
   void reduce_conflict(literal_set& conflict);
   void addClause(literal_set clause);
   void printModel();
+
+    static shared_ptr<Lingeling> completeSolver;
+    shared_ptr<Lingeling> calcSolver;
 };
 
 #endif

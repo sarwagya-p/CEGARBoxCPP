@@ -3,6 +3,8 @@
 
 #include "../../Formula/Formula/Formula.h"
 #include "../Trieform/Trieform.h"
+#include "../Cache/TenseCache/TenseCache.h"
+#include "../Cache/GlobalCache/GlobalCache.h"
 #include <memory>
 
 using namespace std;
@@ -20,6 +22,16 @@ public:
             shared_ptr<Trieform> trieParent = shared_ptr<Trieform>());
   static shared_ptr<Trieform>
   makeTrieK(const vector<int> &newModality,
+            shared_ptr<Trieform> trieParent = shared_ptr<Trieform>());
+
+  static shared_ptr<Trieform>
+  makeTrieK1(const shared_ptr<Formula> &formula,
+            shared_ptr<Trieform> trieParent = shared_ptr<Trieform>());
+  static shared_ptr<Trieform>
+  makeTrieK1(const shared_ptr<Formula> &formula, const vector<int> &newModality,
+            shared_ptr<Trieform> trieParent = shared_ptr<Trieform>());
+  static shared_ptr<Trieform>
+  makeTrieK1(const vector<int> &newModality,
             shared_ptr<Trieform> trieParent = shared_ptr<Trieform>());
 
   static shared_ptr<Trieform>

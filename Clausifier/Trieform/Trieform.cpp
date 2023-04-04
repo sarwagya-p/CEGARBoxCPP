@@ -1,8 +1,13 @@
 #include "Trieform.h"
 #include <numeric>
-Cache Trieform::cache = Cache("x");
 
-Trieform::Trieform() {}
+bool Trieform::stringModalContexts = false;
+shared_ptr<Cache> Trieform::cache = make_shared<PrefixCache>("x");
+bool Trieform::useOneSat = false;
+
+Trieform::Trieform() {
+    prover = shared_ptr<Prover>(new IpasirProver(useOneSat));
+}
 
 void Trieform::initialise(const shared_ptr<Formula> &formula,
                           shared_ptr<Trieform> parentTrie) {
@@ -73,13 +78,13 @@ void Trieform::propagateClauses(const shared_ptr<Formula> &formula) {
       vector<int> newModality = constructNewModality(b->getModality());
 
       shared_ptr<Formula> repVariable;
-      if (!cache.contains(boxReduced, newModality)) {
-        repVariable = cache.createVariableFor(boxReduced, newModality);
+      if (!cache->contains(boxReduced, newModality)) {
+        repVariable = cache->createVariableFor(boxReduced, newModality);
         getSubtrieOrEmpty(b->getModality())
             ->sequenceClausify(boxReduced, repVariable);
       } else {
         repVariable =
-            cache.getVariableRepresenting(boxReduced, newModality);
+            cache->getVariableRepresenting(boxReduced, newModality);
       }
       clauses.addBoxClause(b->getModality(), True::create(), repVariable);
     }
@@ -96,13 +101,13 @@ void Trieform::propagateClauses(const shared_ptr<Formula> &formula) {
       vector<int> newModality = constructNewModality(d->getModality());
 
       shared_ptr<Formula> repVariable;
-      if (!cache.contains(diamondReduced, newModality)) {
-        repVariable = cache.createVariableFor(diamondReduced, newModality);
+      if (!cache->contains(diamondReduced, newModality)) {
+        repVariable = cache->createVariableFor(diamondReduced, newModality);
         getSubtrieOrEmpty(d->getModality())
             ->sequenceClausify(diamondReduced, repVariable);
       } else {
         repVariable =
-            cache.getVariableRepresenting(diamondReduced, newModality);
+            cache->getVariableRepresenting(diamondReduced, newModality);
       }
       clauses.addDiamondClause(d->getModality(), True::create(), repVariable);
     }
@@ -114,11 +119,13 @@ void Trieform::propagateClauses(const shared_ptr<Formula> &formula) {
     if (o->getLength() == 2) {
       vector<shared_ptr<Formula>> formulas;
       for (shared_ptr<Formula> subformula : o->getSubformulas()) {
-        if (cache.contains(subformula))
-            formulas.push_back(cache.getVariableRepresenting(subformula));
-        else 
-        
+        // Code is incorrect as it might do x1 -> x1 
+        //if (cache->contains(subformula, modality)) {
+        //    formulas.push_back(cache->getVariableRepresenting(subformula, modality));
+        //}
+        //else {
             formulas.push_back(subformula);
+        //}
       }
 
       if (formulas[0]->getType() == FBox && formulas[1]->isPrimitive()) {
@@ -167,11 +174,11 @@ shared_ptr<Formula> Trieform::nameFor(const shared_ptr<Formula> &formula) {
   case FNot:
     return formula;
   case FAnd: {
-    if (cache.contains(formula, modality)) {
-      return cache.getVariableRepresenting(formula, modality);
+    if (cache->contains(formula, modality)) {
+      return cache->getVariableRepresenting(formula, modality);
     } else {
       shared_ptr<Formula> repVariable =
-          cache.createVariableFor(formula, modality);
+          cache->createVariableFor(formula, modality);
 
       shared_ptr<Formula> left = Not::create(repVariable)->negatedNormalForm();
       And *a = dynamic_cast<And *>(formula.get());
@@ -197,23 +204,23 @@ shared_ptr<Formula> Trieform::nameFor(const shared_ptr<Formula> &formula) {
     shared_ptr<Formula> boxReduced = b->constructBoxReduced();
 
     if (boxReduced->isPrimitive()) {
-      shared_ptr<Formula> left = cache.getVariableOrCreate(formula, modality);
+      shared_ptr<Formula> left = cache->getVariableOrCreate(formula, modality);
       clauses.addBoxClause(b->getModality(), left, boxReduced);
       ensureSubtrieExistence(b->getModality());
       return left;
     } else {
-      if (cache.contains(formula, modality)) {
-        return cache.getVariableRepresenting(formula, modality);
+      if (cache->contains(formula, modality)) {
+        return cache->getVariableRepresenting(formula, modality);
       } else {
-        shared_ptr<Formula> left = cache.createVariableFor(formula, modality);
+        shared_ptr<Formula> left = cache->createVariableFor(formula, modality);
 
         vector<int> newModality = constructNewModality(b->getModality());
 
         shared_ptr<Formula> middle;
-        if (cache.contains(boxReduced, newModality)) {
-          middle = cache.getVariableRepresenting(boxReduced, newModality);
+        if (cache->contains(boxReduced, newModality)) {
+          middle = cache->getVariableRepresenting(boxReduced, newModality);
         } else {
-          middle = cache.createVariableFor(boxReduced, newModality);
+          middle = cache->createVariableFor(boxReduced, newModality);
           getSubtrieOrEmpty(b->getModality())
               ->sequenceClausify(boxReduced, middle);
         }
@@ -228,23 +235,23 @@ shared_ptr<Formula> Trieform::nameFor(const shared_ptr<Formula> &formula) {
     shared_ptr<Formula> diamondReduced = d->constructDiamondReduced();
 
     if (diamondReduced->isPrimitive()) {
-      shared_ptr<Formula> left = cache.getVariableOrCreate(formula, modality);
+      shared_ptr<Formula> left = cache->getVariableOrCreate(formula, modality);
       clauses.addDiamondClause(d->getModality(), left, diamondReduced);
       ensureSubtrieExistence(d->getModality());
       return left;
     } else {
-      if (cache.contains(formula, modality)) {
-        return cache.getVariableRepresenting(formula, modality);
+      if (cache->contains(formula, modality)) {
+        return cache->getVariableRepresenting(formula, modality);
       } else {
-        shared_ptr<Formula> left = cache.createVariableFor(formula, modality);
+        shared_ptr<Formula> left = cache->createVariableFor(formula, modality);
 
         vector<int> newModality = constructNewModality(d->getModality());
 
         shared_ptr<Formula> middle;
-        if (cache.contains(diamondReduced, newModality)) {
-          middle = cache.getVariableRepresenting(diamondReduced, newModality);
+        if (cache->contains(diamondReduced, newModality)) {
+          middle = cache->getVariableRepresenting(diamondReduced, newModality);
         } else {
-          middle = cache.createVariableFor(diamondReduced, newModality);
+          middle = cache->createVariableFor(diamondReduced, newModality);
           getSubtrieOrEmpty(d->getModality())
               ->sequenceClausify(diamondReduced, middle);
         }
@@ -273,10 +280,10 @@ void Trieform::orBoxClausify(const shared_ptr<Formula> &box,
     vector<int> newModality = constructNewModality(b->getModality());
 
     shared_ptr<Formula> repVariable;
-    if (cache.contains(boxReduced, newModality)) {
-      repVariable = cache.getVariableRepresenting(boxReduced, newModality);
+    if (cache->contains(boxReduced, newModality)) {
+      repVariable = cache->getVariableRepresenting(boxReduced, newModality);
     } else {
-      repVariable = cache.createVariableFor(boxReduced, newModality);
+      repVariable = cache->createVariableFor(boxReduced, newModality);
       getSubtrieOrEmpty(b->getModality())
           ->sequenceClausify(boxReduced, repVariable);
     }
@@ -300,10 +307,10 @@ void Trieform::orDiamondClausify(const shared_ptr<Formula> &diamond,
     vector<int> newModality = constructNewModality(d->getModality());
 
     shared_ptr<Formula> repVariable;
-    if (cache.contains(diamondReduced, newModality)) {
-      repVariable = cache.getVariableRepresenting(diamondReduced, newModality);
+    if (cache->contains(diamondReduced, newModality)) {
+      repVariable = cache->getVariableRepresenting(diamondReduced, newModality);
     } else {
-      repVariable = cache.createVariableFor(diamondReduced, newModality);
+      repVariable = cache->createVariableFor(diamondReduced, newModality);
       getSubtrieOrEmpty(d->getModality())
           ->sequenceClausify(diamondReduced, repVariable);
     }
@@ -374,7 +381,7 @@ void Trieform::removeSubtrie(int subModality) {
   subtrieMap.erase(subModality);
 }
 
-Cache &Trieform::getCache() { return cache; }
+Cache &Trieform::getCache() { return *cache; }
 const FormulaTriple &Trieform::getClauses() { return clauses; }
 shared_ptr<Prover> &Trieform::getProver() { return prover; }
 shared_ptr<Trieform> Trieform::getParent() { return parent; }
@@ -464,13 +471,13 @@ void Trieform::combineBoxRight() {
     shared_ptr<Formula> formula = Or::create(value.second);
     if (formula->getType() != FOr) {
       clauses.addBoxClause(value.first.modality, formula, value.first.common);
-    } else if (cache.contains(formula, modality)) {
+    } else if (cache->contains(formula, modality)) {
       clauses.addBoxClause(value.first.modality,
-                           cache.getVariableRepresenting(formula, modality),
+                           cache->getVariableRepresenting(formula, modality),
                            value.first.common);
     } else {
       shared_ptr<Formula> repVariable =
-          cache.createVariableFor(formula, modality);
+          cache->createVariableFor(formula, modality);
       for (shared_ptr<Formula> sub :
            (dynamic_cast<Or *>(formula.get()))->getSubformulas()) {
         formula_set newOrSet;
@@ -497,13 +504,13 @@ void Trieform::combineDiamondRight() {
     if (formula->getType() != FOr) {
       clauses.addDiamondClause(value.first.modality, formula,
                                value.first.common);
-    } else if (cache.contains(formula, modality)) {
+    } else if (cache->contains(formula, modality)) {
       clauses.addDiamondClause(value.first.modality,
-                               cache.getVariableRepresenting(formula, modality),
+                               cache->getVariableRepresenting(formula, modality),
                                value.first.common);
     } else {
       shared_ptr<Formula> repVariable =
-          cache.createVariableFor(formula, modality);
+          cache->createVariableFor(formula, modality);
       for (shared_ptr<Formula> sub :
            (dynamic_cast<Or *>(formula.get()))->getSubformulas()) {
         formula_set newOrSet;
@@ -535,13 +542,13 @@ void Trieform::combineBoxLeft() {
                            *value.second.begin());
     } else {
       vector<int> newModality = constructNewModality(value.first.modality);
-      if (cache.contains(formula, newModality)) {
+      if (cache->contains(formula, newModality)) {
         clauses.addBoxClause(
             value.first.modality, value.first.common,
-            cache.getVariableRepresenting(formula, newModality));
+            cache->getVariableRepresenting(formula, newModality));
       } else {
         shared_ptr<Formula> repVariable =
-            cache.createVariableFor(formula, newModality);
+            cache->createVariableFor(formula, newModality);
         shared_ptr<Trieform> subtrie = getSubtrieOrEmpty(value.first.modality);
         for (shared_ptr<Formula> subformula :
              (dynamic_cast<And *>(formula.get()))->getSubformulas()) {
@@ -708,7 +715,17 @@ bool Trieform::parentSatisfiesAssumps(literal_set literals) {
   return modality.size() > 0 && parent->prover->modelSatisfiesAssumps(literals);
 }
 
-bool Trieform::isSatisfiable() { return prove().satisfiable; }
+bool Trieform::isSatisfiable(bool withRoot) { 
+
+    //MinisatProver *a = dynamic_cast<MinisatProver*>(prover.get());
+    //a->calcSolver->toDimacs("dimacs.txt");
+
+    if (withRoot) {
+     return prove({Literal("$root", true)}).satisfiable; 
+    } else {
+     return prove().satisfiable; 
+    }
+}
 
 void Trieform::overShadow(shared_ptr<Trieform> shadowTrie, int skipModality) {
   // cout << "Performing Shadow Local " << modality.size() << endl;

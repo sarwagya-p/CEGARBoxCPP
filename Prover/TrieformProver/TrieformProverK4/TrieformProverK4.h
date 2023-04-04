@@ -13,7 +13,7 @@ using namespace std;
 
 class TrieformProverK4 : public Trieform {
 protected:
-  static Cache persistentCache;
+  static shared_ptr<Cache> persistentCache;
 
   unsigned int assumptionsSize = 0;
   LocalSolutionMemo localMemo;

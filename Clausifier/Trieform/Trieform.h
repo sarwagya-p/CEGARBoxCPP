@@ -11,6 +11,7 @@
 #include "../../Prover/MinisatProver/MinisatProver.h"
 #include "../../Prover/IpasirProver/IpasirProver.h"
 #include "../Cache/Cache.h"
+#include "../Cache/PrefixCache/PrefixCache.h"
 #include "../FormulaTriple/FormulaTriple.h"
 #include <climits>
 #include <exception>
@@ -63,12 +64,8 @@ private:
 
   formula_set removeAnds(const shared_ptr<Formula> &formula);
 
-  void combineBoxRight();
-  void combineDiamondRight();
-  void combineBoxLeft();
 
 protected:
-  static Cache cache;
 
   shared_ptr<Trieform> parent;
   void ensureSubtrieExistence(int submodality);
@@ -81,16 +78,21 @@ protected:
   trie_map subtrieMap;
   unordered_set<int> futureModalities;
 
-  shared_ptr<Prover> prover = shared_ptr<Prover>(new MinisatProver());
+  shared_ptr<Prover> prover;
 
   vector<int> modality;
+  void combineBoxRight();
+  void combineDiamondRight();
+  void combineBoxLeft();
   
   // Store as [1][1] b or (T -> [1] a) & [1] (a -> [1] b)
-  bool stringModalContexts = true;
 
 public:
   Trieform();
   ~Trieform();
+
+  static bool useOneSat;
+  static shared_ptr<Cache> cache;
 
   void propagateClauses(const shared_ptr<Formula> &formula);
   void overShadow(shared_ptr<Trieform> shadowTrie, int skipModality = 0);
@@ -115,7 +117,7 @@ public:
   bool hasSubtrie(int subModality);
   void removeSubtrie(int subModality);
 
-  void reduceClauses();
+  virtual void reduceClauses();
   virtual void removeTrueAndFalse();
 
   virtual string toString();
@@ -125,7 +127,7 @@ public:
   shared_ptr<Prover> &getProver();
   shared_ptr<Trieform> getParent();
 
-  virtual bool isSatisfiable();
+  virtual bool isSatisfiable(bool withRoot=false);
 
   virtual Solution prove(literal_set assumptions = literal_set()) = 0;
   virtual void preprocess() = 0;
@@ -140,6 +142,8 @@ public:
 
   void preprocessTense();
   void doResiduation();
+  
+  static bool stringModalContexts;
 };
 
 #endif

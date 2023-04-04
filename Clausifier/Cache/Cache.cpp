@@ -19,16 +19,22 @@ Cache::getVariableOrCreate(const shared_ptr<Formula> &formula,
 
 shared_ptr<Formula> Cache::createVariableFor(const shared_ptr<Formula> &formula,
                                              const vector<int> &modality) {
+    shared_ptr<vector<int>> repModality = modalityPrefixToKey(modality);
+
   shared_ptr<Formula> newVariable = createVariable();
-  cache[{modality, formula /*->clone()*/}] = newVariable;
-  inverseCache[newVariable] = {modality, formula};
+  cache[{*repModality, formula /*->clone()*/}] = newVariable;
+  inverseCache[newVariable] = {*repModality, formula};
+
+
   return newVariable;
 }
 
 shared_ptr<Formula>
 Cache::getVariableRepresenting(const shared_ptr<Formula> &formula,
                                const vector<int> &modality) {
-  return cache[{modality, formula}];
+
+    shared_ptr<vector<int>> repModality = modalityPrefixToKey(modality);
+  return cache[{*repModality, formula}];
 }
 
 shared_ptr<Formula>
@@ -38,7 +44,9 @@ Cache::getInverseFormula(const shared_ptr<Formula> &formula) {
 
 bool Cache::contains(const shared_ptr<Formula> &formula,
                      const vector<int> &modality) const {
-  return cache.find({modality, formula}) != cache.end();
+
+    shared_ptr<vector<int>> repModality = modalityPrefixToKey(modality);
+  return cache.find({*repModality, formula}) != cache.end();
 }
 
 bool Cache::inverseContains(const shared_ptr<Formula> &formula) const {

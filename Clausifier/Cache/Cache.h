@@ -51,7 +51,7 @@ private:
   shared_ptr<Formula> createVariable();
 
 public:
-  Cache(string prepend);
+ Cache(string prepend);
   ~Cache();
 
   shared_ptr<Formula>
@@ -74,6 +74,8 @@ public:
   string toString() const;
 
   cache_map getCache() const;
+
+  virtual shared_ptr<vector<int>> modalityPrefixToKey(const vector<int>& modalityPrefix) const = 0;
 };
 
 #endif
