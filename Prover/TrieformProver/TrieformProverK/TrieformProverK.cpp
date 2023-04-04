@@ -87,8 +87,10 @@ Solution TrieformProverK::prove(literal_set assumptions) {
 
 Solution TrieformProverK::prove(int depth, literal_set assumptions) {
     // Check solution memo
+    /*
     cout << "Depth: " << depth << " Proving: ";
     for (auto x : assumptions) cout << x.toString() << " "; cout << endl;
+    */
     shared_ptr<Bitset> assumptionsBitset =
         convertAssumptionsToBitset(assumptions);
     LocalSolutionMemoResult memoResult = localMemo.getFromMemo(assumptionsBitset);
@@ -144,7 +146,6 @@ Solution TrieformProverK::prove(int depth, literal_set assumptions) {
             childSolution = childNode->prove(depth+1, childAssumptions);
 
             // Clause propagation
-            /*
             bool shouldRestart = false;
             for (literal_set learnClause : prover->getClauses(modalitySubtrie.first, prover->negatedClauses(childNode->allConflicts))) {
                 for (auto x : learnClause) cout << x.toString() << " "; cout << endl;
@@ -156,7 +157,6 @@ Solution TrieformProverK::prove(int depth, literal_set assumptions) {
                 return prove(assumptions);
             }
             childNode->allConflicts.clear();
-            */
 
             // If it is satisfiable create the next world
             if (childSolution.satisfiable) {
@@ -170,19 +170,13 @@ Solution TrieformProverK::prove(int depth, literal_set assumptions) {
         }
 
         if (!diamondFailed) continue;
-        
-        cout << "Depth: " << depth << "Failed: " << endl; 
         for (literal_set learnClause : prover->getClauses(modalitySubtrie.first, childSolution.conflict)) {
             allConflicts.push_back(learnClause);
-            for (auto x : learnClause) cout << x.toString() << " "; cout << endl;
             prover->addClause(learnClause);
         }
         return prove(depth, assumptions);
     }
     // If we reached here the solution is satisfiable under all modalities
-    cout << "Depth: " << depth << " SAT";
-    cout << "MODEL: ";
-    for (auto x : currentModel) cout << x.toString() << " "; cout << endl;
     updateSolutionMemo(assumptionsBitset, solution);
     return solution;
 }
