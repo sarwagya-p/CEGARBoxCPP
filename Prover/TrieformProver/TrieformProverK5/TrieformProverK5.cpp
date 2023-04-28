@@ -1,97 +1,98 @@
 #include "TrieformProverK5.h"
 
-shared_ptr<Cache> TrieformProverK5::persistentCache = make_shared<PrefixCache>("P");
+shared_ptr<Cache> TrieformProverK5::persistentCache =
+    make_shared<PrefixCache>("P");
+int TrieformProverK5::restartUntil = -1;
 
-shared_ptr<Trieform>
-TrieformFactory::makeTrieK5(const shared_ptr<Formula> &formula,
-                            shared_ptr<Trieform> trieParent) {
-  shared_ptr<Trieform> trie = shared_ptr<Trieform>(new TrieformProverK5());
-  trie->initialise(formula, trieParent);
-  return trie;
+map<vector<int>, shared_ptr<Trieform>> TrieformProverK5::all_trieforms;
+ProbationSolutionMemo TrieformProverK5::probationMemo;
+
+shared_ptr<Trieform> TrieformFactory::makeTrieK5(
+    const shared_ptr<Formula> &formula, shared_ptr<Trieform> trieParent) {
+    shared_ptr<Trieform> trie = shared_ptr<Trieform>(new TrieformProverK5());
+    trie->initialise(formula, trieParent);
+    return trie;
 }
-shared_ptr<Trieform>
-TrieformFactory::makeTrieK5(const shared_ptr<Formula> &formula,
-                            const vector<int> &newModality,
-                            shared_ptr<Trieform> trieParent) {
-  shared_ptr<Trieform> trie = shared_ptr<Trieform>(new TrieformProverK5());
-  trie->initialise(formula, newModality, trieParent);
-  return trie;
+shared_ptr<Trieform> TrieformFactory::makeTrieK5(
+    const shared_ptr<Formula> &formula, const vector<int> &newModality,
+    shared_ptr<Trieform> trieParent) {
+    shared_ptr<Trieform> trie = shared_ptr<Trieform>(new TrieformProverK5());
+    trie->initialise(formula, newModality, trieParent);
+    return trie;
 }
-shared_ptr<Trieform>
-TrieformFactory::makeTrieK5(const vector<int> &newModality,
-                            shared_ptr<Trieform> trieParent) {
-  shared_ptr<Trieform> trie = shared_ptr<Trieform>(new TrieformProverK5());
-  trie->initialise(newModality, trieParent);
-  return trie;
+shared_ptr<Trieform> TrieformFactory::makeTrieK5(
+    const vector<int> &newModality, shared_ptr<Trieform> trieParent) {
+    shared_ptr<Trieform> trie = shared_ptr<Trieform>(new TrieformProverK5());
+    trie->initialise(newModality, trieParent);
+    return trie;
 }
 
 TrieformProverK5::TrieformProverK5() {}
 TrieformProverK5::~TrieformProverK5() {}
 
-shared_ptr<Trieform>
-TrieformProverK5::create(const shared_ptr<Formula> &formula) {
-  return TrieformFactory::makeTrieK5(formula, shared_from_this());
+shared_ptr<Trieform> TrieformProverK5::create(
+    const shared_ptr<Formula> &formula) {
+    return TrieformFactory::makeTrieK5(formula, shared_from_this());
 }
-shared_ptr<Trieform>
-TrieformProverK5::create(const shared_ptr<Formula> &formula,
-                         const vector<int> &newModality) {
-  return TrieformFactory::makeTrieK5(formula, newModality);
+shared_ptr<Trieform> TrieformProverK5::create(
+    const shared_ptr<Formula> &formula, const vector<int> &newModality) {
+    return TrieformFactory::makeTrieK5(formula, newModality);
 }
 shared_ptr<Trieform> TrieformProverK5::create(const vector<int> &newModality) {
-  return TrieformFactory::makeTrieK5(newModality);
-}
-bool TrieformProverK5::isInHistory(vector<shared_ptr<Bitset>> history,
-                                   shared_ptr<Bitset> bitset) {
-  for (shared_ptr<Bitset> assump : history) {
-    if (assump->contains(*bitset)) {
-      return true;
-    }
-  }
-  return false;
+    return TrieformFactory::makeTrieK5(newModality);
 }
 
-shared_ptr<Bitset>
-TrieformProverK5::convertAssumptionsToBitset(literal_set literals) {
-  shared_ptr<Bitset> bitset =
-      shared_ptr<Bitset>(new Bitset(2 * assumptionsSize));
-  for (Literal literal : literals) {
-    bitset->set(2 * idMap[literal.getName()] + literal.getPolarity());
-  }
-  return bitset;
+int TrieformProverK5::isInHistory(vector<pair<int, shared_ptr<Bitset>>> history,
+                                  shared_ptr<Bitset> bitset) {
+    for (unsigned i = history.size(); i-- > 0;) {
+        if (history[i].second->contains(*bitset)) return history[i].first;
+    }
+    return -1;
+}
+
+shared_ptr<Bitset> TrieformProverK5::convertAssumptionsToBitset(
+    literal_set literals) {
+    shared_ptr<Bitset> bitset =
+        shared_ptr<Bitset>(new Bitset(2 * assumptionsSize));
+    for (Literal literal : literals) {
+        bitset->set(2 * idMap[literal.getName()] + literal.getPolarity());
+    }
+    return bitset;
 }
 
 void TrieformProverK5::updateSolutionMemo(const shared_ptr<Bitset> &assumptions,
                                           Solution solution) {
-  if (solution.satisfiable) {
-    localMemo.insertSat(assumptions);
-  } else {
-    localMemo.insertUnsat(assumptions, solution.conflict);
-  }
+    if (solution.satisfiable) {
+        localMemo.insertSat(assumptions);
+    } else {
+        localMemo.insertUnsat(assumptions, solution.conflict);
+    }
 }
 
 void TrieformProverK5::propagateEuclideaness() {
-  for (const ModalClause &clause : clauses.getDiamondClauses()) {
-    if (modality.size() == 0 ||
-        clause.modality != modality[modality.size() - 1]) {
-      formula_set newOr;
-      newOr.insert(clause.left->negate());
-      if (cache->inverseContains(clause.right)) {
-        newOr.insert(Box::create(
-            clause.modality, 1,
-            Diamond::create(clause.modality, 1,
-                            cache->getInverseFormula(clause.right))));
-      } else {
-        newOr.insert(
-            Box::create(clause.modality, 1,
-                        Diamond::create(clause.modality, 1, clause.right)));
-      }
+    for (const ModalClause &clause : clauses.getDiamondClauses()) {
+        if (modality.size() == 0 ||
+            clause.modality != modality[modality.size() - 1]) {
+            formula_set newOr;
+            newOr.insert(clause.left->negate());
+            if (cache->inverseContains(clause.right)) {
+                newOr.insert(Box::create(
+                    clause.modality, 1,
+                    Diamond::create(clause.modality, 1,
+                                    cache->getInverseFormula(clause.right))));
+            } else {
+                newOr.insert(Box::create(
+                    clause.modality, 1,
+                    Diamond::create(clause.modality, 1, clause.right)));
+            }
 
-      propagateClauses(Or::create(newOr));
+            propagateClauses(Or::create(newOr));
+        }
     }
-  }
 }
 
 void TrieformProverK5::reflexiveHandleBoxClauses() {
+    /*
   for (ModalClause modalClause : clauses.getBoxClauses()) {
     if (modalClause.modality == modality[modality.size() - 1]) {
       formula_set newOr;
@@ -99,36 +100,76 @@ void TrieformProverK5::reflexiveHandleBoxClauses() {
       newOr.insert(modalClause.right);
       clauses.addClause(Or::create(newOr));
     }
-  }
+  }*/
 
-  if (hasSubtrie(modality[modality.size() - 1])) {
-    dynamic_cast<TrieformProverK5 *>(
-        getSubtrie(modality[modality.size() - 1]).get())
-        ->reflexiveHandleBoxClauses();
-  }
+    if (hasSubtrie(modality[modality.size() - 1])) {
+        dynamic_cast<TrieformProverK5 *>(
+            getSubtrie(modality[modality.size() - 1]).get())
+            ->reflexiveHandleBoxClauses();
+    }
 }
 
 void TrieformProverK5::reflexivepropagateLevels() {
-  if (hasSubtrie(modality[modality.size() - 1])) {
-    shared_ptr<TrieformProverK5> subtrie =
-        dynamic_pointer_cast<TrieformProverK5>(
-            getSubtrie(modality[modality.size() - 1]));
-    subtrie->reflexivepropagateLevels();
-    overShadow(subtrie, modality[modality.size() - 1]);
-  }
+    if (hasSubtrie(modality[modality.size() - 1])) {
+        shared_ptr<TrieformProverK5> subtrie =
+            dynamic_pointer_cast<TrieformProverK5>(
+                getSubtrie(modality[modality.size() - 1]));
+        subtrie->reflexivepropagateLevels();
+        overShadow(subtrie, modality[modality.size() - 1]);
+    }
 }
 
 void TrieformProverK5::pruneTrie() {
-  if (hasSubtrie(modality[modality.size() - 1])) {
-    TrieformProverK5 *subtrie = dynamic_cast<TrieformProverK5 *>(
-        getSubtrie(modality[modality.size() - 1]).get());
-    if (subtrie->hasSubtrie(modality[modality.size() - 1])) {
-      subtrie->removeSubtrie(modality[modality.size() - 1]);
+    if (hasSubtrie(modality[modality.size() - 1])) {
+        TrieformProverK5 *subtrie = dynamic_cast<TrieformProverK5 *>(
+            getSubtrie(modality[modality.size() - 1]).get());
+        if (subtrie->hasSubtrie(modality[modality.size() - 1])) {
+            subtrie->removeSubtrie(modality[modality.size() - 1]);
+        }
     }
-  }
+}
+
+void TrieformProverK5::globallyAddClauses(const FormulaTriple &otherClauses) {
+    clauses.extendClauses(otherClauses);
+    for (auto modalSubtrie : subtrieMap) {
+        dynamic_cast<TrieformProverK5 *>(modalSubtrie.second.get())
+            ->globallyAddClauses(otherClauses);
+    }
+}
+
+shared_ptr<modal_clause_set> TrieformProverK5::getAllBoxClauses5() {
+    shared_ptr<modal_clause_set> res = make_shared<modal_clause_set>();
+    res->insert(clauses.getBoxClauses().begin(), clauses.getBoxClauses().end());
+    for (auto modalitySubtrie : subtrieMap) {
+        shared_ptr<modal_clause_set> other =
+            (dynamic_cast<TrieformProverK5 *>(modalitySubtrie.second.get()))
+                ->getAllBoxClauses5();
+        res->insert(other->begin(), other->end());
+    }
+    return res;
 }
 
 void TrieformProverK5::makePersistence() {
+    shared_ptr<modal_clause_set> boxClauses = getAllBoxClauses5();
+
+    FormulaTriple ft;
+
+    for (ModalClause boxClause : *boxClauses) {
+        shared_ptr<Formula> aux =
+            persistentCache->getVariableOrCreate(boxClause.left);
+        shared_ptr<Formula> naux = Not::create(aux)->negatedNormalForm();
+        shared_ptr<Formula> nleft =
+            Not::create(boxClause.left)->negatedNormalForm();
+
+        ft.addBoxClause(boxClause);
+        ft.addClause({Or::create({naux, boxClause.left})});
+        ft.addBoxClause({boxClause.modality, naux, nleft});
+        ft.addBoxClause({boxClause.modality, aux, aux});
+        ft.addDiamondClause({boxClause.modality, aux, boxClause.left});
+    }
+    globallyAddClauses(ft);
+
+    /*
   if (hasSubtrie(modality[modality.size() - 1])) {
     dynamic_cast<TrieformProverK5 *>(
         getSubtrie(modality[modality.size() - 1]).get())
@@ -183,183 +224,271 @@ void TrieformProverK5::makePersistence() {
           ->clauses.addBoxClause(persistentBox);
     }
   }
+  */
 }
 
 void TrieformProverK5::preprocess() {
-  propagateEuclideaness();
+    all_trieforms[modality] = shared_from_this();
+    // propagateEuclideaness();
 
-  if (modality.size() == 1 ||
-      (modality.size() > 1 &&
-       modality[modality.size() - 1] != modality[modality.size() - 2])) {
-    reflexiveHandleBoxClauses();
-    reflexivepropagateLevels();
+    if (modality.size() == 1 ||
+        (modality.size() > 1 &&
+         modality[modality.size() - 1] != modality[modality.size() - 2])) {
+        reflexiveHandleBoxClauses();
+        reflexivepropagateLevels();
 
-    pruneTrie();
+        pruneTrie();
+    }
 
-    makePersistence();
-  }
+    for (auto modalSubtrie : subtrieMap) {
+        modalSubtrie.second->preprocess();
+    }
 
-  for (auto modalSubtrie : subtrieMap) {
-    modalSubtrie.second->preprocess();
-  }
+    if (modality.size() == 0) makePersistence();
+}
+
+Solution TrieformProverK5::prove(literal_set assumptions) {
+    return prove(0, assumptions);
 }
 
 void TrieformProverK5::prepareSAT(name_set extra) {
-  for (string name : extra) {
-    idMap[name] = assumptionsSize++;
-  }
-  modal_names_map modalExtras = prover->prepareSAT(clauses, extra);
-  for (auto modalSubtrie : subtrieMap) {
-    modalSubtrie.second->prepareSAT(modalExtras[modalSubtrie.first]);
-  }
+    for (string name : extra) {
+        idMap[name] = assumptionsSize++;
+    }
+    modal_names_map modalExtras = prover->prepareSAT(clauses, extra);
+    for (auto modalSubtrie : subtrieMap) {
+        modalSubtrie.second->prepareSAT(modalExtras[modalSubtrie.first]);
+    }
 }
 
-Solution TrieformProverK5::prove(vector<shared_ptr<Bitset>> history,
-                                 literal_set assumptions) {
-  // cout << "SOLVING [";
-  // for (int ms : modality) {
-  //   cout << ms << ",";
-  // }
-  // cout << "] WITH ASSUMPS [";
-  // for (Literal lit : assumptions) {
-  //   cout << lit.toString() << ",";
-  // }
-  // cout << "]" << endl;
-
-  // Check solution memo
-  shared_ptr<Bitset> assumptionsBitset =
-      convertAssumptionsToBitset(assumptions);
-  LocalSolutionMemoResult memoResult = localMemo.getFromMemo(assumptionsBitset);
-
-  if (memoResult.inSatMemo) {
-    // if (memoResult.result.satisfiable) {
-
-    //   cout << "MEMOSAT" << endl;
-    // } else {
-    //   cout << "MEMOUNSAT" << endl;
-    // }
-    return memoResult.result;
-  }
-
-  if (isInHistory(history, assumptionsBitset)) {
-    // cout << "HISTORYSAT" << endl;
-    return {true, literal_set()};
-  }
-
-  // Solve locally
-  Solution solution = prover->solve(assumptions);
-
-  if (!solution.satisfiable) {
-    // cout << "UNSAT" << endl;
-    updateSolutionMemo(assumptionsBitset, solution);
-    return solution;
-  }
-
-  prover->calculateTriggeredDiamondsClauses();
-  modal_literal_map triggeredDiamonds = prover->getTriggeredDiamondClauses();
-
-  // If there are no fired diamonds, it is satisfiable
-  if (triggeredDiamonds.size() == 0) {
-    // cout << "NO DIAMONDS SAT" << endl;
-    updateSolutionMemo(assumptionsBitset, solution);
-    return solution;
-  }
-
-  prover->calculateTriggeredBoxClauses();
-  modal_literal_map triggeredBoxes = prover->getTriggeredBoxClauses();
-
-  for (auto modalityDiamonds : triggeredDiamonds) {
-    // cout << "ITERATING OVER DIAMONDS" << endl;
-    // Handle each modality
-    if (modalityDiamonds.second.size() == 0) {
-      // If there are no triggered diamonds of a certain modality we can skip
-      // it
-      continue;
+shared_ptr<Bitset> TrieformProverK5::fleshedOutAssumptionBitset(
+    literal_set model) {
+    shared_ptr<Bitset> bitset =
+        shared_ptr<Bitset>(new Bitset(2 * assumptionsSize));
+    for (auto x : idMap) {
+        Literal lit = Literal{x.first, 0};
+        bitset->set(2 * x.second + (model.find(lit) == model.end()));
     }
-
-    diamond_queue diamondPriority =
-        prover->getPrioritisedTriggeredDiamonds(modalityDiamonds.first);
-    while (!diamondPriority.empty()) {
-      // Create a world for each diamond if necessary
-      Literal diamond = diamondPriority.top().literal;
-      diamondPriority.pop();
-
-      // If the diamond is already satisfied by reflexivity no need to create
-      // a successor.
-      if (modality.size() > 0 &&
-          modality[modality.size() - 1] == modalityDiamonds.first &&
-          prover->modelSatisfiesAssump(diamond)) {
-        // cout << "TRIVIALLY SATISFIED BY REFLEXIVITY???" << endl;
-        continue;
-      }
-      // cout << "CHECKING FURTHER" << endl;
-      literal_set childAssumptions =
-          literal_set(triggeredBoxes[modalityDiamonds.first]);
-      childAssumptions.insert(diamond);
-
-      // Run the solver for the next level
-      Solution childSolution;
-      if (modality.size() > 1 &&
-          modality[modality.size() - 1] == modalityDiamonds.first &&
-          modality[modality.size() - 1] == modality[modality.size() - 2]) {
-        // cout << "CALLING RECURSIVE" << endl;
-        history.push_back(assumptionsBitset);
-        childSolution = prove(history, childAssumptions);
-        history.pop_back();
-      } else {
-        // cout << "CALLING DEEPEN" << endl;
-        childSolution = dynamic_cast<TrieformProverK5 *>(
-                            subtrieMap[modalityDiamonds.first].get())
-                            ->prove(childAssumptions);
-      }
-
-      // If it is satisfiable create the next world
-      if (childSolution.satisfiable) {
-        continue;
-      }
-
-      // Otherwise there must have been a conflict
-      vector<literal_set> badImplications = prover->getNotProblemBoxClauses(
-          modalityDiamonds.first, childSolution.conflict);
-
-      if (childSolution.conflict.find(diamond) !=
-          childSolution.conflict.end()) {
-        // The diamond clause, either on its own or together with box clauses,
-        // caused a conflict. We must add diamond implies OR NOT problem box
-        // clauses.
-        prover->updateLastFail(diamond);
-        badImplications.push_back(
-            prover->getNotDiamondLeft(modalityDiamonds.first, diamond));
-
-        for (literal_set learnClause : generateClauses(badImplications)) {
-          prover->addClause(learnClause);
-        }
-
-        // Find new result
-        // cout << "RESTART" << endl;
-        return prove(history, assumptions);
-      } else {
-        // Should be able to remove this (boxes must be able to satisfied
-        // because of reflexivity)
-        // Only the box clauses caused a conflict, so
-        // we must add each diamond clause implies OR NOT problem box lefts
-        badImplications.push_back(
-            prover->getNotAllDiamondLeft(modalityDiamonds.first));
-        // Add ~leftDiamond=>\/~leftProbemBox
-        for (literal_set learnClause : generateClauses(badImplications)) {
-          prover->addClause(learnClause);
-        }
-        // Find new result
-        // cout << "RESTART" << endl;
-        return prove(history, assumptions);
-      }
-    }
-  }
-  // cout << "Just SAT" << endl;
-  // If we reached here the solution is satisfiable under all modalities
-  return solution;
+    return bitset;
 }
 
-Solution TrieformProverK5::prove(literal_set assumptions = literal_set()) {
-  return prove(vector<shared_ptr<Bitset>>(), assumptions);
+Solution TrieformProverK5::prove(int depth, literal_set assumptions) {
+    ProbationSolutionMemoState probationState = probationMemo.getState();
+    cout << endl;
+    cout << "SOLVING [";
+    for (int ms : modality) {
+        cout << ms << ",";
+    }
+    cout << "] WITH ASSUMPS [";
+    for (Literal lit : assumptions) {
+        cout << lit.toString() << ",";
+    }
+    cout << "]" << endl;
+
+    // Check solution memo
+    shared_ptr<Bitset> assumptionsBitset =
+        convertAssumptionsToBitset(assumptions);
+
+    cout << "HI: " << &localMemo << endl;
+    LocalSolutionMemoResult memoResult =
+        localMemo.getFromMemo(assumptionsBitset);
+
+    if (memoResult.inSatMemo) {
+        // if (memoResult.result.satisfiable) {
+
+        //   cout << "MEMOSAT" << endl;
+        // } else {
+        //   cout << "MEMOUNSAT" << endl;
+        // }
+        return memoResult.result;
+    }
+
+    ProbationSolutionMemoResult probationMemoResult = probationMemo.getFromMemo(
+        make_shared<vector<int>>(modality), assumptionsBitset);
+
+    if (probationMemoResult.inSatMemo) {
+        // cout << "Depth :" << depth << " " << "sat from probation: " <<
+        // probationMemo.minimalRoot << endl;
+        return probationMemoResult.result;
+    }
+
+    int inHistory = isInHistory(history, assumptionsBitset);
+    if (inHistory != -1) {
+        probationMemo.updateMinimalRoot(inHistory);
+        // cout << "Depth :" << depth << " " << "Using history: " << inHistory
+        // << endl;
+        return {true, literal_set()};
+    }
+
+    // Solve locally
+    Solution solution = prover->solve(assumptions);
+
+    if (!solution.satisfiable) {
+        cout << "UNSAT: ";
+
+        for (Literal lit : solution.conflict) {
+            cout << lit.toString() << ",";
+        }
+        cout << endl;
+
+        probationMemo.setState(probationState);
+        updateSolutionMemo(assumptionsBitset, solution);
+        return solution;
+    }
+
+    literal_set currentModel = prover->getModel();
+    assumptionsBitset = fleshedOutAssumptionBitset(currentModel);
+
+    prover->calculateTriggeredDiamondsClauses();
+    modal_literal_map triggeredDiamonds = prover->getTriggeredDiamondClauses();
+    prover->calculateTriggeredBoxClauses();
+    modal_literal_map triggeredBoxes = prover->getTriggeredBoxClauses();
+
+    for (auto modalityDiamonds : triggeredDiamonds) {
+        // Handle each modality
+        if (modalityDiamonds.second.size() == 0) {
+            // If there are no triggered diamonds of a certain modality we can
+            // skip it
+            continue;
+        }
+
+        Solution childSolution;
+
+        bool loop = subtrieMap.find(modalityDiamonds.first) == subtrieMap.end();
+        // loop = (modality.size() > 1 &&
+        //   modality[modality.size() - 1] == modalityDiamonds.first &&
+        //   modality[modality.size() - 1] == modality[modality.size() - 2])
+        TrieformProverK5 *childNode =
+            loop ? this
+                 : dynamic_cast<TrieformProverK5 *>(
+                       subtrieMap[modalityDiamonds.first].get());
+
+        cout << "LOOP: " << loop << endl;
+
+        // The fired diamonds are not a subset of the fired boxes, we need to
+        // create one world for each diamond clause
+        bool diamondFailed = false;
+
+        diamond_queue diamondPriority = prover->getPrioritisedTriggeredDiamonds(
+            modalityDiamonds.first, triggeredBoxes[modalityDiamonds.first],
+            triggeredDiamonds[modalityDiamonds.first]);
+
+        while (!diamondPriority.empty()) {
+            // Create a world for each diamond
+            Literal diamond = diamondPriority.top().literal;
+            diamondPriority.pop();
+
+            literal_set childAssumptions =
+                literal_set(triggeredBoxes[modalityDiamonds.first]);
+            childAssumptions.insert(diamond);
+
+            // Run the solver for the next level
+            history.push_back({depth, assumptionsBitset});
+            pastModels.push_back({depth, currentModel});
+            childSolution = childNode->prove(depth + 1, childAssumptions);
+
+            history.pop_back();
+
+            // Clause propagation
+            for (literal_set learnClause : prover->getClauses(
+                     modalityDiamonds.first,
+                     prover->negatedClauses(childNode->allConflicts))) {
+                allConflicts.push_back(learnClause);
+                prover->addClause(learnClause);
+
+                restartUntil =
+                    checkClauseAgainstPastModels(restartUntil, learnClause);
+            }
+            childNode->allConflicts.clear();
+
+            if (restartUntil != -1) {
+                probationMemo.setState(probationState);
+                if (restartUntil == depth) {
+                    // restart current node
+                    restartUntil = -1;
+                    return prove(depth, assumptions);
+                } else {
+                    // Keep backtracking until we should restart
+                    return childSolution;
+                }
+            }
+
+            // If it is satisfiable create the next world
+            if (childSolution.satisfiable) {
+                // Don't check any more if we only required one
+                if (isSubsetOf(triggeredDiamonds[modalityDiamonds.first],
+                               triggeredBoxes[modalityDiamonds.first]))
+                    break;
+                else
+                    continue;
+            }
+            diamondFailed = true;
+            break;
+        }
+
+        if (!diamondFailed) continue;
+
+        for (literal_set learnClause : prover->getClauses(
+                 modalityDiamonds.first, childSolution.conflict)) {
+
+            cout << "LEARNING CLAUSE: ";
+            for (auto x : learnClause) cout << x.toString() << " ";
+            cout << endl;
+            allConflicts.push_back(learnClause);
+            prover->addClause(learnClause);
+            restartUntil =
+                checkClauseAgainstPastModels(restartUntil, learnClause);
+        }
+
+        if (restartUntil != -1) {
+            probationMemo.setState(probationState);
+            if (restartUntil == depth) {
+                // restart current node
+                restartUntil = -1;
+                return prove(depth, assumptions);
+            } else {
+                // Keep backtracking until we should restart
+                return childSolution;
+            }
+        }
+    }
+    // cout << "Just SAT" << endl;
+    // If we reached here the solution is satisfiable under all modalities
+
+    if (probationMemo.minimalRoot == -1) {
+        // cout << "Depth :" << depth << " " << "Going straight to actual cache"
+        // << endl; for (auto x : assumptions) cout << x.toString() << " "; cout
+        // << endl;
+        updateSolutionMemo(assumptionsBitset, solution);
+    } else if (depth == probationMemo.minimalRoot) {
+        // Move probation cache to actual cache
+        for (auto x : probationMemo.getSatSols()) {
+            auto trieform =
+                dynamic_cast<TrieformProverK5 *>(all_trieforms[*x.first].get());
+            trieform->localMemo.insertSat(x.second);
+        }
+        probationMemo.setState({-1, 0});
+    } else if (depth > probationMemo.minimalRoot) {
+        probationMemo.insertSat(make_shared<vector<int>>(modality),
+                                assumptionsBitset);
+    }
+    return solution;
+}
+
+unsigned int TrieformProverK5::checkClauseAgainstPastModels(
+    int restartUntil, literal_set clause) {
+    for (unsigned int i = 0; i < pastModels.size(); i++) {
+        bool contains = false;
+        for (Literal x : clause) {
+            if (pastModels[i].second.find(x) != pastModels[i].second.end()) {
+                contains = true;
+                break;
+            }
+        }
+        if (!contains) {
+            if (restartUntil == -1) return pastModels[i].first;
+            return min(pastModels[i].first, restartUntil);
+        };
+    }
+    return restartUntil;
 }

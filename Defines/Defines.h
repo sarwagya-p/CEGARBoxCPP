@@ -1,10 +1,11 @@
 #ifndef DEFINES_H
 #define DEFINES_H
 
-#include "../Formula/Formula/Formula.h"
 #include <functional>
 #include <memory>
 #include <unordered_set>
+
+#include "../Formula/Formula/Formula.h"
 
 using namespace std;
 
@@ -21,14 +22,15 @@ typedef unordered_set<string> name_set;
 typedef unordered_map<int, name_set> modal_names_map;
 
 struct SolverConstraints {
-  bool reflexive = false;
-  bool symmetric = false;
-  bool transitive = false;
-  bool serial = false;
-  bool euclidean = false;
-  bool tense = false;
-  bool oneSat = false;
-  bool localReduction = false;
+    bool reflexive = false;
+    bool symmetric = false;
+    bool transitive = false;
+    bool serial = false;
+    bool euclidean = false;
+    bool tense = false;
+    bool oneSat = false;
+    bool localReduction = false;
+    bool globalReduction = false;
 };
 
 #endif

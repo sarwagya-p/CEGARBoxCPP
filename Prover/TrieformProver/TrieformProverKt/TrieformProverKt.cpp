@@ -128,6 +128,21 @@ Solution TrieformProverKt::prove(literal_set assumptions) {
 }
 
 Solution  TrieformProverKt::prove(int depth, literal_set assumptions) {
+    if (std::find(occ.begin(), occ.end(), assumptions) != occ.end()) {
+        cout << "INEFFICIENT" << endl;
+
+
+    }
+    occ.push_back(assumptions);
+    /*
+    for (auto x : idMap) {
+        Literal lit = Literal{x.first, true};
+        if (assumptions.find(lit) == assumptions.end()) {
+            assumptions.insert(Literal{x.first, false});
+        }
+    }
+    */
+
 
     //cout << "Depth :" << depth << " " << endl;
     //cout << "Depth :" << depth << " " << endl << "SIZES: " << pastModels.size() << " " << history.size() << endl;
@@ -212,10 +227,7 @@ Solution  TrieformProverKt::prove(int depth, literal_set assumptions) {
         return solution;
     }
     literal_set currentModel = prover->getModel();
-    //cout << "Depth :" << depth << " " << "Current model: ";
-    //for (auto x : currentModel) {
-    //    cout << x.toString() << " ";
-    //}
+
     //cout << "Depth :" << depth << " " << endl;
     //cout << "Depth :" << depth << " " << "ACTUAL" << endl;
     assumptionsBitset = fleshedOutAssumptionBitset(currentModel);
@@ -369,10 +381,7 @@ Solution  TrieformProverKt::prove(int depth, literal_set assumptions) {
 
             // Unsat while creating a successor
             restartUntil = depth;
-            /*
-                    cout << "conflict: ";
-                    for (auto x : childSolution.conflict) cout << x.toString() << " "; cout << endl;
-                    */
+
             for (literal_set learnClause : prover->getClauses(modalitySubtrie.first, childSolution.conflict)) {
                 allConflicts.push_back(learnClause);
                 prover->addClause(learnClause);

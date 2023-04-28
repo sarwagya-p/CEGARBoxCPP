@@ -142,6 +142,17 @@ shared_ptr<Formula> Or::modalFlatten() {
   return shared_from_this();
 }
 
+
+shared_ptr<Formula> Or::axiomSimplify(int axiom, int depth) {
+  formula_set orSet;
+  for (shared_ptr<Formula> formula : orSet_) {
+    orSet.insert(formula->axiomSimplify(axiom, depth));
+  }
+  orSet_ = orSet;
+
+  return shared_from_this();
+}
+
 shared_ptr<Formula> Or::create(formula_set orSet) {
   shared_ptr<Formula> trueFormula = True::create();
   if (orSet.count(trueFormula)) {

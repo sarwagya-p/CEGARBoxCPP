@@ -68,6 +68,8 @@ private:
     vector<literal_set> checkClauses(int modality, vector<literal_set> clauses, literal_set badClause);
     vector<literal_set> createConflictGroups(int modality, literal_set nextModalContextConflict);
 
+    static unordered_map<string, name_set>  graph;
+
 protected:
   modal_lit_implication boxLits;
   modal_lit_implication diamondLits;
@@ -88,6 +90,8 @@ protected:
                                    modal_lit_implication &modalFromRight) = 0;
 
   virtual int getLiteralId(Literal literal) = 0;
+
+
 
 public:
   Prover();
@@ -141,6 +145,8 @@ public:
   vector<literal_set> getClauses(int modality, literal_set conflict);
   vector<literal_set> getClauses(int modality, vector<literal_set> conflicts);
     vector<literal_set> negatedClauses(vector<literal_set> clauses);  
+
+  vector<literal_set> filterPropagatedConflicts(vector<literal_set> clauses);
 };
 
 #endif

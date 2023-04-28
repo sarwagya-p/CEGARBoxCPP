@@ -79,12 +79,11 @@ void TrieformProverK4::makePersistence() {
 
   modal_clause_set persistentBoxes;
   for (ModalClause boxClause : clauses.getBoxClauses()) {
-    // For a=>[]b in our box clauses replace with
-    // a=>Pb
-    // Pb=>[]Pb
-    // [](Pb=>b)
+    // For a=>[]b in our box clauses add 
+    // a => [] a
 
     // Make persistence
+    /*
     shared_ptr<Formula> persistent =
         persistentCache->getVariableOrCreate(boxClause.right);
     persistentBoxes.insert({boxClause.modality, persistent, persistent});
@@ -98,8 +97,10 @@ void TrieformProverK4::makePersistence() {
     rightSet.insert(Not::create(persistent)->negatedNormalForm());
     rightSet.insert(boxClause.right);
     propagateClauses(Box::create(boxClause.modality, 1, Or::create(rightSet)));
+    */
+    persistentBoxes.insert({boxClause.modality, boxClause.left, boxClause.left});
   }
-  clauses.setBoxClauses(persistentBoxes);
+  clauses.extendBoxClauses(persistentBoxes);
 
   for (ModalClause persistentBox : persistentBoxes) {
     subtrieMap[persistentBox.modality]->clauses.addBoxClause(persistentBox);

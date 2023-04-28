@@ -1,6 +1,7 @@
 #include "MinisatProver.h"
 
-shared_ptr<Minisat::SimpSolver> MinisatProver::completeSolver = make_shared<Minisat::SimpSolver>();
+shared_ptr<Minisat::SimpSolver> MinisatProver::completeSolver = shared_ptr<Minisat::SimpSolver>(new Minisat::SimpSolver());
+
 
 MinisatProver::MinisatProver(bool onesat) {
   // solver->random_var_freq = 0;
@@ -15,6 +16,7 @@ MinisatProver::MinisatProver(bool onesat) {
         completeSolver->eliminate(true);
         //completeSolver->verbosity=2;
     calcSolver = completeSolver;
+    //calcSolver = solver;
 
   } else {
         solver->eliminate(true);
@@ -35,6 +37,7 @@ modal_names_map MinisatProver::prepareSAT(FormulaTriple clauses,
 
   prepareFalse();
   prepareClauses(clauses.getClauses());
+
   return newExtra;
 }
 
@@ -91,7 +94,8 @@ void MinisatProver::prepareModalClauses(modal_clause_set modal_clauses,
 Minisat::Var MinisatProver::createOrGetVariable(string name,
                                                 Minisat::lbool polarity) {
   if (variableMap.find(name) == variableMap.end()) {
-    variableMap[name] = calcSolver->newVar(polarity);
+    Minisat::Var newVar =calcSolver->newVar(polarity);  
+    variableMap[name] = newVar;
     nameMap[variableMap[name]] = name;
   }
   return variableMap[name];
@@ -114,11 +118,13 @@ shared_ptr<Minisat::vec<Minisat::Lit>>
 MinisatProver::convertAssumptions(literal_set assumptions) {
   shared_ptr<Minisat::vec<Minisat::Lit>> literals =
       shared_ptr<Minisat::vec<Minisat::Lit>>(new Minisat::vec<Minisat::Lit>());
+
   for (Literal assumption : assumptions) {
     Minisat::Var variable = variableMap[assumption.getName()];
     literals->push(assumption.getPolarity() ? Minisat::mkLit(variable)
                                             : ~Minisat::mkLit(variable));
-  }
+
+  } 
   return literals;
 }
 

@@ -26,6 +26,13 @@ shared_ptr<Formula> Not::modalFlatten() {
   return shared_from_this();
 }
 
+
+shared_ptr<Formula> Not::axiomSimplify(int axiom, int depth) { 
+  subformula_ = subformula_->axiomSimplify(axiom, depth);
+  return shared_from_this();
+}
+
+
 shared_ptr<Formula> Not::create(shared_ptr<Formula> subformula) {
   return shared_ptr<Formula>(new Not(subformula));
 }

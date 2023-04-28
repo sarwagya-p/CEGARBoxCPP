@@ -21,21 +21,32 @@ protected:
   shared_ptr<Bitset> convertAssumptionsToBitset(literal_set literals);
   void updateSolutionMemo(const shared_ptr<Bitset> &assumptions,
                           Solution solution);
-  bool isInHistory(vector<shared_ptr<Bitset>> history,
-                   shared_ptr<Bitset> bitset);
+
+
+int isInHistory(vector<pair<int, shared_ptr<Bitset>>> history, shared_ptr<Bitset> bitset);
 
   void propagateEuclideaness();
   void reflexiveHandleBoxClauses();
   void reflexivepropagateLevels();
   void pruneTrie();
   void makePersistence();
+vector<pair<int, literal_set>> pastModels;
+  
+  vector<pair<int, shared_ptr<Bitset>>> history;
+    static int restartUntil;
+  static map<vector<int>, shared_ptr<Trieform>> all_trieforms;
+    void globallyAddClauses(const FormulaTriple &otherClauses);
+    shared_ptr<modal_clause_set> getAllBoxClauses5();
 
 public:
   TrieformProverK5();
   ~TrieformProverK5();
 
+  static ProbationSolutionMemo probationMemo;
+
   Solution prove(vector<shared_ptr<Bitset>> history, literal_set assumptions);
-  virtual Solution prove(literal_set assumptions);
+ virtual Solution prove(literal_set assumptions);
+  Solution prove(int depth, literal_set assumptions = literal_set());
   virtual void preprocess();
   virtual void prepareSAT(name_set extra = name_set());
 
@@ -43,6 +54,9 @@ public:
   virtual shared_ptr<Trieform> create(const shared_ptr<Formula> &formula,
                                       const vector<int> &newModality);
   virtual shared_ptr<Trieform> create(const vector<int> &newModality);
+unsigned int checkClauseAgainstPastModels(int restartUntil, literal_set clause);
+  vector<literal_set> allConflicts;
+shared_ptr<Bitset> fleshedOutAssumptionBitset(literal_set model);
 };
 
 #endif

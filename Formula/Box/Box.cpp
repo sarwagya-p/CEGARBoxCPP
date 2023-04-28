@@ -70,6 +70,8 @@ shared_ptr<Formula> Box::simplify() {
   }
 }
 
+
+
 shared_ptr<Formula> Box::modalFlatten() {
   subformula_ = subformula_->modalFlatten();
   if (subformula_->getType() == FBox) {
@@ -80,6 +82,15 @@ shared_ptr<Formula> Box::modalFlatten() {
     }
   }
   return shared_from_this();
+}
+
+shared_ptr<Formula> Box::axiomSimplify(int axiom, int depth) { 
+    subformula_ = subformula_->axiomSimplify(axiom, depth+power_);
+    if (depth > 0)
+        power_ = 1;
+    else
+        power_ = min(power_, 2);
+    return shared_from_this(); 
 }
 
 shared_ptr<Formula> Box::create(int modality, int power,

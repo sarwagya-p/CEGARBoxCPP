@@ -29,7 +29,7 @@ Lingeling Lingeling::clone() {
 void Lingeling::add_clause(const vector<int>& inClause) {
   for (int i=0; i<inClause.size(); i++) {
     ipasir_add(solver, inClause[i]);
-    max_var = max(max_var, inClause[i]);
+    max_var = max(max_var, abs(inClause[i]));
   }
   ipasir_add(solver, 0);
 }
@@ -38,16 +38,20 @@ void Lingeling::add_clauses(const vector<vector<int>>& inClauses) {
   for (int j=0; j<inClauses.size(); j++){
     for (int i=0; i<inClauses[j].size(); i++) {
       ipasir_add(solver, inClauses[j][i]);
-      max_var = max(max_var, inClauses[j][i]);
+      max_var = max(max_var, abs(inClauses[j][i]));
     }
     ipasir_add(solver, 0);
   }
 }
 
+int Lingeling::create_variable() {
+    max_var += 1;
+    return max_var;
+}
 bool Lingeling::solve(const vector<int>& assumptions) {
   last_assumptions = assumptions;
   for (int i=0; i<assumptions.size(); i++){
-      max_var = max(max_var, assumptions[i]);
+      max_var = max(max_var, abs(assumptions[i]));
     ipasir_assume(solver, assumptions[i]);
   }
   int rawOutput = ipasir_solve(solver);
@@ -90,8 +94,14 @@ vector<int> Lingeling::get_model() {
   vector<int> assignments(max_var);
   for(int i=1; i<=max_var; i++){
     const int val = ipasir_val(solver, i);
-    if (val) assignments[i-1] = val;
-    else     assignments[i-1] = i; // Not given a value: as the value is not important, choose positive
+    if (abs(val) != i) 
+        assignments[i-1] = i;
+    else if (val) {
+      assignments[i-1] = val;
+    }
+    else     {
+      assignments[i-1] = i; // Not given a value: as the value is not important, choose positive 
+    }
   }
   return assignments;
 }

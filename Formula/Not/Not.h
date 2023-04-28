@@ -28,6 +28,7 @@ public:
   shared_ptr<Formula> negate();
   shared_ptr<Formula> simplify();
   shared_ptr<Formula> modalFlatten();
+  shared_ptr<Formula> axiomSimplify(int axiom, int depth);
 
   shared_ptr<Formula> clone() const;
 

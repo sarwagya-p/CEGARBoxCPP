@@ -20,6 +20,7 @@ protected:
   int numRelations = -1;
   unsigned int assumptionsSize = 0;
   vector<pair<int, literal_set>> pastModels;
+  vector<literal_set> occ;
 
   // For restarting
   bool shouldRestart = false;

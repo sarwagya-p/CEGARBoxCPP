@@ -141,6 +141,18 @@ shared_ptr<Formula> And::modalFlatten() {
   return shared_from_this();
 }
 
+
+ 
+shared_ptr<Formula> And::axiomSimplify(int axiom, int depth) {
+  formula_set newAndSet;
+  for (shared_ptr<Formula> formula : andSet_) {
+    newAndSet.insert(formula->axiomSimplify(axiom, depth));
+  }
+  andSet_ = newAndSet;
+
+  return shared_from_this();
+}
+
 shared_ptr<Formula> And::create(formula_set andSet) {
   shared_ptr<Formula> falseFormula = False::create();
     

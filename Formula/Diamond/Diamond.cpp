@@ -84,6 +84,24 @@ shared_ptr<Formula> Diamond::modalFlatten() {
   return shared_from_this();
 }
 
+
+shared_ptr<Formula> Diamond::axiomSimplify(int axiom, int depth) { 
+    if (axiom == 2 && depth >= 1) {
+        if (subformula_->getType() == FBox) {
+            Box *b = dynamic_cast<Box *>(subformula_.get());
+            return b->getSubformula()->axiomSimplify(axiom, depth);
+        }
+        return shared_from_this();
+    } else {
+        subformula_ = subformula_->axiomSimplify(axiom, depth+power_);
+        if (depth > 0)
+            power_ = 1;
+        else
+            power_ = min(power_, 2);
+        return shared_from_this(); 
+    }
+}
+
 shared_ptr<Formula> Diamond::create(int modality, int power,
                                     shared_ptr<Formula> subformula) {
   if (power == 0) {

@@ -19,9 +19,12 @@ shared_ptr<Formula> False::simplify() { return shared_from_this(); }
 
 shared_ptr<Formula> False::modalFlatten() { return shared_from_this(); }
 
+shared_ptr<Formula> False::axiomSimplify(int axiom, int depth) { return shared_from_this(); }
+
 shared_ptr<Formula> False::create() { return shared_ptr<Formula>(new False()); }
 
 shared_ptr<Formula> False::clone() const { return create(); }
+
 
 bool False::operator==(const Formula &other) const {
   return other.getType() == getType();

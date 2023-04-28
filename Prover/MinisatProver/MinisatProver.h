@@ -48,6 +48,8 @@ private:
 
   virtual int getLiteralId(Literal literal);
 
+  int numLits = 0;
+
 public:
   MinisatProver(bool onesat = false);
   ~MinisatProver();

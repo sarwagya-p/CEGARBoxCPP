@@ -26,6 +26,7 @@ class Lingeling {
     Lingeling clone();
     void flush_cache();
     void add_clause(const vector<int>& inClause);
+    int create_variable();
     void add_clauses(const vector<vector<int>>& inClauses);
     bool solve(const vector<int>& assumptions);
     bool solve_unmentioned_assumptions(const vector<int>& assumptions, const vector<int>& unmentioned_assumptions);

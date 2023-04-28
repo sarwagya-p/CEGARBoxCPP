@@ -34,8 +34,7 @@ private:
                            modal_lit_implication &modalLits,
                            modal_lit_implication &modalFromRight);
 
-  int
-  createOrGetVariable(string name);
+  int createOrGetVariable(string name);
   int makeLiteral(shared_ptr<Formula> formula);
 
   shared_ptr<vector<int>>
@@ -61,6 +60,8 @@ public:
 
     static shared_ptr<Lingeling> completeSolver;
     shared_ptr<Lingeling> calcSolver;
+    static shared_ptr<unordered_map<string, int>> completeVariableMap;
+    shared_ptr<unordered_map<string, int>> calcVariableMap;
 };
 
 #endif

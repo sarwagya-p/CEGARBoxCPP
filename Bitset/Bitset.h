@@ -12,6 +12,7 @@ private:
   unsigned int bitsPerBucket = 0; // CHAR_BIT * sizeof(int);
   unsigned int buckets = 0;       //(size + bitsPerBucket - 1) / bitsPerBucket;
   unsigned int *bitArray;
+  std::hash<int> int_hash;
 
 public:
   Bitset(const unsigned int bits);
@@ -25,6 +26,17 @@ public:
   unsigned int operator[](const unsigned int &bucket) const;
 
   void print() const;
+  
+  bool operator==(const Bitset &other) const;
+  bool operator!=(const Bitset &other) const;
+
+  size_t hash() const;
 };
 
+struct BitsetHash {
+  std::size_t operator()(Bitset const &l) const { return l.hash(); }
+};
+struct BitsetEqual {
+  size_t operator()(Bitset const &a, Bitset const &b) const { return a == b; }
+};
 #endif

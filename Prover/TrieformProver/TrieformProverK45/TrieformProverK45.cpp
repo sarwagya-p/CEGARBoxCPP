@@ -133,10 +133,11 @@ Solution TrieformProverK45::prove(vector<shared_ptr<Bitset>> history,
     return memoResult.result;
   }
 
+  /*
   if (isInHistory(history, assumptionsBitset)) {
     // cout << "HISTORYSAT" << endl;
     return {true, literal_set()};
-  }
+  }*/
 
   // Solve locally
   Solution solution = prover->solve(assumptions);

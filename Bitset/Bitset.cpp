@@ -5,7 +5,7 @@ Bitset::Bitset(const unsigned int bits) {
   size = bits;
   bitsPerBucket = CHAR_BIT * sizeof(int);
   buckets = (size + bitsPerBucket - 1) / bitsPerBucket;
-  // cout << "Buckets " << buckets << " bits " << bits << endl;
+   //cout << "Buckets " << buckets << " bits " << bits << endl;
   if (buckets > 0) {
     bitArray = new unsigned int[buckets]{0};
   }
@@ -63,4 +63,25 @@ void Bitset::print() const {
   }
 
   cout << endl;
+}
+
+
+bool Bitset::operator==(const Bitset &other) const {
+    if (buckets != other.buckets) return false;
+    for (int i = 0; i < buckets; i++) {
+        if (bitArray[i] != other.bitArray[i]) return false;
+    }
+    return true;
+}
+
+bool Bitset::operator!=(const Bitset &other) const {
+  return !(operator==(other));
+}
+
+size_t Bitset::hash() const {
+  int hash = 0;
+  for (int i = 0; i < buckets; i++) {
+      hash += int_hash(bitArray[i] + i);
+  }
+  return hash;
 }

@@ -319,6 +319,15 @@ vector<literal_set> Prover::checkClauses(int modality, vector<literal_set> claus
     return validClauses;
 }
 
+vector<literal_set> Prover::filterPropagatedConflicts(vector<literal_set> clauses) {
+    // Only propagate clauses with size 2 (otherwise it can blow up)
+    vector<literal_set> result;
+    for (literal_set clause : clauses) {
+        if (clause.size() > 2) continue;
+        result.push_back(clause);
+    }
+    return result;
+}
 vector<literal_set> Prover::negatedClauses(vector<literal_set> clauses) {
     vector<literal_set> result;
     for (literal_set clause : clauses) {
@@ -340,7 +349,7 @@ vector<literal_set> Prover::getClauses(int modality, literal_set conflict) {
             if (x.second.empty()) continue;
             literal_set litset;
             litset.insert(~x.first);
-            cout << (~x.first).toString() << " "; 
+            //cout << (~x.first).toString() << " "; 
             clauses.push_back(litset);
         } //                                   cout << endl;
         return clauses;
@@ -353,6 +362,29 @@ vector<literal_set> Prover::getClauses(int modality, vector<literal_set> conflic
         auto newConflicts = getClauses(modality, conflict);
         result.insert(result.end(), newConflicts.begin(), newConflicts.end());
     }
-    return result;
+
+    // Remove duplicates
+    vector<literal_set> pure;
+    std::sort(result.begin(), result.end(), [&](const literal_set & a, const literal_set & b){ return a.size() < b.size(); });
+
+    for (literal_set conflict : result) {
+        bool isPure = true;
+        for (literal_set done : pure) {
+            bool contains = true;
+            for (Literal x : done) {
+                if (conflict.find(x) == conflict.end()) {
+                    contains = false;
+                    break;
+                }
+            }
+            if (contains) {
+                isPure = false;
+                break;
+            }
+        }
+
+        if (isPure) pure.push_back(conflict);
+    }
+    return pure;
 }
 
