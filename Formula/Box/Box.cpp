@@ -36,8 +36,10 @@ shared_ptr<Formula> Box::getSubformula() const { return subformula_; }
 void Box::incrementPower() { power_++; }
 
 string Box::toString() const {
-  return "[" + to_string(modality_) + "]^" + to_string(power_) + " " +
-         subformula_->toString();
+    string ret = "";
+    for (int i = 0; i < power_; ++i) ret += "[" + to_string(modality_) + "]";
+    return ret + subformula_->toString();
+         
 }
 
 FormulaType Box::getType() const { return FBox; }

@@ -84,9 +84,10 @@ void Trieform::propagateClauses(const shared_ptr<Formula> &formula) {
                     shared_ptr<Formula> repVariable;
                     if (!cache->contains(boxReduced, newModality)) {
                         repVariable =
-                            cache->createVariableFor(boxReduced, newModality);
+                            cache->createVariableNoInsert(boxReduced, newModality);
                         getSubtrieOrEmpty(b->getModality())
                             ->sequenceClausify(boxReduced, repVariable);
+                        cache->insertVariable(boxReduced, newModality, repVariable);
                     } else {
                         repVariable = cache->getVariableRepresenting(
                             boxReduced, newModality);
@@ -112,9 +113,10 @@ void Trieform::propagateClauses(const shared_ptr<Formula> &formula) {
                 shared_ptr<Formula> repVariable;
                 if (!cache->contains(diamondReduced, newModality)) {
                     repVariable =
-                        cache->createVariableFor(diamondReduced, newModality);
+                        cache->createVariableNoInsert(diamondReduced, newModality);
                     getSubtrieOrEmpty(d->getModality())
                         ->sequenceClausify(diamondReduced, repVariable);
+                    cache->insertVariable(diamondReduced, newModality, repVariable);
                 } else {
                     repVariable = cache->getVariableRepresenting(diamondReduced,
                                                                  newModality);
@@ -139,8 +141,9 @@ void Trieform::propagateClauses(const shared_ptr<Formula> &formula) {
                     formulas.push_back(subformula);
                     //}
                 }
-
-                if (formulas[0]->getType() == FBox &&
+                if (ensureUniqueModalClauseLhs) {
+                    propagateOr(formula);
+                } else if (formulas[0]->getType() == FBox &&
                     formulas[1]->isPrimitive()) {
                     orBoxClausify(formulas[0], formulas[1]);
                 } else if (formulas[0]->isPrimitive() &&
@@ -240,9 +243,10 @@ shared_ptr<Formula> Trieform::nameFor(const shared_ptr<Formula> &formula) {
                                                                 newModality);
                     } else {
                         middle =
-                            cache->createVariableFor(boxReduced, newModality);
+                            cache->createVariableNoInsert(boxReduced, newModality);
                         getSubtrieOrEmpty(b->getModality())
                             ->sequenceClausify(boxReduced, middle);
+                        cache->insertVariable(boxReduced, newModality, middle);
                     }
 
                     clauses.addBoxClause(b->getModality(), left, middle);
@@ -276,10 +280,11 @@ shared_ptr<Formula> Trieform::nameFor(const shared_ptr<Formula> &formula) {
                         middle = cache->getVariableRepresenting(diamondReduced,
                                                                 newModality);
                     } else {
-                        middle = cache->createVariableFor(diamondReduced,
+                        middle = cache->createVariableNoInsert(diamondReduced,
                                                           newModality);
                         getSubtrieOrEmpty(d->getModality())
                             ->sequenceClausify(diamondReduced, middle);
+                        cache->insertVariable(diamondReduced, newModality, middle);
                     }
 
                     clauses.addDiamondClause(d->getModality(), left, middle);
@@ -298,21 +303,6 @@ void Trieform::orBoxClausify(const shared_ptr<Formula> &box,
     shared_ptr<Formula> boxReduced = b->constructBoxReduced();
 
     shared_ptr<Formula> newPrimitive = primitive;
-
-    if (ensureUniqueModalClauseLhs) {
-        if (cache->contains(box, modality)) {
-            newPrimitive = cache->getVariableRepresenting(box, modality);
-            //cout << newPrimitive->toString() << " := " << box->toString() << endl;
-        } else {
-            newPrimitive = cache->createVariableFor(box, modality);
-            formula_set newOrSet;
-            newOrSet.insert(primitive);
-            newOrSet.insert(newPrimitive);
-            propagateClauses(Or::create(newOrSet));
-        }
-        cout << newPrimitive->toString() << " := " << box->toString() << endl;
-        newPrimitive = Not::create(newPrimitive)->negatedNormalForm();
-    }
 
     if (boxReduced->isPrimitive()) {
         clauses.addBoxClause(b->getModality(),
@@ -344,21 +334,7 @@ void Trieform::orDiamondClausify(const shared_ptr<Formula> &diamond,
 
     
     shared_ptr<Formula> newPrimitive = primitive;
-
-    if (ensureUniqueModalClauseLhs) {
-        if (cache->contains(diamond, modality)) {
-            newPrimitive = cache->getVariableRepresenting(diamond, modality);
-            //cout << newPrimitive->toString() << " := " << box->toString() << endl;
-        } else {
-            newPrimitive = cache->createVariableFor(diamond, modality);
-            formula_set newOrSet;
-            newOrSet.insert(primitive);
-            newOrSet.insert(newPrimitive);
-            propagateClauses(Or::create(newOrSet));
-        }
-        cout << newPrimitive->toString() << " := " << diamond->toString() << endl;
-        newPrimitive = Not::create(newPrimitive)->negatedNormalForm();
-    }
+    
 
     if (diamondReduced->isPrimitive()) {
         clauses.addDiamondClause(d->getModality(),
@@ -507,9 +483,11 @@ string Trieform::toString() {
 }
 
 void Trieform::reduceClauses() {
-    combineBoxLeft();
-    combineBoxRight();
-    combineDiamondRight();
+    if (!ensureUniqueModalClauseLhs) {
+        combineBoxLeft();
+        combineBoxRight();
+        combineDiamondRight();
+    }
     for (auto modalityTrie : subtrieMap) {
         modalityTrie.second->reduceClauses();
     }
@@ -870,8 +848,31 @@ void Trieform::doResiduation() {
         }
     }
 }
+/*
+void Trieform::makeModalLhsUnique() {
 
+    formula_set andSet;
+    modal_clause_set newBoxClauses;
+    modal_clause_set newDiamondClauses;
 
+    for (auto clause : clauses.getBoxClauses()) {
+        clause.left
+        formula_set orSet = formula_set();
+        orSet.insert(condition);
+        orSet.insert(Box::create(prefix, clause.formula));
+        andSet.insert(Or::create(orSet));
+
+        newLeft = 
+        newBoxClauses.insert({clause.modality, clause.left, clause.right});
+    }
+
+    for (auto modalSubtrie : subtrieMap) {
+        modalSubtrie.second->makeModalLhsUnique();
+
+    }
+    
+}
+*/
 void Trieform::preprocessTense() {
     for (auto modalSubtrie : subtrieMap) {
         modalSubtrie.second->preprocessTense();

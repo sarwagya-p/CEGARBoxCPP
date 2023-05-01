@@ -6,6 +6,7 @@
 #include "../ProbationSolutionMemo/ProbationSolutionMemo.h"
 #include <memory>
 #include <vector>
+#include <omp.h>
 
 using namespace std;
 
@@ -23,6 +24,7 @@ private:
 
   vector<shared_ptr<Bitset>> satSols;
   vector<UnsatHolder> unsatSols;
+  
 
 public:
   LocalSolutionMemo();

@@ -13,6 +13,9 @@ private:
   unsigned int buckets = 0;       //(size + bitsPerBucket - 1) / bitsPerBucket;
   unsigned int *bitArray;
   std::hash<int> int_hash;
+  mutable int hash_;
+  mutable bool shouldCalculateHash = true;
+  unsigned int *orig;
 
 public:
   Bitset(const unsigned int bits);

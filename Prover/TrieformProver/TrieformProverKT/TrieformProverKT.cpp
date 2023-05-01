@@ -114,7 +114,6 @@ Solution TrieformProverKT::prove(int depth,
     Solution solution = prover->solve(assumptions);
 
     if (!solution.satisfiable) {
-        for (auto x : assumptions) cout << x.toString() << " "; cout << endl;
         // prover->reduce_conflict(solution.conflict);
         updateSolutionMemo(assumptionsBitset, solution);
         return solution;
@@ -190,14 +189,11 @@ Solution TrieformProverKT::prove(int depth,
             prover->addClause(learnClause);
 
             // Add clause to i-1, i-2, ... etc
-            cout << "ADDING CLAUSE AT DEPTH: " << depth << endl;
             auto cur = this;
             while (cur->getParent() != nullptr) {
-                cout << "BOINK ";
                 cur = dynamic_cast<TrieformProverKT *>(cur->getParent().get());
                 cur->prover->addClause(learnClause);
             }
-            cout << endl;
         }
         return prove(depth, assumptions);
     }

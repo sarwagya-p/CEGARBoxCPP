@@ -188,11 +188,11 @@ void solve(arguments_struct &args) {
     }
 
     formula = formula->modalFlatten();
-
+    /*
     if (args.settings.euclidean) {
         formula = formula->axiomSimplify(0, 0);
         formula = formula->axiomSimplify(2, 0);
-    }
+    }*/
 
     // correct = correct->modalFlatten();
 
@@ -316,7 +316,7 @@ void solve(arguments_struct &args) {
 
     trie->removeTrueAndFalse();
     // otherTrie->removeTrueAndFalse();
-    if (args.settings.tense || args.settings.oneSat || args.settings.symmetric || args.settings.euclidean)
+    if (Trieform::stringModalContexts)
         trie->prepareSAT(name_set{"$root"});
     else
         trie->prepareSAT();
@@ -336,7 +336,7 @@ void solve(arguments_struct &args) {
     
 
     bool satisfiable = trie->isSatisfiable(
-        args.settings.oneSat || (args.settings.tense) || args.settings.symmetric || args.settings.euclidean);
+        Trieform::stringModalContexts);
 
     if (args.valid) {
         cout << (satisfiable ? "Invalid" : "Valid") << endl;

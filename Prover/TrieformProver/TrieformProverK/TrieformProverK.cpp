@@ -87,18 +87,28 @@ Solution TrieformProverK::prove(literal_set assumptions) {
 
 Solution TrieformProverK::prove(int depth, literal_set assumptions) {
     // Check solution memo
+    shared_ptr<Bitset> assumptionsBitset;
+    shared_ptr<Bitset> fullAssumptionsBitset;
+    LocalSolutionMemoResult memoResult;
+    Solution solution;
+    literal_set currentModel;
+    modal_literal_map triggeredDiamonds;
+    modal_literal_map triggeredBoxes;
 
-    shared_ptr<Bitset> assumptionsBitset = isExact ? nullptr : convertAssumptionsToBitset(assumptions);
 
-    LocalSolutionMemoResult memoResult =
+    assumptionsBitset = isExact ? nullptr : convertAssumptionsToBitset(assumptions);
+
+    memoResult =
         isExact ? exactMemo.getFromMemo(assumptions) : localMemo.getFromMemo(assumptionsBitset);
 
     if (memoResult.inSatMemo) {
         return memoResult.result;
     }
+    
+    restart:
 
     // Solve locally
-    Solution solution = prover->solve(assumptions);
+    solution = prover->solve(assumptions);
 
     if (!solution.satisfiable) {
         // prover->reduce_conflict(solution.conflict);
@@ -106,14 +116,14 @@ Solution TrieformProverK::prove(int depth, literal_set assumptions) {
         return solution;
     }
     
-    literal_set currentModel = prover->getModel();
-
-    //assumptionsBitset = fleshedOutAssumptionBitset(currentModel);
+    currentModel = prover->getModel();
+    
+    if (!isExact) fullAssumptionsBitset = fleshedOutAssumptionBitset(currentModel);
 
     prover->calculateTriggeredDiamondsClauses();
-    modal_literal_map triggeredDiamonds = prover->getTriggeredDiamondClauses();
+    triggeredDiamonds = prover->getTriggeredDiamondClauses();
     prover->calculateTriggeredBoxClauses();
-    modal_literal_map triggeredBoxes = prover->getTriggeredBoxClauses();
+    triggeredBoxes = prover->getTriggeredBoxClauses();
 
     for (auto modalitySubtrie : subtrieMap) {
         // Handle each modality
@@ -178,7 +188,7 @@ Solution TrieformProverK::prove(int depth, literal_set assumptions) {
                 else
                     continue;
             }
-            prover->updateLastFail(diamond);
+            //prover->updateLastFail(diamond);
             diamondFailed = true;
             break;
         }
@@ -190,11 +200,12 @@ Solution TrieformProverK::prove(int depth, literal_set assumptions) {
             allConflicts.push_back(learnClause);
             prover->addClause(learnClause);
         }
-        return prove(depth, assumptions);
+        goto restart;
+        //return prove(depth, assumptions);
     }
     
     // If we reached here the solution is satisfiable under all modalities
-    updateSolutionMemo(assumptions, assumptionsBitset, solution);
+    updateSolutionMemo(assumptions, fullAssumptionsBitset, solution);
 
     return solution;
 }
@@ -411,6 +422,8 @@ void TrieformProverK::kspLocalReduction5(FormulaDetails formulaDetails) {
         ft.addDiamondClause({boxClause.modality, aux, boxClause.left});
     }
     globallyAddClauses(ft);
+    modalContextsT();
+    forwardProp();
     /*
     shared_ptr<FormulaTriple> nft = shared_ptr<FormulaTriple> (new FormulaTriple());
     getAllClauses(nft);
@@ -428,6 +441,12 @@ void TrieformProverK::kspLocalReduction5(FormulaDetails formulaDetails) {
     globalToLocal(bound - 1);
 }
 
+void TrieformProverK::forwardProp() {
+    for (auto modalSubtrie : subtrieMap) {
+        modalSubtrie.second->clauses.extendClauses(clauses);
+        dynamic_cast<TrieformProverK *>(modalSubtrie.second.get())->forwardProp();
+    }
+}
 void TrieformProverK::localReductionB() {
     propagateSymmetry();
     propagateSymmetricBoxes();
@@ -448,6 +467,7 @@ void TrieformProverK::propagateSymmetry() {
 }
 
 void TrieformProverK::propagateSymmetricBoxes() {
+    cout << "SYMMETRY?" << endl;
     for (auto modalitySubtrie : subtrieMap) {
         dynamic_cast<TrieformProverK *>(modalitySubtrie.second.get())
             ->propagateSymmetricBoxes();
@@ -504,10 +524,7 @@ void TrieformProverK::persistentBoxes4() {
 
 void TrieformProverK::propagateLevels4() {
     for (auto modalSubtrie : subtrieMap) {
-        if (modalSubtrie.second->hasSubtrie(modalSubtrie.first)) {
-            modalSubtrie.second->getSubtrie(modalSubtrie.first)
-                ->overShadow(modalSubtrie.second, modalSubtrie.first);
-        }
+        modalSubtrie.second->overShadow(shared_from_this(), modalSubtrie.first);
         dynamic_cast<TrieformProverK *>(modalSubtrie.second.get())
             ->propagateLevels4();
     }

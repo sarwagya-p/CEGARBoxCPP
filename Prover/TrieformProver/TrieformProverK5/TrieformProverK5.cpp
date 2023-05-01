@@ -274,22 +274,11 @@ shared_ptr<Bitset> TrieformProverK5::fleshedOutAssumptionBitset(
 
 Solution TrieformProverK5::prove(int depth, literal_set assumptions) {
     ProbationSolutionMemoState probationState = probationMemo.getState();
-    cout << endl;
-    cout << "SOLVING [";
-    for (int ms : modality) {
-        cout << ms << ",";
-    }
-    cout << "] WITH ASSUMPS [";
-    for (Literal lit : assumptions) {
-        cout << lit.toString() << ",";
-    }
-    cout << "]" << endl;
 
     // Check solution memo
     shared_ptr<Bitset> assumptionsBitset =
         convertAssumptionsToBitset(assumptions);
 
-    cout << "HI: " << &localMemo << endl;
     LocalSolutionMemoResult memoResult =
         localMemo.getFromMemo(assumptionsBitset);
 
@@ -324,13 +313,6 @@ Solution TrieformProverK5::prove(int depth, literal_set assumptions) {
     Solution solution = prover->solve(assumptions);
 
     if (!solution.satisfiable) {
-        cout << "UNSAT: ";
-
-        for (Literal lit : solution.conflict) {
-            cout << lit.toString() << ",";
-        }
-        cout << endl;
-
         probationMemo.setState(probationState);
         updateSolutionMemo(assumptionsBitset, solution);
         return solution;
@@ -343,7 +325,9 @@ Solution TrieformProverK5::prove(int depth, literal_set assumptions) {
     modal_literal_map triggeredDiamonds = prover->getTriggeredDiamondClauses();
     prover->calculateTriggeredBoxClauses();
     modal_literal_map triggeredBoxes = prover->getTriggeredBoxClauses();
-
+    
+    assert (pastModels.empty() || pastModels[pastModels.size() - 1].first < depth);
+    pastModels.push_back({depth, currentModel});
     for (auto modalityDiamonds : triggeredDiamonds) {
         // Handle each modality
         if (modalityDiamonds.second.size() == 0) {
@@ -363,8 +347,6 @@ Solution TrieformProverK5::prove(int depth, literal_set assumptions) {
                  : dynamic_cast<TrieformProverK5 *>(
                        subtrieMap[modalityDiamonds.first].get());
 
-        cout << "LOOP: " << loop << endl;
-
         // The fired diamonds are not a subset of the fired boxes, we need to
         // create one world for each diamond clause
         bool diamondFailed = false;
@@ -372,6 +354,7 @@ Solution TrieformProverK5::prove(int depth, literal_set assumptions) {
         diamond_queue diamondPriority = prover->getPrioritisedTriggeredDiamonds(
             modalityDiamonds.first, triggeredBoxes[modalityDiamonds.first],
             triggeredDiamonds[modalityDiamonds.first]);
+        
 
         while (!diamondPriority.empty()) {
             // Create a world for each diamond
@@ -384,11 +367,8 @@ Solution TrieformProverK5::prove(int depth, literal_set assumptions) {
 
             // Run the solver for the next level
             history.push_back({depth, assumptionsBitset});
-            pastModels.push_back({depth, currentModel});
             childSolution = childNode->prove(depth + 1, childAssumptions);
-
             history.pop_back();
-
             // Clause propagation
             for (literal_set learnClause : prover->getClauses(
                      modalityDiamonds.first,
@@ -402,6 +382,7 @@ Solution TrieformProverK5::prove(int depth, literal_set assumptions) {
             childNode->allConflicts.clear();
 
             if (restartUntil != -1) {
+                pastModels.pop_back();
                 probationMemo.setState(probationState);
                 if (restartUntil == depth) {
                     // restart current node
@@ -427,20 +408,19 @@ Solution TrieformProverK5::prove(int depth, literal_set assumptions) {
         }
 
         if (!diamondFailed) continue;
-
+        
         for (literal_set learnClause : prover->getClauses(
                  modalityDiamonds.first, childSolution.conflict)) {
 
-            cout << "LEARNING CLAUSE: ";
-            for (auto x : learnClause) cout << x.toString() << " ";
-            cout << endl;
             allConflicts.push_back(learnClause);
             prover->addClause(learnClause);
             restartUntil =
                 checkClauseAgainstPastModels(restartUntil, learnClause);
         }
+        assert (restartUntil <= depth);
 
         if (restartUntil != -1) {
+            pastModels.pop_back();
             probationMemo.setState(probationState);
             if (restartUntil == depth) {
                 // restart current node
@@ -452,6 +432,8 @@ Solution TrieformProverK5::prove(int depth, literal_set assumptions) {
             }
         }
     }
+
+    pastModels.pop_back();
     // cout << "Just SAT" << endl;
     // If we reached here the solution is satisfiable under all modalities
 

@@ -37,8 +37,9 @@ shared_ptr<Formula> Diamond::getSubformula() const { return subformula_; }
 void Diamond::incrementPower() { power_++; }
 
 string Diamond::toString() const {
-  return "<" + to_string(modality_) + ">^" + to_string(power_) + " " +
-         subformula_->toString();
+    string ret = "";
+    for (int i = 0; i < power_; ++i) ret += "<" + to_string(modality_) + ">";
+    return ret + subformula_->toString();
 }
 
 FormulaType Diamond::getType() const { return FDiamond; }

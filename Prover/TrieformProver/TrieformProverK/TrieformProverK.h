@@ -24,11 +24,12 @@ class TrieformProverK : public Trieform {
     void updateSolutionMemo(const literal_set &assumptions, const shared_ptr<Bitset> &assumptionsBitset,
                             Solution solution);
 
-    bool isExact = true;
+    bool isExact = false;
     void boxClausesT();
     void modalContextsT();
 
    public:
+    void forwardProp();
     TrieformProverK();
     ~TrieformProverK();
 

@@ -7,8 +7,9 @@ shared_ptr<Trieform> TrieformFactory::makeTrie(
     if (constraints.euclidean || constraints.transitive) {
         // There are issues if we have a -> [] b and a -> phi
         Trieform::ensureUniqueModalClauseLhs = true;
+        //Trieform::stringModalContexts = true;
     }
-    if (constraints.tense || constraints.oneSat || constraints.symmetric || constraints.euclidean) {
+    if (constraints.tense || constraints.oneSat || constraints.symmetric || constraints.euclidean || constraints.transitive) {
         Trieform::stringModalContexts = true;
 
         formula_set orSet;

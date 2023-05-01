@@ -61,6 +61,12 @@ public:
   shared_ptr<Formula>
   createVariableFor(const shared_ptr<Formula> &formula,
                     const vector<int> &modality = vector<int>());
+
+shared_ptr<Formula> createVariableNoInsert(const shared_ptr<Formula> &formula,
+                                             const vector<int> &modality);
+void insertVariable(const shared_ptr<Formula> &formula,
+                                             const vector<int> &modality, shared_ptr<Formula> newVariable);
+
   shared_ptr<Formula>
   getVariableRepresenting(const shared_ptr<Formula> &formula,
                           const vector<int> &modality = vector<int>());

@@ -13,3 +13,6 @@ main
 .cache
 callgrind*
 .ccls
+*.o
+Parser/
+massif*

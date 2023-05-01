@@ -108,7 +108,6 @@ Solution TrieformProverKGlobal::prove(literal_set assumptions) {
 }
 
 Solution TrieformProverKGlobal::prove(int depth, literal_set assumptions) {
-    cout << "HERE: " << depth << " - " << history.size() << endl;
     ProbationSolutionMemoState probationState = probationMemo.getState();
 
     // Check solution memo
@@ -122,7 +121,6 @@ Solution TrieformProverKGlobal::prove(int depth, literal_set assumptions) {
         localMemo.getFromMemo(assumptionsBitset);
 
     if (memoResult.inSatMemo) {
-        cout << "STOP SAT" << endl;
         return memoResult.result;
     }
 
@@ -130,7 +128,6 @@ Solution TrieformProverKGlobal::prove(int depth, literal_set assumptions) {
         make_shared<vector<int>>(modality), assumptionsBitset);
 
     if (probationMemoResult.inSatMemo) {
-        cout << "STOP PROBATION" << endl;
         // cout << "Depth :" << depth << " " << "sat from probation: " <<
         // probationMemo.minimalRoot << endl;
         return probationMemoResult.result;
@@ -161,7 +158,8 @@ Solution TrieformProverKGlobal::prove(int depth, literal_set assumptions) {
     modal_literal_map triggeredDiamonds = prover->getTriggeredDiamondClauses();
     prover->calculateTriggeredBoxClauses();
     modal_literal_map triggeredBoxes = prover->getTriggeredBoxClauses();
-
+    
+    pastModels.push_back({depth, currentModel});
     for (auto modalityDiamonds : triggeredDiamonds) {
         // Handle each modality
         if (modalityDiamonds.second.size() == 0) {
@@ -197,7 +195,6 @@ Solution TrieformProverKGlobal::prove(int depth, literal_set assumptions) {
 
             // Run the solver for the next level
             history.push_back({depth, assumptionsBitset});
-            pastModels.push_back({depth, currentModel});
             childSolution = childNode->prove(depth + 1, childAssumptions);
 
             history.pop_back();
@@ -215,6 +212,7 @@ Solution TrieformProverKGlobal::prove(int depth, literal_set assumptions) {
             childNode->allConflicts.clear();
 
             if (restartUntil != -1) {
+                pastModels.pop_back();
                 probationMemo.setState(probationState);
                 if (restartUntil == depth) {
                     // restart current node
@@ -250,6 +248,7 @@ Solution TrieformProverKGlobal::prove(int depth, literal_set assumptions) {
         }
 
         if (restartUntil != -1) {
+            pastModels.pop_back();
             probationMemo.setState(probationState);
             if (restartUntil == depth) {
                 // restart current node
@@ -261,11 +260,7 @@ Solution TrieformProverKGlobal::prove(int depth, literal_set assumptions) {
             }
         }
     }
-    cout << "FIN: ";
-    for (auto x : currentModel) {
-        cout << x.toString() << " ";
-    }
-    cout << endl;
+    pastModels.pop_back();
     // If we reached here the solution is satisfiable under all modalities
     if (probationMemo.minimalRoot == -1) {
         updateSolutionMemo(assumptionsBitset, solution);
@@ -328,8 +323,16 @@ shared_ptr<modal_clause_set> TrieformProverKGlobal::getAllBoxClauses5() {
     return res;
 }
 
+void TrieformProverKGlobal::modalContextsT() {
+    for (auto modalSubtrie : subtrieMap) {
+        dynamic_cast<TrieformProverKGlobal *>(modalSubtrie.second.get())
+            ->modalContextsT();
+        overShadow(modalSubtrie.second, modalSubtrie.first);
+    }
+}
 void TrieformProverKGlobal::globalReduction5() {
     // From local is best
+
     shared_ptr<modal_clause_set> boxClauses = getAllBoxClauses5();
 
     FormulaTriple ft;
@@ -348,6 +351,10 @@ void TrieformProverKGlobal::globalReduction5() {
         ft.addDiamondClause({boxClause.modality, aux, boxClause.left});
     }
     globallyAddClauses(ft);
+
+    // Make everything global
+    modalContextsT();
+    forwardProp();
     /*
     shared_ptr<FormulaTriple> nft = shared_ptr<FormulaTriple> (new FormulaTriple());
     getAllClauses(nft);
@@ -387,12 +394,15 @@ void TrieformProverKGlobal::persistentBoxes4() {
 
 void TrieformProverKGlobal::propagateLevels4() {
     for (auto modalSubtrie : subtrieMap) {
-        if (modalSubtrie.second->hasSubtrie(modalSubtrie.first)) {
-            modalSubtrie.second->getSubtrie(modalSubtrie.first)
-                ->overShadow(modalSubtrie.second, modalSubtrie.first);
-        }
+        modalSubtrie.second->overShadow(shared_from_this(), modalSubtrie.first);
         dynamic_cast<TrieformProverKGlobal *>(modalSubtrie.second.get())
             ->propagateLevels4();
     }
 }
 
+void TrieformProverKGlobal::forwardProp() {
+    for (auto modalSubtrie : subtrieMap) {
+        modalSubtrie.second->clauses.extendClauses(clauses);
+        dynamic_cast<TrieformProverKGlobal *>(modalSubtrie.second.get())->forwardProp();
+    }
+}

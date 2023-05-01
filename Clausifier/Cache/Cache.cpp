@@ -29,6 +29,24 @@ shared_ptr<Formula> Cache::createVariableFor(const shared_ptr<Formula> &formula,
   return newVariable;
 }
 
+
+shared_ptr<Formula> Cache::createVariableNoInsert(const shared_ptr<Formula> &formula,
+                                             const vector<int> &modality) {
+    shared_ptr<vector<int>> repModality = modalityPrefixToKey(modality);
+
+  shared_ptr<Formula> newVariable = createVariable();
+  return newVariable;
+}
+
+
+void Cache::insertVariable(const shared_ptr<Formula> &formula,
+                                             const vector<int> &modality, shared_ptr<Formula> newVariable) {
+    shared_ptr<vector<int>> repModality = modalityPrefixToKey(modality);
+
+  cache[{*repModality, formula /*->clone()*/}] = newVariable;
+  inverseCache[newVariable] = {*repModality, formula};
+}
+
 shared_ptr<Formula>
 Cache::getVariableRepresenting(const shared_ptr<Formula> &formula,
                                const vector<int> &modality) {

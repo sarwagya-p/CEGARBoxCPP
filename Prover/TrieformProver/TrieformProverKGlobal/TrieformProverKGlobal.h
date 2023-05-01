@@ -39,6 +39,7 @@ protected:
 
 
  void globallyAddClauses(const FormulaTriple &otherClauses);
+ void forwardProp();
 
 public:
   TrieformProverKGlobal();

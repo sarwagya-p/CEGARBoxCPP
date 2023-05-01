@@ -31,8 +31,13 @@ void Or::addSubformula(const shared_ptr<Formula> &subformula) {
 }
 
 string Or::toString() const {
+    std::vector<shared_ptr<Formula>> sortedSet(orSet_.begin(), orSet_.end());
+    std::sort(sortedSet.begin(), sortedSet.end(), [](const auto& a, const auto& b) {
+        return a->hash() < b->hash();
+    });
+
   string rep = "(";
-  for (shared_ptr<Formula> formula : orSet_) {
+  for (shared_ptr<Formula> formula : sortedSet) {
     rep += formula->toString() + " | ";
   }
   rep = rep.substr(0, rep.size() - 3) + ")";
