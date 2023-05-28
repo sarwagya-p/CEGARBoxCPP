@@ -6,7 +6,7 @@
 #include "../ProbationSolutionMemo/ProbationSolutionMemo.h"
 #include <memory>
 #include <vector>
-#include <omp.h>
+//#include <omp.h>
 
 using namespace std;
 

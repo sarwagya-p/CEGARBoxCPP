@@ -79,6 +79,7 @@ class Trieform : public enable_shared_from_this<Trieform> {
     trie_map subtrieMap;
     unordered_set<int> futureModalities;
 
+    static shared_ptr<Prover> globalProver;
     shared_ptr<Prover> prover;
 
     vector<int> modality;
@@ -151,6 +152,8 @@ class Trieform : public enable_shared_from_this<Trieform> {
                                         const shared_ptr<Formula> &formula,
                                         bool inBox = false,
                                         int curLevelDia = 0);
+
+    void oneNode();
 };
 
 #endif

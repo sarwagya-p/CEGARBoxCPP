@@ -163,23 +163,32 @@ Solution TrieformProverK4::prove(literal_set assumptions) {
 
 Solution TrieformProverK4::prove(int depth,
                                  literal_set assumptions) {
-    ProbationSolutionMemoState probationState = probationMemo.getState();
+
+    ProbationSolutionMemoState probationState;
+    shared_ptr<Bitset> assumptionsBitset;
+    shared_ptr<Bitset> fullAssumptionsBitset;
+    LocalSolutionMemoResult memoResult;
+    Solution solution;
+    literal_set currentModel;
+    modal_literal_map triggeredDiamonds;
+    modal_literal_map triggeredBoxes;
+    ProbationSolutionMemoResult probationMemoResult;
 
     // Check solution memo
     /*
     cout << "Depth: " << depth << " Proving: ";
     for (auto x : assumptions) cout << x.toString() << " "; cout << endl;
     */
-    shared_ptr<Bitset> assumptionsBitset =
+    assumptionsBitset =
         convertAssumptionsToBitset(assumptions);
-    LocalSolutionMemoResult memoResult =
+    memoResult =
         localMemo.getFromMemo(assumptionsBitset);
 
     if (memoResult.inSatMemo) {
         return memoResult.result;
     }
 
-    ProbationSolutionMemoResult probationMemoResult = probationMemo.getFromMemo(
+    probationMemoResult = probationMemo.getFromMemo(
         make_shared<vector<int>>(modality), assumptionsBitset);
 
     if (probationMemoResult.inSatMemo) {
@@ -197,7 +206,9 @@ Solution TrieformProverK4::prove(int depth,
     }
 
     // Solve locally
-    Solution solution = prover->solve(assumptions);
+    restart:
+    probationState = probationMemo.getState();
+    solution = prover->solve(assumptions);
 
     if (!solution.satisfiable) {
         // prover->reduce_conflict(solution.conflict);
@@ -206,13 +217,13 @@ Solution TrieformProverK4::prove(int depth,
         return solution;
     }
 
-    literal_set currentModel = prover->getModel();
+    currentModel = prover->getModel();
     assumptionsBitset = fleshedOutAssumptionBitset(currentModel);
 
     prover->calculateTriggeredDiamondsClauses();
-    modal_literal_map triggeredDiamonds = prover->getTriggeredDiamondClauses();
+    triggeredDiamonds = prover->getTriggeredDiamondClauses();
     prover->calculateTriggeredBoxClauses();
-    modal_literal_map triggeredBoxes = prover->getTriggeredBoxClauses();
+    triggeredBoxes = prover->getTriggeredBoxClauses();
     
     pastModels.push_back({depth, currentModel});
     for (auto modalityDiamonds : triggeredDiamonds) {
@@ -310,7 +321,8 @@ Solution TrieformProverK4::prove(int depth,
             if (restartUntil == depth) {
                 // restart current node
                 restartUntil = -1;
-                return prove(depth, assumptions);
+                goto restart;
+                //return prove(depth, assumptions);
             } else {
                 // Keep backtracking until we should restart
                 return childSolution;
@@ -318,6 +330,7 @@ Solution TrieformProverK4::prove(int depth,
         }
     }
     pastModels.pop_back();
+
     // If we reached here the solution is satisfiable under all modalities
     if (probationMemo.minimalRoot == -1) {
         updateSolutionMemo(assumptionsBitset, solution);

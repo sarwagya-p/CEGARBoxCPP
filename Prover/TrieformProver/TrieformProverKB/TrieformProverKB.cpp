@@ -97,9 +97,17 @@ Solution TrieformProverKB::prove(literal_set assumptions) {
 Solution TrieformProverKB::prove(int depth, literal_set assumptions) {
     // Check solution memo
 
-    shared_ptr<Bitset> assumptionsBitset =
+    shared_ptr<Bitset> assumptionsBitset;
+    shared_ptr<Bitset> fullAssumptionsBitset;
+    LocalSolutionMemoResult memoResult;
+    Solution solution;
+    literal_set currentModel;
+    modal_literal_map triggeredDiamonds;
+    modal_literal_map triggeredBoxes;
+
+    assumptionsBitset =
         convertAssumptionsToBitset(assumptions);
-    LocalSolutionMemoResult memoResult =
+    memoResult =
         localMemo.getFromMemo(assumptionsBitset);
 
     if (memoResult.inSatMemo) {
@@ -107,7 +115,8 @@ Solution TrieformProverKB::prove(int depth, literal_set assumptions) {
     }
 
     // Solve locally
-    Solution solution = prover->solve(assumptions);
+    restart:
+    solution = prover->solve(assumptions);
 
     if (!solution.satisfiable) {
         // prover->reduce_conflict(solution.conflict);
@@ -115,14 +124,13 @@ Solution TrieformProverKB::prove(int depth, literal_set assumptions) {
         return solution;
     }
 
-    literal_set currentModel = prover->getModel();
+    currentModel = prover->getModel();
 
-    assumptionsBitset = fleshedOutAssumptionBitset(currentModel);
 
     prover->calculateTriggeredDiamondsClauses();
-    modal_literal_map triggeredDiamonds = prover->getTriggeredDiamondClauses();
+    triggeredDiamonds = prover->getTriggeredDiamondClauses();
     prover->calculateTriggeredBoxClauses();
-    modal_literal_map triggeredBoxes = prover->getTriggeredBoxClauses();
+    triggeredBoxes = prover->getTriggeredBoxClauses();
 
     for (auto modalitySubtrie : subtrieMap) {
         // Handle each modality
@@ -180,10 +188,6 @@ Solution TrieformProverKB::prove(int depth, literal_set assumptions) {
             // x.toString() << " "; cout << endl;
             // childNode->allConflicts.clear();
 
-            if (shouldRestart) {
-                return prove(assumptions);
-            }
-
             // If it is satisfiable create the next world
             if (childSolution.satisfiable) {
                 // Don't check any more if we only required one
@@ -214,9 +218,11 @@ Solution TrieformProverKB::prove(int depth, literal_set assumptions) {
                 cur->prover->addClause(learnClause);
             }
         }
-        return prove(depth, assumptions);
+        goto restart;
+        //return prove(depth, assumptions);
     }
     // If we reached here the solution is satisfiable under all modalities
+    assumptionsBitset = fleshedOutAssumptionBitset(currentModel);
     updateSolutionMemo(assumptionsBitset, solution);
     return solution;
 }

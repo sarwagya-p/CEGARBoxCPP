@@ -4,6 +4,8 @@
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
+#include <vector>
+#include <algorithm>
 
 using namespace std;
 
@@ -44,6 +46,7 @@ typedef unordered_map<int, lit_implication> modal_lit_implication;
 
 bool isSubsetOf(literal_set set1, literal_set set2);
 literal_set setDifference(literal_set set1, literal_set set2);
+string litsetString(const literal_set& s);
 
 struct Solution {
   bool satisfiable;

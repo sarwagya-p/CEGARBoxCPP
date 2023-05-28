@@ -98,11 +98,20 @@ Solution TrieformProverKT::prove(literal_set assumptions) {
 
 Solution TrieformProverKT::prove(int depth,
                                  literal_set assumptions) {
+	shared_ptr<Bitset> assumptionsBitset;	
+    shared_ptr<Bitset> fullAssumptionsBitset;	
+    LocalSolutionMemoResult memoResult;	
+    Solution solution;	
+    literal_set currentModel;	
+    modal_literal_map triggeredDiamonds;	
+    modal_literal_map triggeredBoxes;
+
+
     // Check solution memo
 
-    shared_ptr<Bitset> assumptionsBitset =
+    assumptionsBitset =
         convertAssumptionsToBitset(assumptions);
-    LocalSolutionMemoResult memoResult =
+    memoResult =
         localMemo.getFromMemo(assumptionsBitset);
 
     // INVESTIGATE THIS
@@ -110,8 +119,9 @@ Solution TrieformProverKT::prove(int depth,
         return memoResult.result;
     }
 
+    restart:
     // Solve locally
-    Solution solution = prover->solve(assumptions);
+    solution = prover->solve(assumptions);
 
     if (!solution.satisfiable) {
         // prover->reduce_conflict(solution.conflict);
@@ -119,14 +129,12 @@ Solution TrieformProverKT::prove(int depth,
         return solution;
     }
 
-    literal_set currentModel = prover->getModel();
-
-    assumptionsBitset = fleshedOutAssumptionBitset(currentModel);
+    currentModel = prover->getModel();
 
     prover->calculateTriggeredDiamondsClauses();
-    modal_literal_map triggeredDiamonds = prover->getTriggeredDiamondClauses();
+    triggeredDiamonds = prover->getTriggeredDiamondClauses();
     prover->calculateTriggeredBoxClauses();
-    modal_literal_map triggeredBoxes = prover->getTriggeredBoxClauses();
+    triggeredBoxes = prover->getTriggeredBoxClauses();
 
     for (auto modalitySubtrie : subtrieMap) {
         // Handle each modality
@@ -195,9 +203,11 @@ Solution TrieformProverKT::prove(int depth,
                 cur->prover->addClause(learnClause);
             }
         }
-        return prove(depth, assumptions);
+        goto restart;
+        //return prove(depth, assumptions);
     }
     // If we reached here the solution is satisfiable under all modalities
+    assumptionsBitset = fleshedOutAssumptionBitset(currentModel);
     updateSolutionMemo(assumptionsBitset, solution);
     return solution;
 }

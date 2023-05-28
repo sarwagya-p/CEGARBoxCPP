@@ -59,7 +59,9 @@ modal_literal_map
 Prover::getTriggeredModalClauses(modal_lit_implication &modalLits) {
     modal_literal_map triggered;
     for (auto modalityLitImplication : modalLits) {
+        cout << "Checking modality " << modalityLitImplication.first << endl;
         for (auto literalImplication : modalityLitImplication.second) {
+            cout << "Checking " << literalImplication.first.toString() << " -> " << (*literalImplication.second.begin()).toString() << endl;
             if (modelSatisfiesAssump(literalImplication.first)) {
                 triggered[modalityLitImplication.first].insert(
                         literalImplication.second.begin(), literalImplication.second.end());
@@ -170,7 +172,7 @@ literal_set Prover::getNotDiamondLeft(int modality, Literal diamond) {
     return notDiamondLeft;
 }
 
-void Prover::updateLastFail(Literal clause) { lastFail[clause] = ++failCount; }
+void Prover::updateLastFail(Literal clause) { lastFail[clause] = --failCount; }
 
 diamond_queue Prover::getPrioritisedTriggeredDiamonds(int modality) {
     // Note MUST avoid box clauses

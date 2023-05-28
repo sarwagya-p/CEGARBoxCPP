@@ -95,7 +95,6 @@ Solution TrieformProverK::prove(int depth, literal_set assumptions) {
     modal_literal_map triggeredDiamonds;
     modal_literal_map triggeredBoxes;
 
-
     assumptionsBitset = isExact ? nullptr : convertAssumptionsToBitset(assumptions);
 
     memoResult =
@@ -118,7 +117,6 @@ Solution TrieformProverK::prove(int depth, literal_set assumptions) {
     
     currentModel = prover->getModel();
     
-    if (!isExact) fullAssumptionsBitset = fleshedOutAssumptionBitset(currentModel);
 
     prover->calculateTriggeredDiamondsClauses();
     triggeredDiamonds = prover->getTriggeredDiamondClauses();
@@ -159,20 +157,14 @@ Solution TrieformProverK::prove(int depth, literal_set assumptions) {
 
             // Clause propagation
             bool shouldRestart = false;
-
             /*
             for (literal_set learnClause :
             prover->getClauses(modalitySubtrie.first,
-            prover->negatedClauses(prover->filterPropagatedConflicts(childNode->allConflicts))))
-            { cout << "DEPTH: " << depth << "BONUS CLAUSE: " << endl; for (auto
-            x : learnClause) cout << x.toString() << " "; cout << endl;
+            prover->negatedClauses(prover->filterPropagatedConflicts(childNode->allConflicts)))) { 
                 allConflicts.push_back(learnClause);
                 prover->addClause(learnClause);
             }
             */
-            // cout << "FINISHED LEARNING BONUS CLAUSES: " << shouldRestart <<
-            // endl; cout << "MODEL: "; for (auto x : currentModel) cout <<
-            // x.toString() << " "; cout << endl;
             childNode->allConflicts.clear();
 
             if (shouldRestart) {
@@ -198,6 +190,9 @@ Solution TrieformProverK::prove(int depth, literal_set assumptions) {
         for (literal_set learnClause : prover->getClauses(
                  modalitySubtrie.first, childSolution.conflict)) {
             allConflicts.push_back(learnClause);
+            //cout << "Learn: ";
+            //for (auto x : learnClause) cout << x.toString() << " ";
+            //cout << endl;
             prover->addClause(learnClause);
         }
         goto restart;
@@ -205,7 +200,10 @@ Solution TrieformProverK::prove(int depth, literal_set assumptions) {
     }
     
     // If we reached here the solution is satisfiable under all modalities
+    if (!isExact) fullAssumptionsBitset = fleshedOutAssumptionBitset(currentModel);
     updateSolutionMemo(assumptions, fullAssumptionsBitset, solution);
+
+    //cout << "Solve: " << depth << " = " << litsetString(assumptions) << endl;
 
     return solution;
 }
@@ -467,7 +465,7 @@ void TrieformProverK::propagateSymmetry() {
 }
 
 void TrieformProverK::propagateSymmetricBoxes() {
-    cout << "SYMMETRY?" << endl;
+    //cout << "SYMMETRY?" << endl;
     for (auto modalitySubtrie : subtrieMap) {
         dynamic_cast<TrieformProverK *>(modalitySubtrie.second.get())
             ->propagateSymmetricBoxes();

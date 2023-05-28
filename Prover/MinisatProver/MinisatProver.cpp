@@ -12,6 +12,7 @@ MinisatProver::MinisatProver(bool onesat) {
   // solver->luby_restart = false;
   // solver->
 
+    onesat = false;
   if (onesat) {
         completeSolver->eliminate(true);
         //completeSolver->verbosity=2;
@@ -23,6 +24,7 @@ MinisatProver::MinisatProver(bool onesat) {
         //solver->verbosity=2;
       calcSolver = solver;
   }
+ // calcSolver->verbosity = 2;
 }
 MinisatProver::~MinisatProver() {}
 
@@ -47,14 +49,12 @@ void MinisatProver::prepareFalse() {
 
 void MinisatProver::prepareExtras(name_set extra) {
   for (string name : extra) {
-    createOrGetVariable(name);
+    createOrGetVariable(name);//, Minisat::lbool((uint8_t)0));
   }
 }
 
 void MinisatProver::prepareClauses(clause_set clauses) {
   for (Clause clause : clauses) {
-
-
     if (clause.formula->getType() == FOr) {
       Minisat::vec<Minisat::Lit> literals;
       for (shared_ptr<Formula> subformula :

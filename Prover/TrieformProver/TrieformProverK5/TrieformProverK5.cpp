@@ -273,13 +273,21 @@ shared_ptr<Bitset> TrieformProverK5::fleshedOutAssumptionBitset(
 }
 
 Solution TrieformProverK5::prove(int depth, literal_set assumptions) {
-    ProbationSolutionMemoState probationState = probationMemo.getState();
+    ProbationSolutionMemoState probationState;
+    shared_ptr<Bitset> assumptionsBitset;
+    shared_ptr<Bitset> fullAssumptionsBitset;
+    LocalSolutionMemoResult memoResult;
+    Solution solution;
+    literal_set currentModel;
+    modal_literal_map triggeredDiamonds;
+    modal_literal_map triggeredBoxes;
+    ProbationSolutionMemoResult probationMemoResult;
 
     // Check solution memo
-    shared_ptr<Bitset> assumptionsBitset =
+    assumptionsBitset =
         convertAssumptionsToBitset(assumptions);
 
-    LocalSolutionMemoResult memoResult =
+    memoResult =
         localMemo.getFromMemo(assumptionsBitset);
 
     if (memoResult.inSatMemo) {
@@ -292,7 +300,7 @@ Solution TrieformProverK5::prove(int depth, literal_set assumptions) {
         return memoResult.result;
     }
 
-    ProbationSolutionMemoResult probationMemoResult = probationMemo.getFromMemo(
+    probationMemoResult = probationMemo.getFromMemo(
         make_shared<vector<int>>(modality), assumptionsBitset);
 
     if (probationMemoResult.inSatMemo) {
@@ -310,7 +318,10 @@ Solution TrieformProverK5::prove(int depth, literal_set assumptions) {
     }
 
     // Solve locally
-    Solution solution = prover->solve(assumptions);
+    restart:
+    probationState = probationMemo.getState();
+
+    solution = prover->solve(assumptions);
 
     if (!solution.satisfiable) {
         probationMemo.setState(probationState);
@@ -318,13 +329,13 @@ Solution TrieformProverK5::prove(int depth, literal_set assumptions) {
         return solution;
     }
 
-    literal_set currentModel = prover->getModel();
+    currentModel = prover->getModel();
     assumptionsBitset = fleshedOutAssumptionBitset(currentModel);
 
     prover->calculateTriggeredDiamondsClauses();
-    modal_literal_map triggeredDiamonds = prover->getTriggeredDiamondClauses();
+    triggeredDiamonds = prover->getTriggeredDiamondClauses();
     prover->calculateTriggeredBoxClauses();
-    modal_literal_map triggeredBoxes = prover->getTriggeredBoxClauses();
+    triggeredBoxes = prover->getTriggeredBoxClauses();
     
     assert (pastModels.empty() || pastModels[pastModels.size() - 1].first < depth);
     pastModels.push_back({depth, currentModel});
@@ -387,7 +398,8 @@ Solution TrieformProverK5::prove(int depth, literal_set assumptions) {
                 if (restartUntil == depth) {
                     // restart current node
                     restartUntil = -1;
-                    return prove(depth, assumptions);
+                    goto restart;
+                    //return prove(depth, assumptions);
                 } else {
                     // Keep backtracking until we should restart
                     return childSolution;
@@ -425,7 +437,8 @@ Solution TrieformProverK5::prove(int depth, literal_set assumptions) {
             if (restartUntil == depth) {
                 // restart current node
                 restartUntil = -1;
-                return prove(depth, assumptions);
+                goto restart;
+                //return prove(depth, assumptions);
             } else {
                 // Keep backtracking until we should restart
                 return childSolution;

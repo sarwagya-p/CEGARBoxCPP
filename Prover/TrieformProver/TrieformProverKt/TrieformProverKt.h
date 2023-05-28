@@ -18,7 +18,6 @@ class TrieformProverKt : public Trieform {
 protected:
   shared_ptr<vector<int>> modalContext;
   int numRelations = -1;
-  unsigned int assumptionsSize = 0;
   vector<pair<int, literal_set>> pastModels;
   vector<literal_set> occ;
 
@@ -27,7 +26,9 @@ protected:
   static int restartUntil;
 
   LocalSolutionMemo localMemo;
-  unordered_map<string, unsigned int> idMap;
+  shared_ptr<unordered_map<string, unsigned int>> idMap = make_shared<unordered_map<string, unsigned int>>();
+unsigned int assumptionsSize; 
+  static shared_ptr<unordered_map<string, unsigned int>> globalIdMap;
   shared_ptr<Bitset> convertAssumptionsToBitset(literal_set literals);
   void updateSolutionMemo(const shared_ptr<Bitset> &assumptions,
                           Solution solution);
@@ -50,7 +51,7 @@ public:
   vector<literal_set> allConflicts;
   virtual void getStats();
   virtual void preprocess();
-  static void doResiduation();
+   void doResiduation();
   virtual void buildConnections();
   virtual void removeTrueAndFalse();
   virtual void prepareSAT(name_set extra = name_set());

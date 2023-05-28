@@ -1,5 +1,6 @@
 #include "Literal.h"
 
+
 Literal::Literal(string name_, bool polarity_) {
   name = name_;
   polarity = polarity_;
@@ -52,4 +53,19 @@ literal_set setDifference(literal_set set1, literal_set set2) {
     }
   }
   return difference;
+}
+
+
+string litsetString(const literal_set& s) {
+    vector<Literal> v (s.begin(), s.end());
+    sort(v.begin(), v.end(), [](const Literal& a, const Literal& b) {
+        return a.getName() < b.getName() || (a.getName() == b.getName() && a.getPolarity() < b.getPolarity());
+    });
+
+    string result = "{ ";
+    for (auto& x : v) {
+        result += x.toString() + " ";
+    }
+    result += "}";
+    return result;
 }

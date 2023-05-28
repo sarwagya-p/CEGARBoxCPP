@@ -264,8 +264,14 @@ void solve(arguments_struct &args) {
         trie->preprocessTense();
       }
       */
+
+    trie->reduceClauses();
     if (args.settings.tense && !args.settings.localReduction) {
-        trie = dynamic_cast<TrieformProverKt *>(trie.get())->createGridTrie();
+        if (!args.settings.oneSat) 
+            trie = dynamic_cast<TrieformProverKt *>(trie.get())->createGridTrie();
+        else {
+            trie->oneNode();
+        }
     }
     trie->reduceClauses();
    
@@ -314,7 +320,9 @@ void solve(arguments_struct &args) {
         cout << "Processed trie:" << endl << trie->toString() << endl;
     }
 
+
     trie->removeTrueAndFalse();
+
     // otherTrie->removeTrueAndFalse();
     if (Trieform::stringModalContexts)
         trie->prepareSAT(name_set{"$root"});

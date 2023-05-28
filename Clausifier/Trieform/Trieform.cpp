@@ -6,6 +6,7 @@ bool Trieform::stringModalContexts = false;
 bool Trieform::ensureUniqueModalClauseLhs = false;
 shared_ptr<Cache> Trieform::cache = make_shared<PrefixCache>("x");
 bool Trieform::useOneSat = false;
+shared_ptr<Prover> Trieform::globalProver = shared_ptr<Prover>(new MinisatProver(false));
 
 Trieform::Trieform() {
     prover = shared_ptr<Prover>(new MinisatProver(useOneSat));
@@ -473,6 +474,7 @@ string Trieform::toString() {
     }
 
     for (auto modTrie : subtrieMap) {
+        if (modTrie.second == shared_from_this()) continue;
         if (trieString.size() > 0) {
             trieString += "\n" + modTrie.second->toString();
         } else {
@@ -639,6 +641,23 @@ vector<literal_set> Trieform::generateClauses(
         }
     }
     return clauses;
+}
+
+void Trieform::oneNode() {
+    // Combine all clauses into the root node
+    for (auto modalitySubtrie : subtrieMap) {
+        modalitySubtrie.second->oneNode();
+        clauses.extendClauses(modalitySubtrie.second->getClauses());
+    }
+    for (auto c : clauses.getDiamondClauses()) {
+        subtrieMap[c.modality] = shared_from_this();
+        //c.modality
+    }
+    /*
+    for (auto& modalitySubtrie : subtrieMap) {
+        modalitySubtrie.second = shared_from_this();
+    }
+    */
 }
 
 // void Trieform::preprocessT() {
