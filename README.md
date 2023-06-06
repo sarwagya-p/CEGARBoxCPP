@@ -35,6 +35,8 @@ Formula ::=
 
 Here, negative numbers are used to define converse for tense logic. For example ``[-1]`` is the converse of ``[1]``.
 
+CEGARBox does not handle intohylo files! So files with BEGIN and END won't work. Please refer to the examples in `Examples`.
+
 ## Running CEGARBox 
 
 ``./main -f <input_file> [options]``
