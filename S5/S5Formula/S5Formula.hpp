@@ -27,17 +27,17 @@ public:
     shared_ptr<Formula> formula;
     S5FormulaSimplifier(shared_ptr<Formula> inp_formula, int );
 
-    CNF_form convert_to_CNF(shared_ptr<Formula> inp_formula, NewVariableGenerator GetNewVar=NewVariableGenerator());
+    CNF_form convert_to_CNF(shared_ptr<Formula> inp_formula, NewVariableGenerator& GetNewVar);
     
-    CNF_form DepthReduce(shared_ptr<Formula> inp_formula, NewVariableGenerator GetNewVar=NewVariableGenerator());
+    CNF_form DepthReduce(shared_ptr<Formula> inp_formula, NewVariableGenerator& GetNewVar);
 
     std::vector<FormulaTriple> form_triples(CNF_form &cnf_formula);
 
 private:
-    CNF_form DepthReduceBox(shared_ptr<Formula> inp_formula, NewVariableGenerator GetNewVar=NewVariableGenerator());
-    CNF_form DepthReduceDiamond(shared_ptr<Formula> inp_formula, NewVariableGenerator GetNewVar=NewVariableGenerator());
-    CNF_form DepthReduceAnd(shared_ptr<Formula> inp_formula, NewVariableGenerator GetNewVar=NewVariableGenerator());
-    CNF_form DepthReduceOr(shared_ptr<Formula> inp_formula, NewVariableGenerator GetNewVar=NewVariableGenerator());
+    CNF_form DepthReduceBox(shared_ptr<Formula> inp_formula, NewVariableGenerator& GetNewVar);
+    CNF_form DepthReduceDiamond(shared_ptr<Formula> inp_formula, NewVariableGenerator& GetNewVar);
+    CNF_form DepthReduceAnd(shared_ptr<Formula> inp_formula, NewVariableGenerator& GetNewVar);
+    CNF_form DepthReduceOr(shared_ptr<Formula> inp_formula, NewVariableGenerator& GetNewVar);
     
     bool isPropLiteral(shared_ptr<Formula> inp_formula);
     bool isS5Literal(shared_ptr<Formula> inp_formula);
