@@ -17,17 +17,8 @@ S5FormulaSimplifier::S5FormulaSimplifier(shared_ptr<Formula> inp_formula, int st
 bool S5FormulaSimplifier::isPropLiteral(shared_ptr<Formula> formula){
     switch (formula->getType()){
             case FAtom:
-                return true;
-                break;
-
             case FTrue:
-                return true;
-                break;
-            
             case FFalse:
-                return true;
-                break;
-
             case FNot:
                 return true;
                 break;
@@ -116,9 +107,6 @@ CNF_form S5FormulaSimplifier::DepthReduceBoxFromCNF(CNF_form cnf_subf, NewVariab
         for (shared_ptr<Formula> literal: subf_clause){
             switch (literal->getType()){
             case FBox:
-                auxilary_cnf_formulas.push_back(DepthReduce(literal, GetNewVar));
-                break;
-
             case FDiamond:
                 auxilary_cnf_formulas.push_back(DepthReduce(literal, GetNewVar));
                 break;
@@ -166,8 +154,86 @@ CNF_form S5FormulaSimplifier::DepthReduceDiamond(
     shared_ptr<Formula> inp_formula, NewVariableGenerator& GetNewVar){
     Diamond* dia_f = dynamic_cast<Diamond*>(inp_formula.get());
 
-    if (isPropLiteral(dia_f->getSubformula())){
+    switch (dia_f->getSubformula()->getType())
+    {
+    case FBox:
+    case FDiamond:
+        return DepthReduce(dia_f->getSubformula(), GetNewVar);
+
+    case FOr: {
+        Or* or_subf = dynamic_cast<Or*>(inp_formula.get());
+        vector<CNF_form> auxilary_cnf_formulas;
+
+        for (shared_ptr<Formula> or_operand: or_subf->getSubformulas()){
+            auxilary_cnf_formulas.push_back(DepthReduce(Diamond::create(dia_f->getModality(), 1, or_operand), GetNewVar));
+        }
+
+        formula_set mainClause;
+        CNF_form auxClauses;
+
+        for (CNF_form& aux_cnf: auxilary_cnf_formulas){
+            if (aux_cnf.size() == 1) {
+                mainClause.insert(aux_cnf[0].begin(), aux_cnf[0].end());
+                continue;
+            }
+
+            shared_ptr<Formula> z = GetNewVar();
+
+            mainClause.insert(Not::create(z));
+
+            for (formula_set aux_clause: aux_cnf){
+                aux_clause.insert(z);
+                auxClauses.push_back(aux_clause);
+            }
+        }
+
+        auxClauses.push_back(mainClause);
+        return auxClauses;
+    } break;
+
+    case FAnd: {
+        And* and_f = dynamic_cast<And*>(inp_formula.get());
+
+        CNF_form modal_subf_cnfs;
+        formula_set prop_subf;
+
+        for (shared_ptr<Formula> subf: and_f->getSubformulas()){
+            switch (subf->getType())
+            {
+            case FBox:
+            case FDiamond:{
+                CNF_form cnf_subformula = DepthReduce(subf, GetNewVar);
+                modal_subf_cnfs.insert(modal_subf_cnfs.end(), cnf_subformula.begin(), cnf_subformula.end());
+            } break;
+            
+            default:
+                prop_subf.insert(subf);
+                break;
+            }
+        }
+        if (prop_subf.empty()) return modal_subf_cnfs;
+        if (prop_subf.size() == 1){
+            CNF_form cnf_subformula = DepthReduce(Diamond::create(dia_f->getModality(), 1, *(prop_subf.begin())), GetNewVar);
+            modal_subf_cnfs.insert(modal_subf_cnfs.end(), cnf_subformula.begin(), cnf_subformula.end());
+            return modal_subf_cnfs;
+        }
+
+        CNF_form cnf_subf = convert_to_CNF(And::create(prop_subf), GetNewVar);
+        shared_ptr<Formula> z = GetNewVar();
+
+        for (formula_set& subf_clause: cnf_subf){
+            subf_clause.insert(z);
+        }
+        modal_subf_cnfs.push_back({Diamond::create(dia_f->getModality(), 1, z)});
+        CNF_form auxilary_box = DepthReduceBoxFromCNF(cnf_subf, GetNewVar, dia_f->getModality());
+        
+        modal_subf_cnfs.insert(modal_subf_cnfs.end(), auxilary_box.begin(), auxilary_box.end());
+        return modal_subf_cnfs;
+    } break;
+    
+    default:
         return {{inp_formula}};
+        break;
     }
 
     CNF_form cnf_subf = convert_to_CNF(dia_f->getSubformula(), GetNewVar);
