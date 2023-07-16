@@ -218,6 +218,7 @@ void solve(arguments_struct &args) {
         (args.settings.euclidean && args.settings.reflexive)){
             cout << "Reducing from S5 to KT\n";
             formula = reduceS5ToKT(formula);
+            cout << "Reduced\n";
             args.settings.euclidean = false;
             args.settings.transitive = false;
             args.settings.symmetric = false;

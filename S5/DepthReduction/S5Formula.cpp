@@ -156,7 +156,7 @@ CNF_form DepthReduceDiamond(
         return DepthReduce(dia_f->getSubformula(), GetNewVar);
 
     case FOr: {
-        Or* or_subf = dynamic_cast<Or*>(inp_formula.get());
+        Or* or_subf = dynamic_cast<Or*>(dia_f->getSubformula().get());
         vector<CNF_form> auxilary_cnf_formulas;
 
         for (shared_ptr<Formula> or_operand: or_subf->getSubformulas()){
@@ -187,7 +187,7 @@ CNF_form DepthReduceDiamond(
     } break;
 
     case FAnd: {
-        And* and_f = dynamic_cast<And*>(inp_formula.get());
+        And* and_f = dynamic_cast<And*>(dia_f->getSubformula().get());
 
         CNF_form modal_subf_cnfs;
         formula_set prop_subf;
@@ -294,8 +294,9 @@ CNF_form DepthReduce(
 
     case FAnd:
         return DepthReduceAnd(inp_formula, GetNewVar);
+        break;
 
-    case FOr: 
+    case FOr:
         return DepthReduceOr(inp_formula, GetNewVar);
         break;
 
