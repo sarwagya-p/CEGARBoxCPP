@@ -24,7 +24,6 @@ CNF_form convert_to_CNF(shared_ptr<Formula> inp_formula, NewVariableGenerator& G
 
 CNF_form DepthReduce(shared_ptr<Formula> inp_formula, NewVariableGenerator& GetNewVar);
 
-std::vector<FormulaTriple> form_triples(CNF_form &cnf_formula);
 string cnfToString(CNF_form cnf_formula);
 
 CNF_form DepthReduceBoxFromCNF(CNF_form cnf_subf, NewVariableGenerator& GetNewVar, int modality);

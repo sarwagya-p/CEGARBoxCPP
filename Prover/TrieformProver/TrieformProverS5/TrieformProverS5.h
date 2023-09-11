@@ -15,11 +15,10 @@ typedef vector<formula_set> CNF_form;
 
 class TrieformProverS5 : public Trieform {
 private:
+  bool isPropLiteral(shared_ptr<Formula> inp_formula);
+  bool isS5Literal(shared_ptr<Formula> inp_formula);
+
   CNF_form convertToCNF(shared_ptr<Formula> inp_formula);
-
-  CNF_form DepthReduce(shared_ptr<Formula> inp_formula);
-
-  string cnfToString(CNF_form cnf_formula);
 
   CNF_form DepthReduceBoxFromCNF(CNF_form cnf_subf, int modality);
   CNF_form DepthReduceBox(shared_ptr<Formula> inp_formula);
@@ -27,8 +26,13 @@ private:
   CNF_form DepthReduceAnd(shared_ptr<Formula> inp_formula);
   CNF_form DepthReduceOr(shared_ptr<Formula> inp_formula);
 
-  bool isPropLiteral(shared_ptr<Formula> inp_formula);
-  bool isS5Literal(shared_ptr<Formula> inp_formula);
+  CNF_form DepthReduce(shared_ptr<Formula> inp_formula);
+
+  string cnfToString(CNF_form cnf_formula);
+
+  void propagateOneClause(formula_set clause);
+
+  
 protected:
   static shared_ptr<Cache> persistentCache;
 
