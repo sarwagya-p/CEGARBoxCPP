@@ -11,31 +11,39 @@
 
 using namespace std;
 
+typedef vector<formula_set> CNF_form;
+
 class TrieformProverS5 : public Trieform {
+private:
+  CNF_form convertToCNF(shared_ptr<Formula> inp_formula);
+
+  CNF_form DepthReduce(shared_ptr<Formula> inp_formula);
+
+  string cnfToString(CNF_form cnf_formula);
+
+  CNF_form DepthReduceBoxFromCNF(CNF_form cnf_subf, int modality);
+  CNF_form DepthReduceBox(shared_ptr<Formula> inp_formula);
+  CNF_form DepthReduceDiamond(shared_ptr<Formula> inp_formula);
+  CNF_form DepthReduceAnd(shared_ptr<Formula> inp_formula);
+  CNF_form DepthReduceOr(shared_ptr<Formula> inp_formula);
+
+  bool isPropLiteral(shared_ptr<Formula> inp_formula);
+  bool isS5Literal(shared_ptr<Formula> inp_formula);
 protected:
   static shared_ptr<Cache> persistentCache;
 
   static unsigned int assumptionsSize;
-  static GlobalSolutionMemo globalMemo;
   static unordered_map<string, unsigned int> idMap;
-
+  
   shared_ptr<Bitset> convertAssumptionsToBitset(literal_set literals);
-  void updateSolutionMemo(const shared_ptr<Bitset> &assumptions,
-                          Solution solution);
-  bool isInHistory(vector<shared_ptr<Bitset>> history,
-                   shared_ptr<Bitset> bitset);
 
   void reflexiveHandleBoxClauses();
-  void reflexivepropagateLevels();
-  void pruneTrie();
-  void makePersistence();
-  void propagateSymmetricBoxes();
+  virtual void propagateClauses(const shared_ptr<Formula> &formula);
 
 public:
   TrieformProverS5();
   ~TrieformProverS5();
 
-  Solution prove(vector<shared_ptr<Bitset>> history, literal_set assumptions);
   virtual Solution prove(literal_set assumptions);
   virtual void preprocess();
   virtual void prepareSAT(name_set extra = name_set());

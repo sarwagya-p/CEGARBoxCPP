@@ -47,12 +47,13 @@ private:
   inverse_cache_map inverseCache;
   string name;
   int variablesGenerated = 0;
-
-  shared_ptr<Formula> createVariable();
+  
 
 public:
- Cache(string prepend);
+  Cache(string prepend);
   ~Cache();
+
+  shared_ptr<Formula> createVariable();
 
   shared_ptr<Formula>
   getVariableOrCreate(const shared_ptr<Formula> &formula,

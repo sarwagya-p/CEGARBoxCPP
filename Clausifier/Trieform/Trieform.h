@@ -96,7 +96,7 @@ class Trieform : public enable_shared_from_this<Trieform> {
     static bool useOneSat;
     static shared_ptr<Cache> cache;
 
-    void propagateClauses(const shared_ptr<Formula> &formula);
+    virtual void propagateClauses(const shared_ptr<Formula> &formula);
     void overShadow(shared_ptr<Trieform> shadowTrie, int skipModality = 0);
     void conditionalOverShadow(shared_ptr<Trieform> shadowTrie,
                                shared_ptr<Formula> condition,

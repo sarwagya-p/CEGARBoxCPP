@@ -27,7 +27,6 @@
 #include "Prover/TrieformProver/TrieformProverK/TrieformProverK.h"
 #include "Prover/TrieformProver/TrieformProverKGlobal/TrieformProverKGlobal.h"
 #include "Prover/TrieformProver/TrieformProverKt/TrieformProverKt.h"
-#include "S5/S5toKT.h"
 
 using namespace std;
 
@@ -213,16 +212,6 @@ void solve(arguments_struct &args) {
 
     FormulaDetails formulaDetails;
     Trieform::calculateFormulaDetails(formulaDetails, formula);
-
-    if ((args.settings.reflexive && args.settings.transitive && args.settings.symmetric) ||
-        (args.settings.euclidean && args.settings.reflexive)){
-            cout << "Reducing from S5 to KT\n";
-            formula = reduceS5ToKT(formula);
-            cout << "Reduced\n";
-            args.settings.euclidean = false;
-            args.settings.transitive = false;
-            args.settings.symmetric = false;
-        }
 
     shared_ptr<Trieform> trie =
         TrieformFactory::makeTrie(formula, args.settings);
