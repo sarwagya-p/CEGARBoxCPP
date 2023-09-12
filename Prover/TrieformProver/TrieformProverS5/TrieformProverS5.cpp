@@ -9,7 +9,6 @@ TrieformFactory::makeTrieS5(const shared_ptr<Formula> &formula,
                             shared_ptr<Trieform> trieParent) {
   shared_ptr<Trieform> trie = shared_ptr<Trieform>(new TrieformProverS5());
   trie->initialise(formula, trieParent);
-  cout << "Returning\n";
   return trie;
 }
 shared_ptr<Trieform>

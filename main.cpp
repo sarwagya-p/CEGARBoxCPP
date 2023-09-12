@@ -215,7 +215,6 @@ void solve(arguments_struct &args) {
 
     shared_ptr<Trieform> trie =
         TrieformFactory::makeTrie(formula, args.settings);
-        cout << "Trie made:\n" << trie->toString() << endl;
     // shared_ptr<Trieform> otherTrie =
     //     TrieformFactory::makeTrie(correct, args.settings);
     if (args.verbose) {
@@ -265,8 +264,6 @@ void solve(arguments_struct &args) {
         trie->preprocessTense();
       }
       */
-
-    trie->reduceClauses();
     if (args.settings.tense && !args.settings.localReduction) {
         if (!args.settings.oneSat) 
             trie = dynamic_cast<TrieformProverKt *>(trie.get())->createGridTrie();

@@ -246,7 +246,6 @@ CNF_form TrieformProverS5::DepthReduceAnd(shared_ptr<Formula> inp_formula){
 }
 
 CNF_form TrieformProverS5::DepthReduceOr(shared_ptr<Formula> inp_formula){
-  cout << "Or reduction called\n";
   Or* or_f = dynamic_cast<Or*>(inp_formula.get());
 
   formula_set mainClause;
@@ -312,7 +311,12 @@ void TrieformProverS5::propagateOneClause(formula_set clause){
   }
 
   if (modal_lits.size() == 0){
-    clauses.addClause(Or::create(clause));
+    if (clause.size()== 0){
+      clauses.addClause(*clause.begin());
+    }
+    else {
+      clauses.addClause(Or::create(clause));
+    }
   }
 
   else if (modal_lits.size() == 1 && prop_lits.size() == 0){
@@ -321,7 +325,7 @@ void TrieformProverS5::propagateOneClause(formula_set clause){
     if (modal_lit->getType() == FBox){
       Box* box_formula = dynamic_cast<Box*>(modal_lit.get());
 
-      if (box_formula->getType() == FOr){
+      if (box_formula->getSubformula()->getType() == FOr){
         if (subtrieMap.find(box_formula->getModality()) == subtrieMap.end()){
           subtrieMap[box_formula->getModality()] = shared_ptr<Trieform>(new TrieformProverS5());
         }
@@ -376,6 +380,7 @@ void TrieformProverS5::propagateOneClause(formula_set clause){
 
         ModalClause modal_clause = {diamond_lit->getModality(), name, diamond_lit->getSubformula()};
         clauses.addDiamondClause(modal_clause);
+        clauses.addClause(Or::create(prop_lits));
         continue;
       }
       
@@ -410,7 +415,6 @@ void TrieformProverS5::propagateOneClause(formula_set clause){
 void TrieformProverS5::propagateClauses(const shared_ptr<Formula>& formula){
   CNF_form cnf_formula = DepthReduce(formula);
   
-  cout << "CNF:\n" << cnfToString(cnf_formula) << endl;
   for (formula_set clause: cnf_formula){
     propagateOneClause(clause);
   }
