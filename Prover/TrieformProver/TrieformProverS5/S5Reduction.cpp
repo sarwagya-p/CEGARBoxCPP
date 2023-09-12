@@ -61,7 +61,7 @@ CNF_form TrieformProverS5::convertToCNF(shared_ptr<Formula> d1_formula){
       }
 
       CNF_form subformula_cnf = convertToCNF(subformula);
-      shared_ptr<Formula> name = persistentCache->createVariable();
+      shared_ptr<Formula> name = cache->createVariable();
       
       for (formula_set& clause: subformula_cnf){
         clause.insert(Not::create(name));
@@ -112,7 +112,7 @@ CNF_form TrieformProverS5::DepthReduceBoxFromCNF(CNF_form cnf_subf, int modality
     for (CNF_form cnf_aux: auxilary_cnf_formulas){
       if (cnf_aux.size() == 1) mainClause.insert(cnf_aux[0].begin(),cnf_aux[0].end());
       else {
-        shared_ptr<Formula> z = persistentCache->createVariable();
+        shared_ptr<Formula> z = cache->createVariable();
         mainClause.insert(Not::create(z));
 
         for (formula_set aux_clause: cnf_aux){
@@ -160,7 +160,7 @@ CNF_form TrieformProverS5::DepthReduceDiamond(shared_ptr<Formula> inp_formula){
         continue;
       }
 
-      shared_ptr<Formula> z = persistentCache->createVariable();
+      shared_ptr<Formula> z = cache->createVariable();
 
       mainClause.insert(Not::create(z));
 
@@ -202,7 +202,7 @@ CNF_form TrieformProverS5::DepthReduceDiamond(shared_ptr<Formula> inp_formula){
     }
 
     CNF_form cnf_subf = convertToCNF(And::create(prop_subf));
-    shared_ptr<Formula> z = persistentCache->createVariable();
+    shared_ptr<Formula> z = cache->createVariable();
 
     for (formula_set& subf_clause: cnf_subf){
       subf_clause.insert(z);
@@ -221,7 +221,7 @@ CNF_form TrieformProverS5::DepthReduceDiamond(shared_ptr<Formula> inp_formula){
 
   CNF_form cnf_subf = convertToCNF(dia_f->getSubformula());
 
-  shared_ptr<Formula> z = persistentCache->createVariable();
+  shared_ptr<Formula> z = cache->createVariable();
 
   for (formula_set& clause: cnf_subf){
     clause.insert(z);
@@ -246,6 +246,7 @@ CNF_form TrieformProverS5::DepthReduceAnd(shared_ptr<Formula> inp_formula){
 }
 
 CNF_form TrieformProverS5::DepthReduceOr(shared_ptr<Formula> inp_formula){
+  cout << "Or reduction called\n";
   Or* or_f = dynamic_cast<Or*>(inp_formula.get());
 
   formula_set mainClause;
@@ -254,7 +255,11 @@ CNF_form TrieformProverS5::DepthReduceOr(shared_ptr<Formula> inp_formula){
   for (shared_ptr<Formula> subformula: or_f->getSubformulas()){
     CNF_form cnf_subformula = DepthReduce(subformula);
 
-    shared_ptr<Formula> z = persistentCache->createVariable();
+    if (cnf_subformula.size() == 1) {
+      mainClause.insert(cnf_subformula[0].begin(), cnf_subformula[0].end());
+      continue;
+    }
+    shared_ptr<Formula> z = cache->createVariable();
 
     mainClause.insert(Not::create(z));
 
@@ -342,19 +347,22 @@ void TrieformProverS5::propagateOneClause(formula_set clause){
     shared_ptr<Formula> modal_lit = *(modal_lits.begin());
     shared_ptr<Formula> prop_lit = *(prop_lits.begin());
 
-    int modality;
-    shared_ptr<Formula> right;
-
     if (modal_lit->getType() == FBox){
       Box* box_formula = dynamic_cast<Box*>(modal_lit.get());
-      modality = box_formula->getModality();
-      right = box_formula->getSubformula();
+      int modality = box_formula->getModality();
+      shared_ptr<Formula> right = box_formula->getSubformula();
+      
+      ModalClause modal_clause = {modality, prop_lit, right};
+      clauses.addBoxClause(modal_clause);
     }
     
     else{
       Diamond* diamond_formula = dynamic_cast<Diamond*>(modal_lit.get());
-      modality = diamond_formula->getModality();
-      right = diamond_formula->getSubformula();
+      int modality = diamond_formula->getModality();
+      shared_ptr<Formula> right = diamond_formula->getSubformula();
+
+      ModalClause modal_clause = {modality, prop_lit, right};
+      clauses.addDiamondClause(modal_clause);
     }
   }
 
@@ -363,7 +371,7 @@ void TrieformProverS5::propagateOneClause(formula_set clause){
       if (modal_lit->getType() == FDiamond){
         Diamond* diamond_lit = dynamic_cast<Diamond*>(modal_lit.get());
 
-        shared_ptr<Formula> name = persistentCache->getVariableOrCreate(modal_lit);
+        shared_ptr<Formula> name = cache->getVariableOrCreate(modal_lit);
         prop_lits.insert(name);
 
         ModalClause modal_clause = {diamond_lit->getModality(), name, diamond_lit->getSubformula()};
@@ -372,7 +380,7 @@ void TrieformProverS5::propagateOneClause(formula_set clause){
       }
       
       Box* box_formula = dynamic_cast<Box*>(modal_lit.get());
-      shared_ptr<Formula> name = persistentCache->getVariableOrCreate(modal_lit);
+      shared_ptr<Formula> name = cache->getVariableOrCreate(modal_lit);
 
       prop_lits.insert(name);
 
@@ -391,15 +399,18 @@ void TrieformProverS5::propagateOneClause(formula_set clause){
       }
       else {
         ModalClause modal_clause = {box_formula->getModality(), name, box_formula->getSubformula()};
-        clauses.addDiamondClause(modal_clause);
+        clauses.addBoxClause(modal_clause);
       }
     }
+
+    clauses.addClause(Or::create(prop_lits));
   }
 }
 
 void TrieformProverS5::propagateClauses(const shared_ptr<Formula>& formula){
-  CNF_form cnf_formula = convertToCNF(formula);
-
+  CNF_form cnf_formula = DepthReduce(formula);
+  
+  cout << "CNF:\n" << cnfToString(cnf_formula) << endl;
   for (formula_set clause: cnf_formula){
     propagateOneClause(clause);
   }

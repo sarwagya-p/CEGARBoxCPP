@@ -34,8 +34,6 @@ private:
 
   
 protected:
-  static shared_ptr<Cache> persistentCache;
-
   static unsigned int assumptionsSize;
   static unordered_map<string, unsigned int> idMap;
   

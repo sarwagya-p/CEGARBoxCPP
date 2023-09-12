@@ -8,6 +8,7 @@
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
+#include <set>
 
 using namespace std;
 
@@ -39,13 +40,15 @@ struct DiamondFail {
   unsigned int lastFail;
 };
 struct DiamondFailCompare {
-  bool operator()(DiamondFail const &left, DiamondFail const &right) {
+  bool operator()(DiamondFail const &left, DiamondFail const &right) const{
     return left.lastFail < right.lastFail;
   }
 };
 
 typedef priority_queue<DiamondFail, vector<DiamondFail>, DiamondFailCompare>
     diamond_queue;
+
+typedef set<DiamondFail, DiamondFailCompare> diamond_set;
 
 class Prover {
 private:
@@ -125,6 +128,9 @@ public:
       int modality); // NOTE ENSURE THIS AVOIDS BOXES
 
   diamond_queue getPrioritisedTriggeredDiamonds(
+      int modality, literal_set& triggeredBoxes, literal_set& triggeredDiamonds);
+  
+  diamond_set getPrioritisedTriggeredDiamondsSet(
       int modality, literal_set& triggeredBoxes, literal_set& triggeredDiamonds);
   // NOTE ENSURE THIS AVOIDS BOXES
   void calculateTriggeredModalClauses();

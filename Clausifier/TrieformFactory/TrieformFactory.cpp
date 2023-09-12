@@ -9,7 +9,15 @@ shared_ptr<Trieform> TrieformFactory::makeTrie(
         Trieform::ensureUniqueModalClauseLhs = true;
         //Trieform::stringModalContexts = true;
     }
-    if (constraints.tense || constraints.oneSat || constraints.symmetric || constraints.euclidean || constraints.transitive) {
+    bool isS5 = (constraints.reflexive && constraints.euclidean) ||
+               (constraints.symmetric && constraints.euclidean) ||
+               (constraints.reflexive && constraints.symmetric && constraints.transitive) ||
+               (constraints.serial && constraints.symmetric && constraints.transitive) ||
+               (constraints.serial && constraints.symmetric &&
+                constraints.euclidean);
+
+    if ((constraints.tense || constraints.oneSat || constraints.symmetric || constraints.euclidean || constraints.transitive) &&
+        !(isS5)) {
         Trieform::stringModalContexts = true;
 
         formula_set orSet;

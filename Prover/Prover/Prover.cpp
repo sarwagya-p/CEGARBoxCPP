@@ -213,6 +213,25 @@ diamond_queue Prover::getPrioritisedTriggeredDiamonds(int modality, literal_set&
     return prioritisedTriggeredDiamonds;
 }
 
+diamond_set Prover::getPrioritisedTriggeredDiamondsSet(int modality, literal_set& triggeredBoxes, literal_set& triggeredDiamonds) {
+    // Note MUST avoid box clauses
+    diamond_set prioritisedTriggeredDiamonds;
+    for (Literal diamond : triggeredDiamonds) {
+        if (triggeredBoxes.find(diamond) == triggeredBoxes.end()) {
+            DiamondFail diamond_fail = {diamond, lastFail[diamond]};
+            prioritisedTriggeredDiamonds.insert(diamond_fail);
+        }
+    }
+    // If we have no triggered diamonds, we are in D \subset B case
+    // We create one world
+    if (prioritisedTriggeredDiamonds.size() == 0) {
+        Literal diamond = *triggeredDiamonds.begin();
+        DiamondFail diamond_fail = {diamond, lastFail[diamond]};
+        prioritisedTriggeredDiamonds.insert(diamond_fail);
+    }
+    return prioritisedTriggeredDiamonds;
+}
+
 
 vector<literal_set> Prover::createConflictGroups(int modality, literal_set nextModalContextConflict) {
     vector<literal_set> conflictGroups;

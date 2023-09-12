@@ -1,7 +1,5 @@
 #include "TrieformProverS5.h"
 
-shared_ptr<Cache> TrieformProverS5::persistentCache = make_shared<PrefixCache>("P");
-
 unsigned int TrieformProverS5::assumptionsSize = 0;
 unordered_map<string, unsigned int> TrieformProverS5::idMap =
     unordered_map<string, unsigned int>();
@@ -61,11 +59,85 @@ void TrieformProverS5::prepareSAT(name_set extra) {
 }
 
 Solution TrieformProverS5::prove(literal_set assumptions = literal_set()) {
-  Solution soln;
-  soln.conflict = literal_set();
-  soln.satisfiable = true;
-  soln.shouldRestart = false;
 
+  Solution soln = prover->solve(assumptions);
+
+  if (!soln.satisfiable){
+    return soln;
+  }
+
+  prover->calculateTriggeredDiamondsClauses();
+  modal_literal_map triggeredDiamonds = prover->getTriggeredDiamondClauses();
+
+  if (triggeredDiamonds.size() == 0){
+    return {true, literal_set()};
+  }
+
+  prover->calculateTriggeredBoxClauses();
+  modal_literal_map triggeredBoxes = prover->getTriggeredBoxClauses();
+
+  for (auto modalityDiamonds : triggeredDiamonds) {
+    // Handle each modality
+    if (modalityDiamonds.second.size() == 0) {
+      // If there are no triggered diamonds of a certain modality we can skip
+      // it
+      continue;
+    }
+    // Note in the cases diamonds are a subset of boxes then we don't need to
+    // create any worlds (reflexivity satisfies this)
+    diamond_set diamondPriority =
+        prover->getPrioritisedTriggeredDiamondsSet(modalityDiamonds.first, triggeredBoxes[modalityDiamonds.first], modalityDiamonds.second);
+
+    shared_ptr<Trieform> subtrie = getSubtrie(modalityDiamonds.first);
+
+    while (!diamondPriority.empty()) {
+      // Create a world for each diamond if necessary
+      Literal diamond = (*diamondPriority.rbegin()).literal;
+      diamondPriority.erase(prev(diamondPriority.end()));
+
+      if (prover->modelSatisfiesAssump(diamond)) {
+        continue;
+      }
+
+      literal_set childAssumptions = triggeredBoxes[modalityDiamonds.first];
+      childAssumptions.insert(diamond);
+
+      Solution childSoln = subtrie->prove(childAssumptions);
+
+      if (childSoln.satisfiable){
+        // If satisfiable, check if other diamonds can be satisfied with this model
+        for (auto it=diamondPriority.begin(); it != diamondPriority.end();){
+          if (subtrie->getProver()->modelSatisfiesAssump(it->literal)){
+            it = diamondPriority.erase(it);
+          }
+          else {
+            ++it;
+          }
+        }
+        // Create world for remaining
+        continue;
+      }
+
+      // If it returns unsat, find conflict
+      vector<literal_set> badImplications = prover->getNotProblemBoxClauses(
+          modalityDiamonds.first, childSoln.conflict);
+
+      // The diamond clause, either on its own or together with box clauses,
+        // caused a conflict. We must add diamond implies OR NOT problem box
+        // clauses.
+        prover->updateLastFail(diamond);
+        badImplications.push_back(
+            prover->getNotDiamondLeft(modalityDiamonds.first, diamond));
+
+        for (literal_set learnClause : generateClauses(badImplications)) {
+          prover->addClause(learnClause);
+        }
+
+        // Find new result
+        return prove(assumptions);
+    }
+  }
+  // At this point, all modalities are satisfied
   return soln;
 }
 
