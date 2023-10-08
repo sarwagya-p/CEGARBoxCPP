@@ -326,16 +326,14 @@ void TrieformProverS5::propagateOneClause(formula_set clause){
       Box* box_formula = dynamic_cast<Box*>(modal_lit.get());
 
       if (box_formula->getSubformula()->getType() == FOr){
-        if (subtrieMap.find(box_formula->getModality()) == subtrieMap.end()){
-          subtrieMap[box_formula->getModality()] = shared_ptr<Trieform>(new TrieformProverS5());
-        }
-        shared_ptr<Trieform> subtrie = subtrieMap[box_formula->getModality()];
+        shared_ptr<Trieform> subtrie = getSubtrieOrEmpty(box_formula->getModality());
 
         subtrie->clauses.addClause(box_formula->getSubformula());
       }
       else {
         ModalClause modal_clause = {box_formula->getModality(), True::create(), box_formula->getSubformula()};
         clauses.addBoxClause(modal_clause);
+        ensureSubtrieExistence(box_formula->getModality());
       }
     }
 
@@ -344,6 +342,7 @@ void TrieformProverS5::propagateOneClause(formula_set clause){
 
       ModalClause modal_clause = {dia_formula->getModality(), True::create(), dia_formula->getSubformula()};
       clauses.addDiamondClause(modal_clause);
+      ensureSubtrieExistence(dia_formula->getModality());
     }
   }
 
@@ -358,6 +357,7 @@ void TrieformProverS5::propagateOneClause(formula_set clause){
       
       ModalClause modal_clause = {modality, prop_lit, right};
       clauses.addBoxClause(modal_clause);
+      ensureSubtrieExistence(modality);
     }
     
     else{
@@ -367,6 +367,7 @@ void TrieformProverS5::propagateOneClause(formula_set clause){
 
       ModalClause modal_clause = {modality, prop_lit, right};
       clauses.addDiamondClause(modal_clause);
+      ensureSubtrieExistence(modality);
     }
   }
 
@@ -380,6 +381,7 @@ void TrieformProverS5::propagateOneClause(formula_set clause){
 
         ModalClause modal_clause = {diamond_lit->getModality(), name, diamond_lit->getSubformula()};
         clauses.addDiamondClause(modal_clause);
+        ensureSubtrieExistence(diamond_lit->getModality());
         clauses.addClause(Or::create(prop_lits));
         continue;
       }
@@ -395,16 +397,14 @@ void TrieformProverS5::propagateOneClause(formula_set clause){
         formula_set augmented_clause = or_clause->getSubformulas();
         augmented_clause.insert(name);
 
-        if (subtrieMap.find(box_formula->getModality()) == subtrieMap.end()){
-          subtrieMap[box_formula->getModality()] = shared_ptr<Trieform>(new TrieformProverS5());
-        }
-        shared_ptr<Trieform> subtrie = subtrieMap[box_formula->getModality()];
+        shared_ptr<Trieform> subtrie = getSubtrieOrEmpty(box_formula->getModality());
 
         subtrie->clauses.addClause(Or::create(augmented_clause));
       }
       else {
         ModalClause modal_clause = {box_formula->getModality(), name, box_formula->getSubformula()};
         clauses.addBoxClause(modal_clause);
+        ensureSubtrieExistence(box_formula->getModality());
       }
     }
 

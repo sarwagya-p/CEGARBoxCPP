@@ -16,7 +16,6 @@
 #include "../../Formula/FEnum/FEnum.h"
 #include "../../Formula/Formula/Formula.h"
 #include "../../Formula/Or/Or.h"
-#include "../../Prover/IpasirProver/IpasirProver.h"
 #include "../../Prover/MinisatProver/MinisatProver.h"
 #include "../Cache/Cache.h"
 #include "../Cache/PrefixCache/PrefixCache.h"
