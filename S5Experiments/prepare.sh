@@ -1,5 +1,6 @@
 #!/bin/bash
 
+mkdir ./QS5_CEGARBox;
 cd ./QS5/
 
 for FILE in *
