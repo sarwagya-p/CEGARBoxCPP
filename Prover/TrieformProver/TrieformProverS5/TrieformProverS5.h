@@ -30,6 +30,7 @@ private:
 
   string cnfToString(CNF_form cnf_formula);
 
+  void splitClause(formula_set clause, formula_set& modal_lits, formula_set& prop_lits);
   void propagateOneClause(formula_set clause);
 
   

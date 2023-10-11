@@ -1,5 +1,28 @@
 #include "TrieformProverS5.h"
+string clauseToString(formula_set clause){
+  if (clause.size() == 1){
+    shared_ptr<Formula> lit = *(clause.begin());
 
+    return lit->toString();
+    
+  }
+
+  string s = "( ";
+  for (shared_ptr<Formula> lit: clause) s += lit->toString() + " | ";
+  s = s.substr(0, s.size()-3);
+  s += ")";
+  return s;
+}
+string TrieformProverS5::cnfToString(CNF_form cnf_formula){
+  string s;
+  for (formula_set clause: cnf_formula){
+    s+= clauseToString(clause);
+    s += " & ";
+  }
+  s = s.substr(0, s.size()-3);
+  s+="\n";
+  return s;
+}
 
 bool TrieformProverS5::isPropLiteral(shared_ptr<Formula> formula){
   switch (formula->getType()){
@@ -64,7 +87,7 @@ CNF_form TrieformProverS5::convertToCNF(shared_ptr<Formula> d1_formula){
       shared_ptr<Formula> name = cache->createVariable();
       
       for (formula_set& clause: subformula_cnf){
-        clause.insert(Not::create(name));
+        clause.insert(Not::create(name)->negatedNormalForm());
 
         newClauses.push_back(clause);
       }
@@ -113,7 +136,7 @@ CNF_form TrieformProverS5::DepthReduceBoxFromCNF(CNF_form cnf_subf, int modality
       if (cnf_aux.size() == 1) mainClause.insert(cnf_aux[0].begin(),cnf_aux[0].end());
       else {
         shared_ptr<Formula> z = cache->createVariable();
-        mainClause.insert(Not::create(z));
+        mainClause.insert(Not::create(z)->negatedNormalForm());
 
         for (formula_set aux_clause: cnf_aux){
           aux_clause.insert(z);
@@ -162,7 +185,7 @@ CNF_form TrieformProverS5::DepthReduceDiamond(shared_ptr<Formula> inp_formula){
 
       shared_ptr<Formula> z = cache->createVariable();
 
-      mainClause.insert(Not::create(z));
+      mainClause.insert(Not::create(z)->negatedNormalForm());
 
       for (formula_set aux_clause: aux_cnf){
         aux_clause.insert(z);
@@ -228,7 +251,7 @@ CNF_form TrieformProverS5::DepthReduceDiamond(shared_ptr<Formula> inp_formula){
   }
 
   CNF_form auxilary_box_cnf = DepthReduceBoxFromCNF(cnf_subf, dia_f->getModality());
-  auxilary_box_cnf.push_back({Diamond::create(dia_f->getModality(), 1, Not::create(z))});
+  auxilary_box_cnf.push_back({Diamond::create(dia_f->getModality(), 1, Not::create(z)->negatedNormalForm())});
 
   return auxilary_box_cnf;
 }
@@ -260,7 +283,7 @@ CNF_form TrieformProverS5::DepthReduceOr(shared_ptr<Formula> inp_formula){
     }
     shared_ptr<Formula> z = cache->createVariable();
 
-    mainClause.insert(Not::create(z));
+    mainClause.insert(Not::create(z)->negatedNormalForm());
 
     for (formula_set& clause: cnf_subformula){
       clause.insert(z);
@@ -297,29 +320,40 @@ CNF_form TrieformProverS5::DepthReduce(shared_ptr<Formula> inp_formula){
   }
 }
 
-void TrieformProverS5::propagateOneClause(formula_set clause){
-  formula_set modal_lits;
-  formula_set prop_lits;
-
+void TrieformProverS5::splitClause(formula_set clause, formula_set& modal_lits, formula_set& prop_lits){
   for (shared_ptr<Formula> S5_lit: clause){
     if (isPropLiteral(S5_lit)){
       prop_lits.insert(S5_lit);
+    }
+    else if (S5_lit->getType() == FOr){
+      Or* o = dynamic_cast<Or*>(S5_lit.get());
+      splitClause(o->getSubformulas(), modal_lits, prop_lits);
     }
     else {
       modal_lits.insert(S5_lit);
     }
   }
+}
+
+void TrieformProverS5::propagateOneClause(formula_set clause){
+  if (clause.size() == 0) return;
+
+  formula_set modal_lits;
+  formula_set prop_lits;
+
+  splitClause(clause, modal_lits, prop_lits);
 
   if (modal_lits.size() == 0){
-    if (clause.size()== 0){
+    if (clause.size()== 1){
       clauses.addClause(*clause.begin());
     }
     else {
       clauses.addClause(Or::create(clause));
     }
+    return;
   }
 
-  else if (modal_lits.size() == 1 && prop_lits.size() == 0){
+  if (modal_lits.size() == 1 && prop_lits.size() == 0){
     shared_ptr<Formula> modal_lit = *(modal_lits.begin());
 
     if (modal_lit->getType() == FBox){
@@ -344,9 +378,11 @@ void TrieformProverS5::propagateOneClause(formula_set clause){
       clauses.addDiamondClause(modal_clause);
       ensureSubtrieExistence(dia_formula->getModality());
     }
+    return;
   }
 
-  else if (modal_lits.size() == 1 && prop_lits.size() == 1){
+  
+  if (modal_lits.size() == 1 && prop_lits.size() == 1){
     shared_ptr<Formula> modal_lit = *(modal_lits.begin());
     shared_ptr<Formula> prop_lit = *(prop_lits.begin());
 
@@ -382,7 +418,6 @@ void TrieformProverS5::propagateOneClause(formula_set clause){
         ModalClause modal_clause = {diamond_lit->getModality(), name, diamond_lit->getSubformula()};
         clauses.addDiamondClause(modal_clause);
         ensureSubtrieExistence(diamond_lit->getModality());
-        clauses.addClause(Or::create(prop_lits));
         continue;
       }
       
@@ -395,10 +430,11 @@ void TrieformProverS5::propagateOneClause(formula_set clause){
         Or* or_clause = dynamic_cast<Or*>(box_formula->getSubformula().get());
         
         formula_set augmented_clause = or_clause->getSubformulas();
-        augmented_clause.insert(name);
+        augmented_clause.insert(Not::create(name)->negatedNormalForm());
 
         shared_ptr<Trieform> subtrie = getSubtrieOrEmpty(box_formula->getModality());
 
+        clauses.addBoxClause({box_formula->getModality(), name, name});
         subtrie->clauses.addClause(Or::create(augmented_clause));
       }
       else {
@@ -418,29 +454,4 @@ void TrieformProverS5::propagateClauses(const shared_ptr<Formula>& formula){
   for (formula_set clause: cnf_formula){
     propagateOneClause(clause);
   }
-}
-
-string clauseToString(formula_set clause){
-  if (clause.size() == 1){
-    shared_ptr<Formula> lit = *(clause.begin());
-
-    return lit->toString();
-    
-  }
-
-  string s = "( ";
-  for (shared_ptr<Formula> lit: clause) s += lit->toString() + " | ";
-  s = s.substr(0, s.size()-3);
-  s += ")";
-  return s;
-}
-string TrieformProverS5::cnfToString(CNF_form cnf_formula){
-  string s;
-  for (formula_set clause: cnf_formula){
-    s+= clauseToString(clause);
-    s += " & ";
-  }
-  s = s.substr(0, s.size()-3);
-  s+="\n";
-  return s;
 }
