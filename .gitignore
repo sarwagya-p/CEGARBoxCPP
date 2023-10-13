@@ -16,3 +16,5 @@ callgrind*
 *.o
 Parser/
 massif*
+ANTLRParser/inc/
+ANTLRParser/lib/

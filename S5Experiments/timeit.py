@@ -7,53 +7,51 @@ import time
 def run_CEGAR(filename, timeout):
     cmd = ["../main", "-f", filename, "-tb4"]
     try:
-        process = subprocess.run(cmd, 
-                                stdout = subprocess.PIPE,
-                                stderr = subprocess.PIPE,
+        process = subprocess.check_output(cmd, 
                                 timeout=timeout)
         
-        if process.returncode == 0:
-            print(f"Finished running file {filename} on CEGAR")
+        print(f"Finished running file {filename} on CEGAR")
 
-            if process.stdout.decode("utf-8") == "Satisfiable\n":
-                return True
-            else:
-                raise Exception(f"CEGAR returned unsatisfiable on file {filename}")
-            
+        if process.decode("utf-8") == "Satisfiable\n":
+            return True
         else:
-            print(f"CEGAR returned error code {process.returncode}")
-            return False
+            # raise Exception(f"CEGAR returned unsatisfiable on file {filename}")
+            print(f"CEGAR returned unsatisfiable on file {filename}")
+        
+    except subprocess.CalledProcessError as e:
+        print(e.output)
+        print(f"\n CEGAR return error on file {filename}")
+
+        with open("../troublefiles.txt", "a") as file:
+            file.write(filename + "\n")
         
     except TimeoutExpired:
-        print("Timeout")
+        print(f"CEGAR timed out on file {filename}")
         return False
     
 def run_Cheetah(filename, timeout):
     cmd = ["./S5Cheetah", filename]
 
     try:
-        process = subprocess.run(cmd, 
-                                stdout = subprocess.PIPE,
-                                stderr = subprocess.PIPE,
+        process = subprocess.check_output(cmd, 
                                 timeout=timeout)
         
-        if process.returncode == 0:
-            print(f"Finished running file {filename} on Cheetah")
+        print(f"Finished running file {filename} on Cheetah")
 
-            output = process.stdout.decode("utf-8").split("\n")
+        output = process.decode("utf-8").split("\n")
 
-            if output[-3] == "s SATISFIABLE":
-                return True
-            else:
-                print(output)
-                raise Exception(f"Cheetah returned unsatisfiable on file {filename}")
-            
+        if output[-3] == "s SATISFIABLE":
+            return True
         else:
-            print(f"Cheetah returned error code {process.returncode}")
-            return False
+            print(output)
+            raise Exception(f"Cheetah returned unsatisfiable on file {filename}")
+        
+    except subprocess.CalledProcessError as e:
+        print(e.output)
+        print(f"\n Cheetah return error on file {filename}")
         
     except TimeoutExpired:
-        print("Timeout")
+        print(f"Cheetah timed out on file {filename}")
         return False
 
 if __name__ == "__main__":
@@ -71,5 +69,7 @@ if __name__ == "__main__":
 
         if run_Cheetah(path + file, 2):
             Cheetah_solved += 1
+
+        print("\n")
 
     print(f"CEGAR solved {CEGAR_solved}, Cheetah solved {Cheetah_solved} out of {len(dir_list)}")
