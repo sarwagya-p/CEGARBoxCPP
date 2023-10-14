@@ -1,8 +1,8 @@
 
-// Generated from ../FormulaK.g4 by ANTLR 4.13.1
+// Generated from FormulaK.g4 by ANTLR 4.13.1
 
 
-#include "FormulaKListener.h"
+#include "FormulaKVisitor.h"
 
 #include "FormulaKParser.h"
 
@@ -55,25 +55,25 @@ void formulakParserInitialize() {
       "termOp", "impOp", "unaryOp", "formula", "term", "literal"
     },
     std::vector<std::string>{
-      "", "'('", "')'", "", "'&'", "'|'", "'=>'", "'<=>'", "'~'", "'[]'", 
+      "", "'('", "')'", "", "", "'&'", "'|'", "'=>'", "'<=>'", "'~'", "'[]'", 
       "'<>'"
     },
     std::vector<std::string>{
-      "", "", "", "INT", "AND", "OR", "IMP", "IFF", "NOT", "BOX", "DIA", 
-      "IDXBOX", "IDXDIA", "NAME"
+      "", "", "", "WS", "INT", "AND", "OR", "IMP", "IFF", "NOT", "BOX", 
+      "DIA", "IDXBOX", "IDXDIA", "NAME"
     }
   );
   static const int32_t serializedATNSegment[] = {
-  	4,1,13,44,2,0,7,0,2,1,7,1,2,2,7,2,2,3,7,3,2,4,7,4,2,5,7,5,1,0,1,0,1,1,
+  	4,1,14,44,2,0,7,0,2,1,7,1,2,2,7,2,2,3,7,3,2,4,7,4,2,5,7,5,1,0,1,0,1,1,
   	1,1,1,2,1,2,1,3,1,3,1,3,1,3,5,3,23,8,3,10,3,12,3,26,9,3,1,4,1,4,1,4,1,
   	4,3,4,32,8,4,1,5,1,5,1,5,1,5,1,5,1,5,1,5,1,5,3,5,42,8,5,1,5,0,0,6,0,2,
-  	4,6,8,10,0,3,1,0,4,5,1,0,6,7,1,0,8,12,41,0,12,1,0,0,0,2,14,1,0,0,0,4,
+  	4,6,8,10,0,3,1,0,5,6,1,0,7,8,1,0,9,13,41,0,12,1,0,0,0,2,14,1,0,0,0,4,
   	16,1,0,0,0,6,18,1,0,0,0,8,27,1,0,0,0,10,41,1,0,0,0,12,13,7,0,0,0,13,1,
   	1,0,0,0,14,15,7,1,0,0,15,3,1,0,0,0,16,17,7,2,0,0,17,5,1,0,0,0,18,24,3,
   	8,4,0,19,20,3,0,0,0,20,21,3,8,4,0,21,23,1,0,0,0,22,19,1,0,0,0,23,26,1,
   	0,0,0,24,22,1,0,0,0,24,25,1,0,0,0,25,7,1,0,0,0,26,24,1,0,0,0,27,31,3,
   	10,5,0,28,29,3,2,1,0,29,30,3,10,5,0,30,32,1,0,0,0,31,28,1,0,0,0,31,32,
-  	1,0,0,0,32,9,1,0,0,0,33,42,5,13,0,0,34,35,3,4,2,0,35,36,3,10,5,0,36,42,
+  	1,0,0,0,32,9,1,0,0,0,33,42,5,14,0,0,34,35,3,4,2,0,35,36,3,10,5,0,36,42,
   	1,0,0,0,37,38,5,1,0,0,38,39,3,6,3,0,39,40,5,2,0,0,40,42,1,0,0,0,41,33,
   	1,0,0,0,41,34,1,0,0,0,41,37,1,0,0,0,42,11,1,0,0,0,3,24,31,41
   };
@@ -143,16 +143,12 @@ size_t FormulaKParser::TermOpContext::getRuleIndex() const {
   return FormulaKParser::RuleTermOp;
 }
 
-void FormulaKParser::TermOpContext::enterRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<FormulaKListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->enterTermOp(this);
-}
 
-void FormulaKParser::TermOpContext::exitRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<FormulaKListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->exitTermOp(this);
+std::any FormulaKParser::TermOpContext::accept(tree::ParseTreeVisitor *visitor) {
+  if (auto parserVisitor = dynamic_cast<FormulaKVisitor*>(visitor))
+    return parserVisitor->visitTermOp(this);
+  else
+    return visitor->visitChildren(this);
 }
 
 FormulaKParser::TermOpContext* FormulaKParser::termOp() {
@@ -210,16 +206,12 @@ size_t FormulaKParser::ImpOpContext::getRuleIndex() const {
   return FormulaKParser::RuleImpOp;
 }
 
-void FormulaKParser::ImpOpContext::enterRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<FormulaKListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->enterImpOp(this);
-}
 
-void FormulaKParser::ImpOpContext::exitRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<FormulaKListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->exitImpOp(this);
+std::any FormulaKParser::ImpOpContext::accept(tree::ParseTreeVisitor *visitor) {
+  if (auto parserVisitor = dynamic_cast<FormulaKVisitor*>(visitor))
+    return parserVisitor->visitImpOp(this);
+  else
+    return visitor->visitChildren(this);
 }
 
 FormulaKParser::ImpOpContext* FormulaKParser::impOp() {
@@ -289,16 +281,12 @@ size_t FormulaKParser::UnaryOpContext::getRuleIndex() const {
   return FormulaKParser::RuleUnaryOp;
 }
 
-void FormulaKParser::UnaryOpContext::enterRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<FormulaKListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->enterUnaryOp(this);
-}
 
-void FormulaKParser::UnaryOpContext::exitRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<FormulaKListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->exitUnaryOp(this);
+std::any FormulaKParser::UnaryOpContext::accept(tree::ParseTreeVisitor *visitor) {
+  if (auto parserVisitor = dynamic_cast<FormulaKVisitor*>(visitor))
+    return parserVisitor->visitUnaryOp(this);
+  else
+    return visitor->visitChildren(this);
 }
 
 FormulaKParser::UnaryOpContext* FormulaKParser::unaryOp() {
@@ -318,7 +306,7 @@ FormulaKParser::UnaryOpContext* FormulaKParser::unaryOp() {
     setState(16);
     _la = _input->LA(1);
     if (!((((_la & ~ 0x3fULL) == 0) &&
-      ((1ULL << _la) & 7936) != 0))) {
+      ((1ULL << _la) & 15872) != 0))) {
     _errHandler->recoverInline(this);
     }
     else {
@@ -363,16 +351,12 @@ size_t FormulaKParser::FormulaContext::getRuleIndex() const {
   return FormulaKParser::RuleFormula;
 }
 
-void FormulaKParser::FormulaContext::enterRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<FormulaKListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->enterFormula(this);
-}
 
-void FormulaKParser::FormulaContext::exitRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<FormulaKListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->exitFormula(this);
+std::any FormulaKParser::FormulaContext::accept(tree::ParseTreeVisitor *visitor) {
+  if (auto parserVisitor = dynamic_cast<FormulaKVisitor*>(visitor))
+    return parserVisitor->visitFormula(this);
+  else
+    return visitor->visitChildren(this);
 }
 
 FormulaKParser::FormulaContext* FormulaKParser::formula() {
@@ -439,16 +423,12 @@ size_t FormulaKParser::TermContext::getRuleIndex() const {
   return FormulaKParser::RuleTerm;
 }
 
-void FormulaKParser::TermContext::enterRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<FormulaKListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->enterTerm(this);
-}
 
-void FormulaKParser::TermContext::exitRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<FormulaKListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->exitTerm(this);
+std::any FormulaKParser::TermContext::accept(tree::ParseTreeVisitor *visitor) {
+  if (auto parserVisitor = dynamic_cast<FormulaKVisitor*>(visitor))
+    return parserVisitor->visitTerm(this);
+  else
+    return visitor->visitChildren(this);
 }
 
 FormulaKParser::TermContext* FormulaKParser::term() {
@@ -517,16 +497,12 @@ size_t FormulaKParser::LiteralContext::getRuleIndex() const {
   return FormulaKParser::RuleLiteral;
 }
 
-void FormulaKParser::LiteralContext::enterRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<FormulaKListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->enterLiteral(this);
-}
 
-void FormulaKParser::LiteralContext::exitRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<FormulaKListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->exitLiteral(this);
+std::any FormulaKParser::LiteralContext::accept(tree::ParseTreeVisitor *visitor) {
+  if (auto parserVisitor = dynamic_cast<FormulaKVisitor*>(visitor))
+    return parserVisitor->visitLiteral(this);
+  else
+    return visitor->visitChildren(this);
 }
 
 FormulaKParser::LiteralContext* FormulaKParser::literal() {

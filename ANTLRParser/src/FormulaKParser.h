@@ -1,5 +1,5 @@
 
-// Generated from ../FormulaK.g4 by ANTLR 4.13.1
+// Generated from FormulaK.g4 by ANTLR 4.13.1
 
 #pragma once
 
@@ -12,8 +12,8 @@
 class  FormulaKParser : public antlr4::Parser {
 public:
   enum {
-    T__0 = 1, T__1 = 2, INT = 3, AND = 4, OR = 5, IMP = 6, IFF = 7, NOT = 8, 
-    BOX = 9, DIA = 10, IDXBOX = 11, IDXDIA = 12, NAME = 13
+    T__0 = 1, T__1 = 2, WS = 3, INT = 4, AND = 5, OR = 6, IMP = 7, IFF = 8, 
+    NOT = 9, BOX = 10, DIA = 11, IDXBOX = 12, IDXDIA = 13, NAME = 14
   };
 
   enum {
@@ -52,8 +52,8 @@ public:
     antlr4::tree::TerminalNode *AND();
     antlr4::tree::TerminalNode *OR();
 
-    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
-    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
+
+    virtual std::any accept(antlr4::tree::ParseTreeVisitor *visitor) override;
    
   };
 
@@ -66,8 +66,8 @@ public:
     antlr4::tree::TerminalNode *IMP();
     antlr4::tree::TerminalNode *IFF();
 
-    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
-    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
+
+    virtual std::any accept(antlr4::tree::ParseTreeVisitor *visitor) override;
    
   };
 
@@ -83,8 +83,8 @@ public:
     antlr4::tree::TerminalNode *IDXBOX();
     antlr4::tree::TerminalNode *IDXDIA();
 
-    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
-    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
+
+    virtual std::any accept(antlr4::tree::ParseTreeVisitor *visitor) override;
    
   };
 
@@ -99,8 +99,8 @@ public:
     std::vector<TermOpContext *> termOp();
     TermOpContext* termOp(size_t i);
 
-    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
-    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
+
+    virtual std::any accept(antlr4::tree::ParseTreeVisitor *visitor) override;
    
   };
 
@@ -114,8 +114,8 @@ public:
     LiteralContext* literal(size_t i);
     ImpOpContext *impOp();
 
-    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
-    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
+
+    virtual std::any accept(antlr4::tree::ParseTreeVisitor *visitor) override;
    
   };
 
@@ -130,8 +130,8 @@ public:
     LiteralContext *literal();
     FormulaContext *formula();
 
-    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
-    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
+
+    virtual std::any accept(antlr4::tree::ParseTreeVisitor *visitor) override;
    
   };
 
