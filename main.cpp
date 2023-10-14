@@ -28,6 +28,8 @@
 #include "Prover/TrieformProver/TrieformProverKGlobal/TrieformProverKGlobal.h"
 #include "Prover/TrieformProver/TrieformProverKt/TrieformProverKt.h"
 
+#include "ANTLRParser/ANTLRParser.h"
+
 using namespace std;
 
 const char *argp_program_version = "CEGARBox 0.1.0";
@@ -131,7 +133,8 @@ void solve(arguments_struct &args) {
     auto read = chrono::steady_clock::now();
 #endif
 
-    shared_ptr<Formula> formula = ParseFormula(&args.filename).parseFormula();
+    shared_ptr<Formula> formula = ANTLRParser(args.filename).parse();
+    
     // string other = "a.p";
     // shared_ptr<Formula> correct = ParseFormula(&other).parseFormula();
     // cout << "Wrong" << formula->toString() << endl;
