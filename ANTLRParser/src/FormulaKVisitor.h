@@ -23,6 +23,10 @@ public:
 
     virtual std::any visitImpOp(FormulaKParser::ImpOpContext *context) = 0;
 
+    virtual std::any visitIdxbox(FormulaKParser::IdxboxContext *context) = 0;
+
+    virtual std::any visitIdxdia(FormulaKParser::IdxdiaContext *context) = 0;
+
     virtual std::any visitUnaryOp(FormulaKParser::UnaryOpContext *context) = 0;
 
     virtual std::any visitFormula(FormulaKParser::FormulaContext *context) = 0;

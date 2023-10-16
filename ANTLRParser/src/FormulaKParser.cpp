@@ -52,30 +52,34 @@ void formulakParserInitialize() {
 #endif
   auto staticData = std::make_unique<FormulaKParserStaticData>(
     std::vector<std::string>{
-      "termOp", "impOp", "unaryOp", "formula", "term", "literal"
+      "termOp", "impOp", "idxbox", "idxdia", "unaryOp", "formula", "term", 
+      "literal"
     },
     std::vector<std::string>{
-      "", "'('", "')'", "", "", "'&'", "'|'", "'=>'", "'<=>'", "'~'", "'[]'", 
-      "'<>'"
+      "", "'['", "']'", "'<'", "'>'", "'('", "')'", "", "", "'&'", "'|'", 
+      "'=>'", "'<=>'", "'~'", "'[]'", "'<>'"
     },
     std::vector<std::string>{
-      "", "", "", "WS", "INT", "AND", "OR", "IMP", "IFF", "NOT", "BOX", 
-      "DIA", "IDXBOX", "IDXDIA", "NAME"
+      "", "", "", "", "", "", "", "WS", "INT", "AND", "OR", "IMP", "IFF", 
+      "NOT", "BOX", "DIA", "NAME", "IDXBOX", "IDXDIA"
     }
   );
   static const int32_t serializedATNSegment[] = {
-  	4,1,14,44,2,0,7,0,2,1,7,1,2,2,7,2,2,3,7,3,2,4,7,4,2,5,7,5,1,0,1,0,1,1,
-  	1,1,1,2,1,2,1,3,1,3,1,3,1,3,5,3,23,8,3,10,3,12,3,26,9,3,1,4,1,4,1,4,1,
-  	4,3,4,32,8,4,1,5,1,5,1,5,1,5,1,5,1,5,1,5,1,5,3,5,42,8,5,1,5,0,0,6,0,2,
-  	4,6,8,10,0,3,1,0,5,6,1,0,7,8,1,0,9,13,41,0,12,1,0,0,0,2,14,1,0,0,0,4,
-  	16,1,0,0,0,6,18,1,0,0,0,8,27,1,0,0,0,10,41,1,0,0,0,12,13,7,0,0,0,13,1,
-  	1,0,0,0,14,15,7,1,0,0,15,3,1,0,0,0,16,17,7,2,0,0,17,5,1,0,0,0,18,24,3,
-  	8,4,0,19,20,3,0,0,0,20,21,3,8,4,0,21,23,1,0,0,0,22,19,1,0,0,0,23,26,1,
-  	0,0,0,24,22,1,0,0,0,24,25,1,0,0,0,25,7,1,0,0,0,26,24,1,0,0,0,27,31,3,
-  	10,5,0,28,29,3,2,1,0,29,30,3,10,5,0,30,32,1,0,0,0,31,28,1,0,0,0,31,32,
-  	1,0,0,0,32,9,1,0,0,0,33,42,5,14,0,0,34,35,3,4,2,0,35,36,3,10,5,0,36,42,
-  	1,0,0,0,37,38,5,1,0,0,38,39,3,6,3,0,39,40,5,2,0,0,40,42,1,0,0,0,41,33,
-  	1,0,0,0,41,34,1,0,0,0,41,37,1,0,0,0,42,11,1,0,0,0,3,24,31,41
+  	4,1,18,56,2,0,7,0,2,1,7,1,2,2,7,2,2,3,7,3,2,4,7,4,2,5,7,5,2,6,7,6,2,7,
+  	7,7,1,0,1,0,1,1,1,1,1,2,1,2,1,2,1,2,1,3,1,3,1,3,1,3,1,4,1,4,1,5,1,5,1,
+  	5,1,5,5,5,35,8,5,10,5,12,5,38,9,5,1,6,1,6,1,6,1,6,3,6,44,8,6,1,7,1,7,
+  	1,7,1,7,1,7,1,7,1,7,1,7,3,7,54,8,7,1,7,0,0,8,0,2,4,6,8,10,12,14,0,3,1,
+  	0,9,10,1,0,11,12,2,0,13,15,17,18,51,0,16,1,0,0,0,2,18,1,0,0,0,4,20,1,
+  	0,0,0,6,24,1,0,0,0,8,28,1,0,0,0,10,30,1,0,0,0,12,39,1,0,0,0,14,53,1,0,
+  	0,0,16,17,7,0,0,0,17,1,1,0,0,0,18,19,7,1,0,0,19,3,1,0,0,0,20,21,5,1,0,
+  	0,21,22,5,8,0,0,22,23,5,2,0,0,23,5,1,0,0,0,24,25,5,3,0,0,25,26,5,8,0,
+  	0,26,27,5,4,0,0,27,7,1,0,0,0,28,29,7,2,0,0,29,9,1,0,0,0,30,36,3,12,6,
+  	0,31,32,3,0,0,0,32,33,3,12,6,0,33,35,1,0,0,0,34,31,1,0,0,0,35,38,1,0,
+  	0,0,36,34,1,0,0,0,36,37,1,0,0,0,37,11,1,0,0,0,38,36,1,0,0,0,39,43,3,14,
+  	7,0,40,41,3,2,1,0,41,42,3,14,7,0,42,44,1,0,0,0,43,40,1,0,0,0,43,44,1,
+  	0,0,0,44,13,1,0,0,0,45,54,5,16,0,0,46,47,3,8,4,0,47,48,3,14,7,0,48,54,
+  	1,0,0,0,49,50,5,5,0,0,50,51,3,10,5,0,51,52,5,6,0,0,52,54,1,0,0,0,53,45,
+  	1,0,0,0,53,46,1,0,0,0,53,49,1,0,0,0,54,15,1,0,0,0,3,36,43,53
   };
   staticData->serializedATN = antlr4::atn::SerializedATNView(serializedATNSegment, sizeof(serializedATNSegment) / sizeof(serializedATNSegment[0]));
 
@@ -165,7 +169,7 @@ FormulaKParser::TermOpContext* FormulaKParser::termOp() {
   });
   try {
     enterOuterAlt(_localctx, 1);
-    setState(12);
+    setState(16);
     _la = _input->LA(1);
     if (!(_la == FormulaKParser::AND
 
@@ -228,7 +232,7 @@ FormulaKParser::ImpOpContext* FormulaKParser::impOp() {
   });
   try {
     enterOuterAlt(_localctx, 1);
-    setState(14);
+    setState(18);
     _la = _input->LA(1);
     if (!(_la == FormulaKParser::IMP
 
@@ -239,6 +243,112 @@ FormulaKParser::ImpOpContext* FormulaKParser::impOp() {
       _errHandler->reportMatch(this);
       consume();
     }
+   
+  }
+  catch (RecognitionException &e) {
+    _errHandler->reportError(this, e);
+    _localctx->exception = std::current_exception();
+    _errHandler->recover(this, _localctx->exception);
+  }
+
+  return _localctx;
+}
+
+//----------------- IdxboxContext ------------------------------------------------------------------
+
+FormulaKParser::IdxboxContext::IdxboxContext(ParserRuleContext *parent, size_t invokingState)
+  : ParserRuleContext(parent, invokingState) {
+}
+
+tree::TerminalNode* FormulaKParser::IdxboxContext::INT() {
+  return getToken(FormulaKParser::INT, 0);
+}
+
+
+size_t FormulaKParser::IdxboxContext::getRuleIndex() const {
+  return FormulaKParser::RuleIdxbox;
+}
+
+
+std::any FormulaKParser::IdxboxContext::accept(tree::ParseTreeVisitor *visitor) {
+  if (auto parserVisitor = dynamic_cast<FormulaKVisitor*>(visitor))
+    return parserVisitor->visitIdxbox(this);
+  else
+    return visitor->visitChildren(this);
+}
+
+FormulaKParser::IdxboxContext* FormulaKParser::idxbox() {
+  IdxboxContext *_localctx = _tracker.createInstance<IdxboxContext>(_ctx, getState());
+  enterRule(_localctx, 4, FormulaKParser::RuleIdxbox);
+
+#if __cplusplus > 201703L
+  auto onExit = finally([=, this] {
+#else
+  auto onExit = finally([=] {
+#endif
+    exitRule();
+  });
+  try {
+    enterOuterAlt(_localctx, 1);
+    setState(20);
+    match(FormulaKParser::T__0);
+    setState(21);
+    match(FormulaKParser::INT);
+    setState(22);
+    match(FormulaKParser::T__1);
+   
+  }
+  catch (RecognitionException &e) {
+    _errHandler->reportError(this, e);
+    _localctx->exception = std::current_exception();
+    _errHandler->recover(this, _localctx->exception);
+  }
+
+  return _localctx;
+}
+
+//----------------- IdxdiaContext ------------------------------------------------------------------
+
+FormulaKParser::IdxdiaContext::IdxdiaContext(ParserRuleContext *parent, size_t invokingState)
+  : ParserRuleContext(parent, invokingState) {
+}
+
+tree::TerminalNode* FormulaKParser::IdxdiaContext::INT() {
+  return getToken(FormulaKParser::INT, 0);
+}
+
+
+size_t FormulaKParser::IdxdiaContext::getRuleIndex() const {
+  return FormulaKParser::RuleIdxdia;
+}
+
+
+std::any FormulaKParser::IdxdiaContext::accept(tree::ParseTreeVisitor *visitor) {
+  if (auto parserVisitor = dynamic_cast<FormulaKVisitor*>(visitor))
+    return parserVisitor->visitIdxdia(this);
+  else
+    return visitor->visitChildren(this);
+}
+
+FormulaKParser::IdxdiaContext* FormulaKParser::idxdia() {
+  IdxdiaContext *_localctx = _tracker.createInstance<IdxdiaContext>(_ctx, getState());
+  enterRule(_localctx, 6, FormulaKParser::RuleIdxdia);
+
+#if __cplusplus > 201703L
+  auto onExit = finally([=, this] {
+#else
+  auto onExit = finally([=] {
+#endif
+    exitRule();
+  });
+  try {
+    enterOuterAlt(_localctx, 1);
+    setState(24);
+    match(FormulaKParser::T__2);
+    setState(25);
+    match(FormulaKParser::INT);
+    setState(26);
+    match(FormulaKParser::T__3);
    
   }
   catch (RecognitionException &e) {
@@ -291,7 +401,7 @@ std::any FormulaKParser::UnaryOpContext::accept(tree::ParseTreeVisitor *visitor)
 
 FormulaKParser::UnaryOpContext* FormulaKParser::unaryOp() {
   UnaryOpContext *_localctx = _tracker.createInstance<UnaryOpContext>(_ctx, getState());
-  enterRule(_localctx, 4, FormulaKParser::RuleUnaryOp);
+  enterRule(_localctx, 8, FormulaKParser::RuleUnaryOp);
   size_t _la = 0;
 
 #if __cplusplus > 201703L
@@ -303,10 +413,10 @@ FormulaKParser::UnaryOpContext* FormulaKParser::unaryOp() {
   });
   try {
     enterOuterAlt(_localctx, 1);
-    setState(16);
+    setState(28);
     _la = _input->LA(1);
     if (!((((_la & ~ 0x3fULL) == 0) &&
-      ((1ULL << _la) & 15872) != 0))) {
+      ((1ULL << _la) & 450560) != 0))) {
     _errHandler->recoverInline(this);
     }
     else {
@@ -361,7 +471,7 @@ std::any FormulaKParser::FormulaContext::accept(tree::ParseTreeVisitor *visitor)
 
 FormulaKParser::FormulaContext* FormulaKParser::formula() {
   FormulaContext *_localctx = _tracker.createInstance<FormulaContext>(_ctx, getState());
-  enterRule(_localctx, 6, FormulaKParser::RuleFormula);
+  enterRule(_localctx, 10, FormulaKParser::RuleFormula);
   size_t _la = 0;
 
 #if __cplusplus > 201703L
@@ -373,19 +483,19 @@ FormulaKParser::FormulaContext* FormulaKParser::formula() {
   });
   try {
     enterOuterAlt(_localctx, 1);
-    setState(18);
+    setState(30);
     term();
-    setState(24);
+    setState(36);
     _errHandler->sync(this);
     _la = _input->LA(1);
     while (_la == FormulaKParser::AND
 
     || _la == FormulaKParser::OR) {
-      setState(19);
+      setState(31);
       termOp();
-      setState(20);
+      setState(32);
       term();
-      setState(26);
+      setState(38);
       _errHandler->sync(this);
       _la = _input->LA(1);
     }
@@ -433,7 +543,7 @@ std::any FormulaKParser::TermContext::accept(tree::ParseTreeVisitor *visitor) {
 
 FormulaKParser::TermContext* FormulaKParser::term() {
   TermContext *_localctx = _tracker.createInstance<TermContext>(_ctx, getState());
-  enterRule(_localctx, 8, FormulaKParser::RuleTerm);
+  enterRule(_localctx, 12, FormulaKParser::RuleTerm);
   size_t _la = 0;
 
 #if __cplusplus > 201703L
@@ -445,18 +555,18 @@ FormulaKParser::TermContext* FormulaKParser::term() {
   });
   try {
     enterOuterAlt(_localctx, 1);
-    setState(27);
+    setState(39);
     literal();
-    setState(31);
+    setState(43);
     _errHandler->sync(this);
 
     _la = _input->LA(1);
     if (_la == FormulaKParser::IMP
 
     || _la == FormulaKParser::IFF) {
-      setState(28);
+      setState(40);
       impOp();
-      setState(29);
+      setState(41);
       literal();
     }
    
@@ -507,7 +617,7 @@ std::any FormulaKParser::LiteralContext::accept(tree::ParseTreeVisitor *visitor)
 
 FormulaKParser::LiteralContext* FormulaKParser::literal() {
   LiteralContext *_localctx = _tracker.createInstance<LiteralContext>(_ctx, getState());
-  enterRule(_localctx, 10, FormulaKParser::RuleLiteral);
+  enterRule(_localctx, 14, FormulaKParser::RuleLiteral);
 
 #if __cplusplus > 201703L
   auto onExit = finally([=, this] {
@@ -517,12 +627,12 @@ FormulaKParser::LiteralContext* FormulaKParser::literal() {
     exitRule();
   });
   try {
-    setState(41);
+    setState(53);
     _errHandler->sync(this);
     switch (_input->LA(1)) {
       case FormulaKParser::NAME: {
         enterOuterAlt(_localctx, 1);
-        setState(33);
+        setState(45);
         match(FormulaKParser::NAME);
         break;
       }
@@ -533,21 +643,21 @@ FormulaKParser::LiteralContext* FormulaKParser::literal() {
       case FormulaKParser::IDXBOX:
       case FormulaKParser::IDXDIA: {
         enterOuterAlt(_localctx, 2);
-        setState(34);
+        setState(46);
         unaryOp();
-        setState(35);
+        setState(47);
         literal();
         break;
       }
 
-      case FormulaKParser::T__0: {
+      case FormulaKParser::T__4: {
         enterOuterAlt(_localctx, 3);
-        setState(37);
-        match(FormulaKParser::T__0);
-        setState(38);
+        setState(49);
+        match(FormulaKParser::T__4);
+        setState(50);
         formula();
-        setState(39);
-        match(FormulaKParser::T__1);
+        setState(51);
+        match(FormulaKParser::T__5);
         break;
       }
 

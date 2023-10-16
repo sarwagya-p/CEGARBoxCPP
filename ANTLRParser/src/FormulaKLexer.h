@@ -12,8 +12,9 @@
 class  FormulaKLexer : public antlr4::Lexer {
 public:
   enum {
-    T__0 = 1, T__1 = 2, WS = 3, INT = 4, AND = 5, OR = 6, IMP = 7, IFF = 8, 
-    NOT = 9, BOX = 10, DIA = 11, IDXBOX = 12, IDXDIA = 13, NAME = 14
+    T__0 = 1, T__1 = 2, T__2 = 3, T__3 = 4, T__4 = 5, T__5 = 6, WS = 7, 
+    INT = 8, AND = 9, OR = 10, IMP = 11, IFF = 12, NOT = 13, BOX = 14, DIA = 15, 
+    NAME = 16
   };
 
   explicit FormulaKLexer(antlr4::CharStream *input);

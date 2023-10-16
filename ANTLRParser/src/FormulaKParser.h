@@ -12,13 +12,14 @@
 class  FormulaKParser : public antlr4::Parser {
 public:
   enum {
-    T__0 = 1, T__1 = 2, WS = 3, INT = 4, AND = 5, OR = 6, IMP = 7, IFF = 8, 
-    NOT = 9, BOX = 10, DIA = 11, IDXBOX = 12, IDXDIA = 13, NAME = 14
+    T__0 = 1, T__1 = 2, T__2 = 3, T__3 = 4, T__4 = 5, T__5 = 6, WS = 7, 
+    INT = 8, AND = 9, OR = 10, IMP = 11, IFF = 12, NOT = 13, BOX = 14, DIA = 15, 
+    NAME = 16, IDXBOX = 17, IDXDIA = 18
   };
 
   enum {
-    RuleTermOp = 0, RuleImpOp = 1, RuleUnaryOp = 2, RuleFormula = 3, RuleTerm = 4, 
-    RuleLiteral = 5
+    RuleTermOp = 0, RuleImpOp = 1, RuleIdxbox = 2, RuleIdxdia = 3, RuleUnaryOp = 4, 
+    RuleFormula = 5, RuleTerm = 6, RuleLiteral = 7
   };
 
   explicit FormulaKParser(antlr4::TokenStream *input);
@@ -40,6 +41,8 @@ public:
 
   class TermOpContext;
   class ImpOpContext;
+  class IdxboxContext;
+  class IdxdiaContext;
   class UnaryOpContext;
   class FormulaContext;
   class TermContext;
@@ -72,6 +75,32 @@ public:
   };
 
   ImpOpContext* impOp();
+
+  class  IdxboxContext : public antlr4::ParserRuleContext {
+  public:
+    IdxboxContext(antlr4::ParserRuleContext *parent, size_t invokingState);
+    virtual size_t getRuleIndex() const override;
+    antlr4::tree::TerminalNode *INT();
+
+
+    virtual std::any accept(antlr4::tree::ParseTreeVisitor *visitor) override;
+   
+  };
+
+  IdxboxContext* idxbox();
+
+  class  IdxdiaContext : public antlr4::ParserRuleContext {
+  public:
+    IdxdiaContext(antlr4::ParserRuleContext *parent, size_t invokingState);
+    virtual size_t getRuleIndex() const override;
+    antlr4::tree::TerminalNode *INT();
+
+
+    virtual std::any accept(antlr4::tree::ParseTreeVisitor *visitor) override;
+   
+  };
+
+  IdxdiaContext* idxdia();
 
   class  UnaryOpContext : public antlr4::ParserRuleContext {
   public:

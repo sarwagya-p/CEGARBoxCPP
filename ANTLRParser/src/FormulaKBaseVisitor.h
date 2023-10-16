@@ -23,6 +23,14 @@ public:
     return visitChildren(ctx);
   }
 
+  virtual std::any visitIdxbox(FormulaKParser::IdxboxContext *ctx) override {
+    return visitChildren(ctx);
+  }
+
+  virtual std::any visitIdxdia(FormulaKParser::IdxdiaContext *ctx) override {
+    return visitChildren(ctx);
+  }
+
   virtual std::any visitUnaryOp(FormulaKParser::UnaryOpContext *ctx) override {
     return visitChildren(ctx);
   }

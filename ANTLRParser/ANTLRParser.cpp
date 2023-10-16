@@ -43,16 +43,16 @@ std::any FormulaTreeVisitor::visitFormula(FormulaKParser::FormulaContext *contex
         shared_ptr<Formula> cur_term = any_cast<shared_ptr<Formula>>(visit(all_term[i]));
 
         if (cur_type_and == any_cast<bool>(visit(all_term_op[i-1]))){
-                subf_set.insert(cur_term);
-                continue;
-            }
+            subf_set.insert(cur_term);
+            continue;
+        }
 
         shared_ptr<Formula> new_formula;
         if (cur_type_and){
-            shared_ptr<Formula> new_formula = And::create(subf_set);
+            new_formula = And::create(subf_set);
         }
         else{
-            shared_ptr<Formula> new_formula = Or::create(subf_set);
+            new_formula = Or::create(subf_set);
         }
 
         subf_set.clear();

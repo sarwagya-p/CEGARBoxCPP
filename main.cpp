@@ -29,6 +29,7 @@
 #include "Prover/TrieformProver/TrieformProverKt/TrieformProverKt.h"
 
 #include "ANTLRParser/ANTLRParser.h"
+#include "FormulaStackParser/FormulaStackParser.h"
 
 using namespace std;
 
@@ -133,7 +134,7 @@ void solve(arguments_struct &args) {
     auto read = chrono::steady_clock::now();
 #endif
 
-    shared_ptr<Formula> formula = ANTLRParser(args.filename).parse();
+    shared_ptr<Formula> formula = FormulaStackParser(args.filename).parse();
     
     // string other = "a.p";
     // shared_ptr<Formula> correct = ParseFormula(&other).parseFormula();
