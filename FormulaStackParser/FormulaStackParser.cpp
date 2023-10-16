@@ -260,7 +260,7 @@ shared_ptr<Formula> FormulaStackParser::parse(){
                 for (; isalnum(reader->lookahead()); c = reader->getChar()){
                     atom_name.push_back(c);
                 }
-
+                atom_name.push_back(c);
                 subf_stack.push_back(Atom::create(atom_name));
                 expect_binary_op = true;
             }
