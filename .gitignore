@@ -18,3 +18,4 @@ Parser/
 massif*
 ANTLRParser/inc/
 ANTLRParser/lib/
+S5Experiments/data/

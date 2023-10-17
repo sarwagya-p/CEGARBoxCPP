@@ -344,12 +344,7 @@ void TrieformProverS5::propagateOneClause(formula_set clause){
   splitClause(clause, modal_lits, prop_lits);
 
   if (modal_lits.size() == 0){
-    if (clause.size()== 1){
-      clauses.addClause(*clause.begin());
-    }
-    else {
-      clauses.addClause(Or::create(clause));
-    }
+    clauses.addClause(Or::create(clause));
     return;
   }
 
@@ -358,17 +353,9 @@ void TrieformProverS5::propagateOneClause(formula_set clause){
 
     if (modal_lit->getType() == FBox){
       Box* box_formula = dynamic_cast<Box*>(modal_lit.get());
+      shared_ptr<Trieform> subtrie = getSubtrieOrEmpty(box_formula->getModality());
 
-      if (box_formula->getSubformula()->getType() == FOr){
-        shared_ptr<Trieform> subtrie = getSubtrieOrEmpty(box_formula->getModality());
-
-        subtrie->clauses.addClause(box_formula->getSubformula());
-      }
-      else {
-        ModalClause modal_clause = {box_formula->getModality(), True::create(), box_formula->getSubformula()};
-        clauses.addBoxClause(modal_clause);
-        ensureSubtrieExistence(box_formula->getModality());
-      }
+      subtrie->clauses.addClause(box_formula->getSubformula());
     }
 
     else {
@@ -391,9 +378,24 @@ void TrieformProverS5::propagateOneClause(formula_set clause){
       int modality = box_formula->getModality();
       shared_ptr<Formula> right = box_formula->getSubformula();
       
-      ModalClause modal_clause = {modality, prop_lit, right};
-      clauses.addBoxClause(modal_clause);
-      ensureSubtrieExistence(modality);
+      if (isPropLiteral(right)){
+        ModalClause modal_clause = {modality, prop_lit, right};
+        clauses.addBoxClause(modal_clause);
+        ensureSubtrieExistence(modality);
+        return;
+      }
+
+      shared_ptr<Formula> name = cache->getVariableOrCreate(modal_lit);
+      Or* or_subf = dynamic_cast<Or*>(right.get());
+
+      formula_set augmented_set = or_subf->getSubformulas();
+      augmented_set.insert(Not::create(name)->negatedNormalForm());
+
+      clauses.addClause(Or::create({prop_lit, name}));
+      clauses.addBoxClause({modality, name, name});
+
+      shared_ptr<Trieform> subtrie = getSubtrieOrEmpty(modality);
+      subtrie->clauses.addClause(Or::create(augmented_set));
     }
     
     else{
@@ -446,6 +448,68 @@ void TrieformProverS5::propagateOneClause(formula_set clause){
 
     clauses.addClause(Or::create(prop_lits));
   }
+}
+
+bool is_prop_lit(shared_ptr<Formula> formula){
+  switch (formula->getType())
+  {
+  case FAtom:
+  case FFalse:
+  case FTrue:
+    return true;
+    break;
+
+  case FNot:{
+    Not* not_formula = dynamic_cast<Not*>(formula.get());
+
+    switch (not_formula->getSubformula()->getType())
+    {
+      case FAtom:
+      case FFalse:
+      case FTrue:
+        return true;
+        break;
+
+      default:
+        return false;
+        break;
+    }
+  }
+  
+  default:
+    return false;
+    break;
+  }
+}
+
+bool is_correct_d1(CNF_form cnf_formula){
+  for (formula_set clause: cnf_formula){
+    for (shared_ptr<Formula> lit: clause){
+      if (is_prop_lit(lit)) continue;
+
+      if (lit->getType() == FDiamond){
+        Diamond* dia_lit = dynamic_cast<Diamond*>(lit.get());
+        if (!is_prop_lit(dia_lit->getSubformula())) return false;
+        else continue;
+      }
+
+      if (lit->getType() != FBox){
+        return false;
+      }
+
+      Box* box_lit = dynamic_cast<Box*>(lit.get());
+      if (is_prop_lit(box_lit->getSubformula())) continue;
+
+      if (box_lit->getSubformula()->getType() != FOr) return false;
+      Or* or_subf = dynamic_cast<Or*>(box_lit->getSubformula().get());
+
+      for (shared_ptr<Formula> or_lit: or_subf->getSubformulas()){
+        if (!is_prop_lit(or_lit)) return false;
+      }
+    }
+  }
+
+  return true;
 }
 
 void TrieformProverS5::propagateClauses(const shared_ptr<Formula>& formula){
