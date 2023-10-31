@@ -28,12 +28,11 @@
 #include "Prover/TrieformProver/TrieformProverKGlobal/TrieformProverKGlobal.h"
 #include "Prover/TrieformProver/TrieformProverKt/TrieformProverKt.h"
 
-#include "ANTLRParser/ANTLRParser.h"
 #include "FormulaStackParser/FormulaStackParser.h"
 
 using namespace std;
 
-const char *argp_program_version = "CEGARBox 0.1.0";
+const char *argp_program_version = "CEGARBox 0.2.0";
 const char *argp_program_bug_address = "robert.mcarthur@anu.edu.au";
 static char doc[] = "An efficient theorem prover for modal logic.";
 static char args_doc[] = "";

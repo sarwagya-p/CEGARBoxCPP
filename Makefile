@@ -1,6 +1,6 @@
 CC = g++
-CFLAGS = -std=c++17 -Wall -g -ggdb -O3 -mavx2 -fopenmp -static -I ./ANTLRParser/inc/
-LIBS = -L/usr/local/lib -L./ANTLRParser/lib/ -lminisat -lantlr4-runtime #-ltcmalloc #-lprofiler #-Wl --no-as-needed
+CFLAGS = -std=c++17 -Wall -g -ggdb -O3 -mavx2 -fopenmp -static
+LIBS = -L/usr/local/lib -lminisat #-ltcmalloc #-lprofiler #-Wl --no-as-needed
 
 SRCDIR = .
 SOURCES = $(shell find $(SRCDIR) -name "*.cpp")

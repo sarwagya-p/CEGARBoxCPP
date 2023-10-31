@@ -1,12 +1,12 @@
 #include "FormulaStackParser.h"
 
-FormulaStackParser::FormulaStackParser(string filename) {
+FormulaStackParser::FormulaStackParser(string filename){
     reader = make_shared<StreamReader>(filename);
 }
 
 FormulaStackParser::~FormulaStackParser() {}
 
-FormulaStackParser::StreamReader::StreamReader(string filename) {
+FormulaStackParser::StreamReader::StreamReader(string filename): line_number(1), index(1) {
     input_file.open(filename);
     buffer_char = input_file.get();
 }
@@ -19,11 +19,22 @@ char FormulaStackParser::StreamReader::getChar() {
     char next_char = buffer_char;
     buffer_char = input_file.get();
 
+    if(next_char == '\n'){
+        line_number++;
+        index = 1;
+    } else {
+        index++;
+    }
+
     return next_char;
 }
 
 char FormulaStackParser::StreamReader::lookahead() {
     return buffer_char;
+}
+
+pair<int, int> FormulaStackParser::StreamReader::getPos() {
+    return make_pair(line_number, index);
 }
 
 void FormulaStackParser::reduceStack() {
@@ -135,7 +146,8 @@ shared_ptr<Formula> FormulaStackParser::parse(){
 
             case '&':{
                 if (!expect_binary_op){
-                    cerr << "Error: Expected unary operator or atom" << endl;
+                    pair<int, int> pos = reader->getPos();
+                    cerr << "Error: Expected unary operator or atom at line number " << pos.first << " index " << pos.second << endl;
                     exit(1);
                 }
                 while (!op_stack.empty() && op_stack.back() != LPAREN && op_stack.back() != AND){
@@ -147,7 +159,8 @@ shared_ptr<Formula> FormulaStackParser::parse(){
 
             case '|':{
                 if (!expect_binary_op){
-                    cerr << "Error: Expected unary operator or atom" << endl;
+                    pair<int, int> pos = reader->getPos();
+                    cerr << "Error: Expected unary operator or atom at line number " << pos.first << " index " << pos.second << endl;
                     exit(1);
                 }
 
@@ -160,7 +173,8 @@ shared_ptr<Formula> FormulaStackParser::parse(){
 
             case '~':{
                 if (expect_binary_op){
-                    cerr << "Error: Binary operator or EOF expected" << endl;
+                    pair<int, int> pos = reader->getPos();
+                    cerr << "Error: Binary operator or EOF expected at line number " << pos.first << " index " << pos.second << endl;
                     exit(1);
                 }
                 op_stack.push_back(NOT);
@@ -168,7 +182,8 @@ shared_ptr<Formula> FormulaStackParser::parse(){
 
             case '[':{
                 if (expect_binary_op){
-                    cerr << "Error: Binary operator or EOF expected" << endl;
+                    pair<int, int> pos = reader->getPos();
+                    cerr << "Error: Binary operator or EOF expected at line number " << pos.first << " index " << pos.second << endl;
                     exit(1);
                 }
 
@@ -179,7 +194,8 @@ shared_ptr<Formula> FormulaStackParser::parse(){
                     }
 
                     if (!isdigit(c)){
-                        cerr << "Error: invalid modality in box" << endl;
+                        pair<int, int> pos = reader->getPos();
+                        cerr << "Error: invalid modality in box at line number " << pos.first << " index " << pos.second << endl;
                         exit(1);
                     }
                 }
@@ -191,12 +207,14 @@ shared_ptr<Formula> FormulaStackParser::parse(){
                 if (c == '='){
                     c = reader->getChar();
                     if (c != '>'){
-                        cerr << "Error: Expected char '>' for IFF" << endl;
+                        pair<int, int> pos = reader->getPos();
+                        cerr << "Error: Expected char '>' for IFF at line number " << pos.first << " index " << pos.second << endl;
                         exit(1);
                     }
 
                     if (!expect_binary_op){
-                        cerr << "Error: Expected unary operator or atom" << endl;
+                        pair<int, int> pos = reader->getPos();
+                        cerr << "Error: Expected unary operator or atom at line number " << pos.first << " index " << pos.second << endl;
                         exit(1);
                     }
                     expect_binary_op = false;
@@ -205,7 +223,8 @@ shared_ptr<Formula> FormulaStackParser::parse(){
                 }
 
                 if (expect_binary_op){
-                    cerr << "Error: Binary operator or EOF expected" << endl;
+                    pair<int, int> pos = reader->getPos();
+                    cerr << "Error: Binary operator or EOF expected at line number " << pos.first << " index " << pos.second << endl;
                     exit(1);
                 }
                 for (c = reader->getChar(); c != EOF; c = reader->getChar()){
@@ -215,7 +234,8 @@ shared_ptr<Formula> FormulaStackParser::parse(){
                     }
 
                     if (!isdigit(c)){
-                        cerr << "Error: invalid modality in diamond" << endl;
+                        pair<int, int> pos = reader->getPos();
+                        cerr << "Error: invalid modality in diamond at line number " << pos.first << " index " << pos.second << endl;
                         exit(1);
                     }
                 }
@@ -223,7 +243,8 @@ shared_ptr<Formula> FormulaStackParser::parse(){
 
             case '(':{
                 if (expect_binary_op){
-                    cerr << "Error: Binary operator or EOF expected" << endl;
+                    pair<int, int> pos = reader->getPos();
+                    cerr << "Error: Binary operator or EOF expected at line number " << pos.first << " index " << pos.second << endl;
                     exit(1);
                 }
                 op_stack.push_back(LPAREN);
@@ -231,27 +252,49 @@ shared_ptr<Formula> FormulaStackParser::parse(){
 
             case ')':{
                 if (!expect_binary_op){
-                    cerr << "Error: Expected unary operator or atom" << endl;
+                    pair<int, int> pos = reader->getPos();
+                    cerr << "Error: Expected unary operator or atom at line number " << pos.first << " index " << pos.second << endl;
                 }
                 while (!op_stack.empty() && op_stack.back() != LPAREN){
                     reduceStack();
                 }
 
                 if (op_stack.empty()){
-                    cerr << "Mismatched parenthesis" << endl;
+                    pair<int, int> pos = reader->getPos();
+                    cerr << "Mismatched parenthesis at line number " << pos.first << " index " << pos.second << endl;
                     exit(1);
                 }
                 op_stack.pop_back();
             } break;
 
+            case '=':{
+                c = reader->getChar();
+
+                if (c != '>'){
+                    pair<int, int> pos = reader->getPos();
+                    cerr << "Error: Expected char '>' for IMP at line number " << pos.first << " index " << pos.second << endl;
+                    exit(1);
+                }
+
+                if (!expect_binary_op){
+                    pair<int, int> pos = reader->getPos();
+                    cerr << "Error: Expected unary operator or atom at line number " << pos.first << " index " << pos.second << endl;
+                    exit(1);
+                }
+                expect_binary_op = false;
+                op_stack.push_back(IMP);
+            } break;
+
             default:{
                 if (!isalnum(c)){
-                    cerr << "Error: invalid character" << endl;
+                    pair<int, int> pos = reader->getPos();
+                    cerr << "Error: invalid character:  at line number " << pos.first << " index " << pos.second << c << endl;
                     exit(1);
                 }
 
                 if (expect_binary_op){
-                    cerr << "Error: Binary operator or EOF expected" << endl;
+                    pair<int, int> pos = reader->getPos();
+                    cerr << "Error: Binary operator or EOF expected at line number " << pos.first << " index " << pos.second << endl;
                     exit(1);
                 }
 

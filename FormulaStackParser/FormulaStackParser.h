@@ -22,11 +22,14 @@ private:
     struct StreamReader {
         char buffer_char;
         ifstream input_file;
+        int line_number;
+        int index;
         
         StreamReader(string filename);
         ~StreamReader();
         char getChar();
         char lookahead();
+        pair<int, int> getPos();
     };
 
     vector<FormulaOps> op_stack;
