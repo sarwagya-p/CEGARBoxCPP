@@ -18,23 +18,19 @@ private:
     enum FormulaOps {
         AND, OR, NOT, BOX, DIA, IMP, IFF, LPAREN, RPAREN
     };
+    string ops_str(FormulaOps op);
+    bool is_unary(FormulaOps op);
 
-    struct StreamReader {
-        char buffer_char;
-        ifstream input_file;
-        int line_number;
-        int index;
-        
-        StreamReader(string filename);
-        ~StreamReader();
-        char getChar();
-        char lookahead();
-        pair<int, int> getPos();
-    };
+    string formula_str;
+    size_t line_number;
+    size_t index;
+    
+    char getChar();
+    char lookahead();
+    pair<int, int> getPos();
 
     vector<FormulaOps> op_stack;
     vector<shared_ptr<Formula>> subf_stack;
-    shared_ptr<StreamReader> reader;
 
     void reduceStack();
 public:

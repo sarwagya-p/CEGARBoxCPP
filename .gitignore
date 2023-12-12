@@ -19,3 +19,5 @@ massif*
 ANTLRParser/inc/
 ANTLRParser/lib/
 S5Experiments/data/
+S5Experiments/LWB/
+S5Experiments/cegar_file.tmp

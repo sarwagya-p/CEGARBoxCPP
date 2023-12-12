@@ -11,62 +11,51 @@ def checkOutput_CEGAR(process):
     
 def checkOutput_Cheetah(process):
     if process.decode("utf-8").split("\n")[-3] == "s SATISFIABLE":
-        return True
+        return "SAT"
     else:
-        return False
+        return "UNSAT"
 
 def run(cmd, filename, timeout, checkOutput):
     try:
         process = subprocess.check_output(cmd + [filename], 
                                 timeout=timeout)
 
-        if checkOutput(process):
-            print("SUCCESS")
-            return True
-        
-        else:
-            print("WRONG ANSWER")
-            return False
+        return (checkOutput(process))
 
     except subprocess.CalledProcessError as e:
         print(e.output)
         print(f"ERROR in execution")
-
-        with open("../troublefiles.txt", "a") as file:
-            file.write(filename + "\n")
+        
+        return "ERROR"
         
     except TimeoutExpired:
         print(f"TIMEOUT")
-        return False
+        return "TIMEOUT"
 
 def prepare_file(filename):
-    subprocess.call(f"sed '1d' {filename} | sed '2d' | sed 's/r//g' | sed 's/-/=/g' > cegar_file.tmp", shell=True)
+    subprocess.call(
+        f"sed '1d' {filename} | sed '2d' | sed 's/r//g' | sed 's/-/=/g' | sed 's/false/$false' | sed 's/true/$true' > cegar_file.tmp", 
+        shell=True)
     return "cegar_file.tmp"
 
-def compare_solve_count(dir, cegar_dir_list, cheetah_dir_list, timeout):
+def compare_solve_count(dir, file_list, timeout):
     solved_count = [0, 0]
 
     CEGAR_cmd = ["../main", "-tb4", "-f"]
     Cheetah_cmd = ["./S5Cheetah"]
 
-    cegar_list_copy = cegar_dir_list.copy()
-    cheetah_list_copy = cheetah_dir_list.copy()
-
-    for file in cegar_list_copy:
+    for file in file_list:
         print(f"\nRunning {file}...")
 
         print("CEGAR:", end=" ")
-        if run(CEGAR_cmd, prepare_file(dir + file), timeout, checkOutput_CEGAR):
-            solved_count[0] += 1
-            cegar_dir_list.remove(file)
-
-    for file in cheetah_list_copy:
-        print(f"\nRunning {file}...")
+        CEGAR_output = run(CEGAR_cmd, prepare_file(dir + file), timeout, checkOutput_CEGAR)
 
         print("Cheetah:", end=" ")
-        if run(Cheetah_cmd, dir+file, timeout, checkOutput_Cheetah):
-            solved_count[1] += 1
-            cheetah_dir_list.remove(file)
+        Cheetah_output = run(Cheetah_cmd, dir + file, timeout, checkOutput_Cheetah)
+
+        if (CEGAR_output == "SAT" and Cheetah_output == "SAT") or (CEGAR_output == "UNSAT" and Cheetah_output == "UNSAT"):
+            print("Same Answer on both")
+            
 
     print(f"CEGAR solved {solved_count[0]}, Cheetah solved {solved_count[1]} for timout {timeout}")
     return solved_count
@@ -127,11 +116,10 @@ if __name__ == "__main__":
     path = f"./data/{name}/"
     filename = f"result/{name}.txt"
 
+    prepare_file("data/lwb/s4_45_p.0002.intohylo")
+
     # counts = run_benchmark(timeouts, path, filename)
-    counts = np.array([[706, 165], [780, 376], [879, 541], [931, 654], [944, 749]])
-    counts += np.array([[155, 105], [191, 123], [230, 145], [240, 167], [248, 200]])
-    counts += np.array([[0, 0], [71, 0], [113, 0], [169, 7], [225, 55]])
 
     # counts = [[0, 0], [71, 0], [113, 0], [169, 7], [225, 55], [234, 66]]
 
-    plot(timeouts, counts, 945+len(os.listdir(path))+240, "mix")
+    # plot(timeouts, counts, 945+len(os.listdir(path))+240, "mix")

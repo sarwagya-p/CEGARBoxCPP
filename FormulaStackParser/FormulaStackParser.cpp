@@ -1,40 +1,53 @@
 #include "FormulaStackParser.h"
+#include <filesystem>
 
-FormulaStackParser::FormulaStackParser(string filename){
-    reader = make_shared<StreamReader>(filename);
+string FormulaStackParser::ops_str(FormulaOps op){
+    switch (op){
+        case AND: return "AND";
+        case OR: return "OR";
+        case NOT: return "NOT";
+        case BOX: return "BOX";
+        case DIA: return "DIA";
+        case IMP: return "IMP";
+        case IFF: return "IFF";
+        case LPAREN: return "LPAREN";
+        case RPAREN: return "RPAREN";
+    }
+}
+
+bool FormulaStackParser::is_unary(FormulaOps op){
+    return op == NOT || op == BOX || op == DIA;
+}
+
+FormulaStackParser::FormulaStackParser(string filename): line_number(1), index(0){
+    ifstream formula_file(filename);
+
+    const auto file_size = filesystem::file_size(filename);
+    formula_str = string(file_size, '\0');
+    formula_file.read(formula_str.data(), file_size);
 }
 
 FormulaStackParser::~FormulaStackParser() {}
 
-FormulaStackParser::StreamReader::StreamReader(string filename): line_number(1), index(1) {
-    input_file.open(filename);
-    buffer_char = input_file.get();
-}
+char FormulaStackParser::getChar() {
+    if (index >= formula_str.size())return EOF;
 
-FormulaStackParser::StreamReader::~StreamReader() {
-    input_file.close();
-}
-
-char FormulaStackParser::StreamReader::getChar() {
-    char next_char = buffer_char;
-    buffer_char = input_file.get();
-
-    if(next_char == '\n'){
-        line_number++;
-        index = 1;
-    } else {
-        index++;
+    char c = formula_str[index];
+    if (c == '\n'){
+        ++line_number;
     }
-
-    return next_char;
+    ++index;
+    return c;
 }
 
-char FormulaStackParser::StreamReader::lookahead() {
-    return buffer_char;
+char FormulaStackParser::lookahead() {
+    if (index >= formula_str.size())return EOF;
+
+    return formula_str[index];
 }
 
-pair<int, int> FormulaStackParser::StreamReader::getPos() {
-    return make_pair(line_number, index);
+pair<int, int> FormulaStackParser::getPos() {
+    return make_pair(line_number, index+1);
 }
 
 void FormulaStackParser::reduceStack() {
@@ -48,7 +61,16 @@ void FormulaStackParser::reduceStack() {
             subf_stack.pop_back();
 
             while (!op_stack.empty() && op_stack.back() == AND){
-                subf_set.insert(subf_stack.back());
+                shared_ptr<Formula> subf = subf_stack.back();
+
+                if (subf->getType() == FAnd){
+                    And* and_subf = dynamic_cast<And*>(subf.get());
+                    for (auto sub_subf : and_subf->getSubformulas()){
+                        subf_set.insert(sub_subf);
+                    }
+                } else {
+                    subf_set.insert(subf);
+                }
                 subf_stack.pop_back();
                 op_stack.pop_back();
             }
@@ -62,7 +84,16 @@ void FormulaStackParser::reduceStack() {
             subf_stack.pop_back();
 
             while (!op_stack.empty() && op_stack.back() == OR){
-                subf_set.insert(subf_stack.back());
+                shared_ptr<Formula> subf = subf_stack.back();
+
+                if (subf->getType() == FOr){
+                    Or* or_subf = dynamic_cast<Or*>(subf.get());
+                    for (auto sub_subf : or_subf->getSubformulas()){
+                        subf_set.insert(sub_subf);
+                    }
+                } else {
+                    subf_set.insert(subf);
+                }
                 subf_stack.pop_back();
                 op_stack.pop_back();
             }
@@ -115,7 +146,7 @@ void FormulaStackParser::reduceStack() {
 
             op_stack.pop_back();
             op_stack.push_back(OR);
-        }
+        } break;
 
         case IFF:{
             shared_ptr<Formula> right = subf_stack.back();
@@ -129,13 +160,13 @@ void FormulaStackParser::reduceStack() {
 
             op_stack.pop_back();
             op_stack.push_back(AND);
-        }
+        } break;
     }
 }
 
 shared_ptr<Formula> FormulaStackParser::parse(){
     bool expect_binary_op = false;
-    for (char c = reader->getChar(); c != EOF; c = reader->getChar()){
+    for (char c = getChar(); c != EOF; c = getChar()){
         switch (c){
             case ' ':
             case '\t':
@@ -146,7 +177,7 @@ shared_ptr<Formula> FormulaStackParser::parse(){
 
             case '&':{
                 if (!expect_binary_op){
-                    pair<int, int> pos = reader->getPos();
+                    pair<int, int> pos = getPos();
                     cerr << "Error: Expected unary operator or atom at line number " << pos.first << " index " << pos.second << endl;
                     exit(1);
                 }
@@ -159,7 +190,7 @@ shared_ptr<Formula> FormulaStackParser::parse(){
 
             case '|':{
                 if (!expect_binary_op){
-                    pair<int, int> pos = reader->getPos();
+                    pair<int, int> pos = getPos();
                     cerr << "Error: Expected unary operator or atom at line number " << pos.first << " index " << pos.second << endl;
                     exit(1);
                 }
@@ -167,13 +198,14 @@ shared_ptr<Formula> FormulaStackParser::parse(){
                 while (!op_stack.empty() && op_stack.back() != LPAREN && op_stack.back() != OR){
                     reduceStack();
                 }
+
                 op_stack.push_back(OR);
                 expect_binary_op = false;
             } break;
 
             case '~':{
                 if (expect_binary_op){
-                    pair<int, int> pos = reader->getPos();
+                    pair<int, int> pos = getPos();
                     cerr << "Error: Binary operator or EOF expected at line number " << pos.first << " index " << pos.second << endl;
                     exit(1);
                 }
@@ -182,19 +214,19 @@ shared_ptr<Formula> FormulaStackParser::parse(){
 
             case '[':{
                 if (expect_binary_op){
-                    pair<int, int> pos = reader->getPos();
+                    pair<int, int> pos = getPos();
                     cerr << "Error: Binary operator or EOF expected at line number " << pos.first << " index " << pos.second << endl;
                     exit(1);
                 }
 
-                for (c = reader->getChar(); c != EOF; c = reader->getChar()){
+                for (c = getChar(); c != EOF; c = getChar()){
                     if (c == ']'){
                         op_stack.push_back(BOX);
                         break;
                     }
 
                     if (!isdigit(c)){
-                        pair<int, int> pos = reader->getPos();
+                        pair<int, int> pos = getPos();
                         cerr << "Error: invalid modality in box at line number " << pos.first << " index " << pos.second << endl;
                         exit(1);
                     }
@@ -202,18 +234,18 @@ shared_ptr<Formula> FormulaStackParser::parse(){
             } break;
 
             case '<':{
-                c = reader->getChar();
+                c = getChar();
 
                 if (c == '='){
-                    c = reader->getChar();
+                    c = getChar();
                     if (c != '>'){
-                        pair<int, int> pos = reader->getPos();
+                        pair<int, int> pos = getPos();
                         cerr << "Error: Expected char '>' for IFF at line number " << pos.first << " index " << pos.second << endl;
                         exit(1);
                     }
 
                     if (!expect_binary_op){
-                        pair<int, int> pos = reader->getPos();
+                        pair<int, int> pos = getPos();
                         cerr << "Error: Expected unary operator or atom at line number " << pos.first << " index " << pos.second << endl;
                         exit(1);
                     }
@@ -223,18 +255,18 @@ shared_ptr<Formula> FormulaStackParser::parse(){
                 }
 
                 if (expect_binary_op){
-                    pair<int, int> pos = reader->getPos();
+                    pair<int, int> pos = getPos();
                     cerr << "Error: Binary operator or EOF expected at line number " << pos.first << " index " << pos.second << endl;
                     exit(1);
                 }
-                for (c = reader->getChar(); c != EOF; c = reader->getChar()){
+                for (c = getChar(); c != EOF; c = getChar()){
                     if (c == '>'){
                         op_stack.push_back(DIA);
                         break;
                     }
 
                     if (!isdigit(c)){
-                        pair<int, int> pos = reader->getPos();
+                        pair<int, int> pos = getPos();
                         cerr << "Error: invalid modality in diamond at line number " << pos.first << " index " << pos.second << endl;
                         exit(1);
                     }
@@ -243,7 +275,7 @@ shared_ptr<Formula> FormulaStackParser::parse(){
 
             case '(':{
                 if (expect_binary_op){
-                    pair<int, int> pos = reader->getPos();
+                    pair<int, int> pos = getPos();
                     cerr << "Error: Binary operator or EOF expected at line number " << pos.first << " index " << pos.second << endl;
                     exit(1);
                 }
@@ -252,7 +284,7 @@ shared_ptr<Formula> FormulaStackParser::parse(){
 
             case ')':{
                 if (!expect_binary_op){
-                    pair<int, int> pos = reader->getPos();
+                    pair<int, int> pos = getPos();
                     cerr << "Error: Expected unary operator or atom at line number " << pos.first << " index " << pos.second << endl;
                 }
                 while (!op_stack.empty() && op_stack.back() != LPAREN){
@@ -260,24 +292,28 @@ shared_ptr<Formula> FormulaStackParser::parse(){
                 }
 
                 if (op_stack.empty()){
-                    pair<int, int> pos = reader->getPos();
+                    pair<int, int> pos = getPos();
                     cerr << "Mismatched parenthesis at line number " << pos.first << " index " << pos.second << endl;
                     exit(1);
                 }
                 op_stack.pop_back();
+
+                while (!op_stack.empty() && is_unary(op_stack.back())){
+                    reduceStack();
+                }
             } break;
 
             case '=':{
-                c = reader->getChar();
+                c = getChar();
 
                 if (c != '>'){
-                    pair<int, int> pos = reader->getPos();
+                    pair<int, int> pos = getPos();
                     cerr << "Error: Expected char '>' for IMP at line number " << pos.first << " index " << pos.second << endl;
                     exit(1);
                 }
 
                 if (!expect_binary_op){
-                    pair<int, int> pos = reader->getPos();
+                    pair<int, int> pos = getPos();
                     cerr << "Error: Expected unary operator or atom at line number " << pos.first << " index " << pos.second << endl;
                     exit(1);
                 }
@@ -286,26 +322,41 @@ shared_ptr<Formula> FormulaStackParser::parse(){
             } break;
 
             default:{
-                if (!isalnum(c)){
-                    pair<int, int> pos = reader->getPos();
+                if (!isalnum(c) && c != '$'){
+                    pair<int, int> pos = getPos();
                     cerr << "Error: invalid character:  at line number " << pos.first << " index " << pos.second << c << endl;
                     exit(1);
                 }
 
                 if (expect_binary_op){
-                    pair<int, int> pos = reader->getPos();
+                    pair<int, int> pos = getPos();
                     cerr << "Error: Binary operator or EOF expected at line number " << pos.first << " index " << pos.second << endl;
                     exit(1);
                 }
 
                 string atom_name;
 
-                for (; isalnum(reader->lookahead()); c = reader->getChar()){
+                for (; isalnum(lookahead())  || lookahead() == '$'; c = getChar()){
                     atom_name.push_back(c);
                 }
-                atom_name.push_back(c);
-                subf_stack.push_back(Atom::create(atom_name));
-                expect_binary_op = true;
+
+                if (atom_name == "$true"){
+                    subf_stack.push_back(True::create());
+                    expect_binary_op = true;
+                }
+                else if (atom_name == "$false"){
+                    subf_stack.push_back(False::create());
+                    expect_binary_op = true;
+                }
+                else {
+                    atom_name.push_back(c);
+                    subf_stack.push_back(Atom::create(atom_name));
+                    expect_binary_op = true;
+                }
+
+                while (!op_stack.empty() && is_unary(op_stack.back())){
+                    reduceStack();
+                }
             }
         }
     }

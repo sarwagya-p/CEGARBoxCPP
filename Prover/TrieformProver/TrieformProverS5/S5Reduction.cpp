@@ -353,6 +353,7 @@ void TrieformProverS5::propagateOneClause(formula_set clause){
 
     if (modal_lit->getType() == FBox){
       Box* box_formula = dynamic_cast<Box*>(modal_lit.get());
+      clauses.addClause(box_formula->getSubformula());
       shared_ptr<Trieform> subtrie = getSubtrieOrEmpty(box_formula->getModality());
 
       subtrie->clauses.addClause(box_formula->getSubformula());
@@ -379,8 +380,10 @@ void TrieformProverS5::propagateOneClause(formula_set clause){
       shared_ptr<Formula> right = box_formula->getSubformula();
       
       if (isPropLiteral(right)){
-        ModalClause modal_clause = {modality, prop_lit, right};
+        shared_ptr<Formula> left = prop_lit->negate();
+        ModalClause modal_clause = {modality, left, right};
         clauses.addBoxClause(modal_clause);
+        clauses.addClause(Or::create({prop_lit, right}));
         ensureSubtrieExistence(modality);
         return;
       }
@@ -389,7 +392,7 @@ void TrieformProverS5::propagateOneClause(formula_set clause){
       Or* or_subf = dynamic_cast<Or*>(right.get());
 
       formula_set augmented_set = or_subf->getSubformulas();
-      augmented_set.insert(Not::create(name)->negatedNormalForm());
+      augmented_set.insert(name->negate());
 
       clauses.addClause(Or::create({prop_lit, name}));
       clauses.addBoxClause({modality, name, name});
