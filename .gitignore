@@ -16,8 +16,8 @@ callgrind*
 *.o
 Parser/
 massif*
-ANTLRParser/inc/
-ANTLRParser/lib/
-S5Experiments/data/
-S5Experiments/LWB/
+S5Experiments/benchmarks/
+S5Experiments/results/
 S5Experiments/cegar_file.tmp
+S5Experiments/S52SAT
+S5Experiments/S5Cheetah
