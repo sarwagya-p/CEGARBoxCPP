@@ -1,125 +1,126 @@
 import os
+import sys
 import subprocess
-from subprocess import TimeoutExpired
-import time
+import pandas as pd
+import numpy as np
 
-def checkOutput_CEGAR(process):
-    if process.decode("utf-8") == "Satisfiable\n":
-        return True
-    else:
-        return False
+def cegar_cmd(filename):
+    subprocess.call(
+        f"sed '1d' {filename} | sed '2d' | sed 's/r//g' | sed 's/-/=/g' | sed 's/false/$false/g' | sed 's/true/$true/g' > cegar_file.tmp", 
+        shell=True
+        )
     
-def checkOutput_Cheetah(process):
+    return ["../main", "-tb4", "-f", "cegar_file.tmp"]
+
+def cheetah_cmd(filename):
+    return ["./S5Cheetah", filename]
+
+def s52sat_cmd(filename):
+    return ["./S52SAT", filename, "-diamondDegree", "-caching"]
+
+
+def check_out_CEGAR(process):
+    if process.decode("utf-8") == "Satisfiable\n":
+        return "SAT"
+    else:
+        return "UNSAT"
+    
+def check_out_Cheetah(process):
     if process.decode("utf-8").split("\n")[-3] == "s SATISFIABLE":
         return "SAT"
     else:
         return "UNSAT"
+    
+def check_out_S52SAT(process):
+    if process.decode("utf-8").split("\n")[-8] == "s SATISFIABLE":
+        return "SAT"
+    else:
+        return "UNSAT"
+    
+solvers = ["CEGAR", "Cheetah", "S52SAT"]
 
-def run(cmd, filename, timeout, checkOutput):
+solvers_cmd = {
+    "CEGAR": cegar_cmd,
+    "Cheetah": cheetah_cmd,
+    "S52SAT": s52sat_cmd
+}
+    
+solvers_out_check = {
+    "CEGAR": check_out_CEGAR,
+    "Cheetah": check_out_Cheetah,
+    "S52SAT": check_out_S52SAT
+}
+
+def run(cmd, timeout, checkOutput):
     try:
-        process = subprocess.check_output(cmd + [filename], 
-                                timeout=timeout)
+        process = subprocess.check_output(cmd, timeout=timeout)
 
-        return (checkOutput(process))
+        print("OK")
+        return checkOutput(process)
 
     except subprocess.CalledProcessError as e:
         print(e.output)
         print(f"ERROR in execution")
+        exit(1)
+        # return "ERROR"
         
-        return "ERROR"
-        
-    except TimeoutExpired:
+    except subprocess.TimeoutExpired:
         print(f"TIMEOUT")
         return "TIMEOUT"
 
-def prepare_file(filename):
-    subprocess.call(
-        f"sed '1d' {filename} | sed '2d' | sed 's/r//g' | sed 's/-/=/g' | sed 's/false/$false' | sed 's/true/$true' > cegar_file.tmp", 
-        shell=True)
-    return "cegar_file.tmp"
+def compare_solve_count(dir, timeouts, out_dir, correct_ans = "UNKNOWN"):
+    file_list = os.listdir(path=path)
+    file_list.sort()
+    num_files = len(file_list)
 
-def compare_solve_count(dir, file_list, timeout):
-    solved_count = [0, 0]
-
-    CEGAR_cmd = ["../main", "-tb4", "-f"]
-    Cheetah_cmd = ["./S5Cheetah"]
-
-    for file in file_list:
-        print(f"\nRunning {file}...")
-
-        print("CEGAR:", end=" ")
-        CEGAR_output = run(CEGAR_cmd, prepare_file(dir + file), timeout, checkOutput_CEGAR)
-
-        print("Cheetah:", end=" ")
-        Cheetah_output = run(Cheetah_cmd, dir + file, timeout, checkOutput_Cheetah)
-
-        if (CEGAR_output == "SAT" and Cheetah_output == "SAT") or (CEGAR_output == "UNSAT" and Cheetah_output == "UNSAT"):
-            print("Same Answer on both")
-            
-
-    print(f"CEGAR solved {solved_count[0]}, Cheetah solved {solved_count[1]} for timout {timeout}")
-    return solved_count
-
-
-def run_benchmark(timeouts, path, filename):
-    counts = []
-    cegar_solved = 0
-    cheetah_solved = 0
-
-    cegar_dir_list = os.listdir(path=path)
-    cegar_dir_list.sort()
-
-    cheetah_dir_list = cegar_dir_list.copy()
-
-    total = len(cegar_dir_list)
+    results = pd.DataFrame({solver: -np.ones(num_files) for solver in solvers}, dtype=int)
+    results["File"] = file_list
+    results.set_index("File", inplace=True)
+    times = pd.DataFrame({solver: -np.ones(num_files) for solver in solvers}, dtype=float)
+    times["File"] = file_list
+    times.set_index("File", inplace=True)
 
     for timeout in timeouts:
-        count = compare_solve_count(path, cegar_dir_list, cheetah_dir_list, timeout)
-        cegar_solved += count[0]
-        cheetah_solved += count[1]
+        for file in file_list:
+            print(f"\nRunning {file}...")
 
-        counts.append([cegar_solved, cheetah_solved])
+            for solver in solvers:
+                print(f"Running {solver}...", end=" ")
+                
+                if results.loc[file, solver] != -1:
+                    print("Solved before")
+                    continue
 
-        with open(filename, "a+") as file:
-            file.write(f"{timeout}: {counts} / {total}\n")
-    return counts
+                cmd = solvers_cmd[solver](f"{dir}{file}")
+                out = run(cmd, timeout, solvers_out_check[solver])
 
-def plot(timeouts, counts, total, name):
-    import matplotlib.pyplot as plt
-    import matplotlib.ticker
+                if out == "TIMEOUT":
+                    continue
 
-    fig, ax = plt.subplots()
-    ax.plot(timeouts, [x[0] for x in counts], label="CEGAR", c = "#B931FC")
-    ax.plot(timeouts, [x[1] for x in counts], label="Cheetah", c = "#5CD2E6")
+                if correct_ans != "UNKNOWN" and out != correct_ans:
+                    print(f"ERROR: {solver} gave wrong answer")
+                    exit(1)
 
-    ax.plot(timeouts, [total for x in timeouts], label="Total", c = "#FF0000", linestyle="--")
-    ax.set_xlabel("Given Time (in s, log scale)")
+                results.loc[file, solver] = 1 if out == "SAT" else 0
+                times.loc[file, solver] = timeout
+        
+        print("Statistics for timeout: ", timeout)
+        for solver in solvers:
+            print(f"{solver}: Solved {(results[solver] != -1).sum()} out of {num_files} instances")
 
-    ax.set_xscale("log", base=2)
-    ax.set_xticks(timeouts)
-    ax.get_xaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter())
+        results.to_csv(f"{out_dir}/results.csv")
+        times.to_csv(f"{out_dir}/times.csv")   
 
-    ax.set_ylabel("Number of instances solved")
-    ax.legend()
-    ax.grid(linestyle="--", color="grey", linewidth=0.5)
-
-    plt.savefig(f"plots/{name}.png")
-    plt.show()
-
-import numpy as np
 
 if __name__ == "__main__":
     timeouts = [0.25, 0.5, 1, 2, 4]
 
-    name = "QS5"
+    name = sys.argv[1]
 
-    path = f"./data/{name}/"
-    filename = f"result/{name}.txt"
+    path = f"./benchmarks/{name}/"
+    out_dir = f"./results/{name}/"
 
-    prepare_file("data/lwb/s4_45_p.0002.intohylo")
+    if not os.path.exists(out_dir):
+        os.makedirs(out_dir)
 
-    # counts = run_benchmark(timeouts, path, filename)
-
-    # counts = [[0, 0], [71, 0], [113, 0], [169, 7], [225, 55], [234, 66]]
-
-    # plot(timeouts, counts, 945+len(os.listdir(path))+240, "mix")
+    compare_solve_count(path, timeouts, out_dir, correct_ans="SAT")
