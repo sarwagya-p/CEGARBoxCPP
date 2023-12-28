@@ -59,9 +59,7 @@ modal_literal_map
 Prover::getTriggeredModalClauses(modal_lit_implication &modalLits) {
     modal_literal_map triggered;
     for (auto modalityLitImplication : modalLits) {
-        cout << "Checking modality " << modalityLitImplication.first << endl;
         for (auto literalImplication : modalityLitImplication.second) {
-            cout << "Checking " << literalImplication.first.toString() << " -> " << (*literalImplication.second.begin()).toString() << endl;
             if (modelSatisfiesAssump(literalImplication.first)) {
                 triggered[modalityLitImplication.first].insert(
                         literalImplication.second.begin(), literalImplication.second.end());

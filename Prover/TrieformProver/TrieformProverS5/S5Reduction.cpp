@@ -228,7 +228,7 @@ CNF_form TrieformProverS5::DepthReduceDiamond(shared_ptr<Formula> inp_formula){
     shared_ptr<Formula> z = cache->createVariable();
 
     for (formula_set& subf_clause: cnf_subf){
-      subf_clause.insert(z);
+      subf_clause.insert(Not::create(z));
     }
     modal_subf_cnfs.push_back({Diamond::create(dia_f->getModality(), 1, z)});
     CNF_form auxilary_box = DepthReduceBoxFromCNF(cnf_subf, dia_f->getModality());

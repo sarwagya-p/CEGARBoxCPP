@@ -16,8 +16,8 @@ callgrind*
 *.o
 Parser/
 massif*
+*.tmp
 S5Experiments/benchmarks/
-S5Experiments/results/
-S5Experiments/cegar_file.tmp
-S5Experiments/S52SAT
-S5Experiments/S5Cheetah
+S5Experiments/scripts/S52SAT
+S5Experiments/scripts/S5Cheetah
+S5Experiments/scripts/LWB-benchmark-generator

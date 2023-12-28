@@ -24,8 +24,6 @@ void Trieform::initialise(const shared_ptr<Formula> &formula,
     modality = newModality;
     parent = parentTrie;
 
-    cout << "INITIALISING " << formula->toString() << endl;
-
     propagateClauses(formula);
 }
 
@@ -839,8 +837,6 @@ void Trieform::conditionalOverShadow(shared_ptr<Trieform> shadowTrie,
     }
 
     auto sum = std::accumulate(prefix.begin(), prefix.end(), 0);
-    cout << "Propagating: " << sum << ": " << And::create(andSet)->toString()
-         << endl;
     propagateClauses(And::create(andSet));
     // Shadow Trie is one level down
     for (auto modalSubtrie : shadowTrie->getTrieMap()) {
