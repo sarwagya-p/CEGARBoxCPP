@@ -3,7 +3,7 @@ import os
 import shutil
 import pandas as pd
 
-generator_dir = "./LWB_benchmark_generator/"
+generator_dir = "./LWB-benchmark-generator/"
 benchmark_file_dir = "../benchmarks/LWB/"
 
 problem_sets = [

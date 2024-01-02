@@ -16,7 +16,7 @@ typedef vector<formula_set> CNF_form;
 class TrieformProverS5 : public Trieform {
 private:
   bool isPropLiteral(shared_ptr<Formula> inp_formula);
-  bool isS5Literal(shared_ptr<Formula> inp_formula);
+  bool isModalUnit(shared_ptr<Formula> inp_formula);
 
   CNF_form convertToCNF(shared_ptr<Formula> inp_formula);
 

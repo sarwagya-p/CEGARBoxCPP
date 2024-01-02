@@ -8,6 +8,8 @@
     ``python3 scripts/run_benchmark.py <Benchmark_Name>``
 - Since LWB files are large and cannot be generated at once, the script for it is different which only creates some files at a time. Use:  
     ``python3 scripts/run_lwb.py``
+- After running the corresponding benchmark, results can be plotted using:  
+    ``python3 scripts/plot.py <Benchmark_Name>``
 
 ## Required Files
 To run the scripts, following files are required:
