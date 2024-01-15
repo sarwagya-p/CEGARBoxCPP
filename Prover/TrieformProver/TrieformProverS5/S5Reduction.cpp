@@ -121,7 +121,7 @@ CNF_form TrieformProverS5::convertToCNF(shared_ptr<Formula> d1_formula){
   }
 }
 
-void orCNFToCNF(vector<CNF_form>& cnfs, shared_ptr<Cache> cache, CNF_form total_formula){
+void orCNFToCNF(vector<CNF_form>& cnfs, shared_ptr<Cache> cache, CNF_form& total_formula){
   // Given a OR of CNFs (cnfs), convert it to CNF and add the formed clauses to total_formula
   formula_set mainClause;
 
@@ -390,6 +390,7 @@ void TrieformProverS5::propagateOneClause(formula_set clause){
       ModalClause modal_clause = {modality, prop_lit->negate(), right};
       clauses.addDiamondClause(modal_clause);
       ensureSubtrieExistence(modality);
+      return;
     }
     else {
       Box* box_formula = dynamic_cast<Box*>(modal_lit.get());
@@ -432,7 +433,8 @@ void TrieformProverS5::propagateOneClause(formula_set clause){
     if (modal_lit->getType() == FDiamond){
       Diamond* diamond_lit = dynamic_cast<Diamond*>(modal_lit.get());
 
-      shared_ptr<Formula> name = cache->getVariableOrCreate(modal_lit);
+      // shared_ptr<Formula> name = cache->getVariableOrCreate(modal_lit);
+      shared_ptr<Formula> name = cache->createVariable();
       prop_lits.insert(name);
 
       ModalClause modal_clause = {diamond_lit->getModality(), name, diamond_lit->getSubformula()};
@@ -442,7 +444,8 @@ void TrieformProverS5::propagateOneClause(formula_set clause){
     }
     
     Box* box_formula = dynamic_cast<Box*>(modal_lit.get());
-    shared_ptr<Formula> name = cache->getVariableOrCreate(modal_lit);
+    // shared_ptr<Formula> name = cache->getVariableOrCreate(modal_lit);
+    shared_ptr<Formula> name = cache->createVariable();
 
     prop_lits.insert(name);
 

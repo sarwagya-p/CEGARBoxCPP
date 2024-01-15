@@ -85,7 +85,10 @@ Solution TrieformProverS5::prove(literal_set assumptions = literal_set()) {
     // Note in the cases diamonds are a subset of boxes then we don't need to
     // create any worlds (reflexivity satisfies this)
     diamond_set diamondPriority =
-        prover->getPrioritisedTriggeredDiamondsSet(modalityDiamonds.first, triggeredBoxes[modalityDiamonds.first], modalityDiamonds.second);
+        prover->getPrioritisedTriggeredDiamondsSet(
+          modalityDiamonds.first, 
+          triggeredBoxes[modalityDiamonds.first], 
+          modalityDiamonds.second);
 
     shared_ptr<Trieform> subtrie = getSubtrie(modalityDiamonds.first);
 
@@ -149,7 +152,7 @@ void TrieformProverS5::reflexiveHandleBoxClauses(){
 }
 
 void TrieformProverS5::preprocess(){
-  reflexiveHandleBoxClauses();
+  // reflexiveHandleBoxClauses();
 }
 
 shared_ptr<Trieform>

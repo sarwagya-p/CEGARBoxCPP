@@ -41,7 +41,11 @@ struct DiamondFail {
 };
 struct DiamondFailCompare {
   bool operator()(DiamondFail const &left, DiamondFail const &right) const{
-    return left.lastFail < right.lastFail;
+    if (left.lastFail != right.lastFail){
+      return left.lastFail < right.lastFail;
+    }
+
+    return left.literal.toString() < right.literal.toString();
   }
 };
 
