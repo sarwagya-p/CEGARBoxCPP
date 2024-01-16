@@ -24,6 +24,16 @@ string TrieformProverS5::cnfToString(CNF_form cnf_formula){
   return s;
 }
 
+shared_ptr<Formula> CNF_to_formula(CNF_form& cnf_formula){
+  formula_set clauses;
+
+  for (formula_set clause: cnf_formula){
+    clauses.insert(Or::create(clause));
+  }
+
+  return And::create(clauses);
+}
+
 bool TrieformProverS5::isPropLiteral(shared_ptr<Formula> formula){
   switch (formula->getType()){
     case FAtom:
@@ -102,7 +112,8 @@ CNF_form TrieformProverS5::convertToCNF(shared_ptr<Formula> d1_formula){
       }
 
       // Name the subformula
-      shared_ptr<Formula> name = cache->createVariable();
+      // shared_ptr<Formula> name = cache->createVariable();
+      shared_ptr<Formula> name = cache->getVariableOrCreate(CNF_to_formula(subf_cnf));
       for (formula_set& clause: subf_cnf){
         clause.insert(name->negate());
         subformulas_cnf.push_back(clause);
@@ -128,7 +139,8 @@ void orCNFToCNF(vector<CNF_form>& cnfs, shared_ptr<Cache> cache, CNF_form& total
   for (CNF_form cnf: cnfs){
     if (cnf.size() == 1) mainClause.insert(cnf[0].begin(),cnf[0].end());
     else {
-      shared_ptr<Formula> z = cache->createVariable();
+      // shared_ptr<Formula> z = cache->createVariable();
+      shared_ptr<Formula> z = cache->getVariableOrCreate(CNF_to_formula(cnf));
       mainClause.insert(z);
 
       for (formula_set clause: cnf){
@@ -252,7 +264,8 @@ CNF_form TrieformProverS5::DepthReduceDiamond(shared_ptr<Formula> inp_formula){
     <>(C1 & C2 ... Cn) == <>z & [](z => C1 & z=> C2 & ... z=> Cn)
     */
     CNF_form cnf_subf = DepthReduce(And::create(prop_subf));
-    shared_ptr<Formula> z = cache->createVariable();
+    // shared_ptr<Formula> z = cache->createVariable();
+    shared_ptr<Formula> z = cache->getVariableOrCreate(CNF_to_formula(cnf_subf));
 
     for (formula_set& subf_clause: cnf_subf){
       subf_clause.insert(z->negate());
@@ -403,20 +416,6 @@ void TrieformProverS5::propagateOneClause(formula_set clause){
         ensureSubtrieExistence(modality);
         return;
       }
-      // // p | [](l1 | l2 ... ln) == p | []z & [](z => (l1 | l2 | ... ln))
-      // shared_ptr<Formula> z = cache->createVariable();
-      // clauses.addBoxClause(modality, prop_lit->negate(), z);
-      // clauses.addClause(Or::create({prop_lit, z}));
-
-      // shared_ptr<Trieform> subtrie = getSubtrieOrEmpty(modality);
-      // Or* box_or_subf = dynamic_cast<Or*>(right.get());
-      // formula_set augmented_clause = box_or_subf->getSubformulas();
-      // augmented_clause.insert(z->negate());
-
-      // shared_ptr<Formula> augmented_clause_formula = Or::create(augmented_clause);
-      // subtrie->clauses.addClause(augmented_clause_formula);
-      // clauses.addClause(augmented_clause_formula);
-      // return;
 
       // Else if it is a box of or of literals, need naming - fall through
     }
@@ -433,8 +432,8 @@ void TrieformProverS5::propagateOneClause(formula_set clause){
     if (modal_lit->getType() == FDiamond){
       Diamond* diamond_lit = dynamic_cast<Diamond*>(modal_lit.get());
 
-      // shared_ptr<Formula> name = cache->getVariableOrCreate(modal_lit);
-      shared_ptr<Formula> name = cache->createVariable();
+      shared_ptr<Formula> name = cache->getVariableOrCreate(modal_lit);
+      // shared_ptr<Formula> name = cache->createVariable();
       prop_lits.insert(name);
 
       ModalClause modal_clause = {diamond_lit->getModality(), name, diamond_lit->getSubformula()};
@@ -444,12 +443,12 @@ void TrieformProverS5::propagateOneClause(formula_set clause){
     }
     
     Box* box_formula = dynamic_cast<Box*>(modal_lit.get());
-    // shared_ptr<Formula> name = cache->getVariableOrCreate(modal_lit);
-    shared_ptr<Formula> name = cache->createVariable();
-
-    prop_lits.insert(name);
 
     if (box_formula->getSubformula()->getType() == FOr) {
+      shared_ptr<Formula> name = cache->getVariableOrCreate(box_formula->getSubformula());
+      // shared_ptr<Formula> name = cache->createVariable();
+      prop_lits.insert(name);
+
       Or* or_clause = dynamic_cast<Or*>(box_formula->getSubformula().get());
       
       formula_set augmented_clause = or_clause->getSubformulas();
@@ -463,6 +462,10 @@ void TrieformProverS5::propagateOneClause(formula_set clause){
       clauses.addClause(augmented_formula);      
     }
     else {
+      shared_ptr<Formula> name = cache->getVariableOrCreate(modal_lit);
+      // shared_ptr<Formula> name = cache->createVariable();
+
+      prop_lits.insert(name);
       ModalClause modal_clause = {box_formula->getModality(), name, box_formula->getSubformula()};
       clauses.addBoxClause(modal_clause);
       clauses.addClause(Or::create({name->negate(), box_formula->getSubformula()}));

@@ -41,6 +41,12 @@ struct DiamondFail {
 };
 struct DiamondFailCompare {
   bool operator()(DiamondFail const &left, DiamondFail const &right) const{
+    return left.lastFail < right.lastFail;
+  }
+};
+
+struct DiamondFailCompareSet {
+  bool operator()(DiamondFail const &left, DiamondFail const &right) const{
     if (left.lastFail != right.lastFail){
       return left.lastFail < right.lastFail;
     }
@@ -52,7 +58,7 @@ struct DiamondFailCompare {
 typedef priority_queue<DiamondFail, vector<DiamondFail>, DiamondFailCompare>
     diamond_queue;
 
-typedef set<DiamondFail, DiamondFailCompare> diamond_set;
+typedef set<DiamondFail, DiamondFailCompareSet> diamond_set;
 
 class Prover {
 private:

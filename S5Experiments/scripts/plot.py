@@ -1,4 +1,6 @@
 import sys
+import pickle
+import os
 import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.ticker
@@ -25,7 +27,7 @@ def plot(timeouts, counts, total, name):
     ax.legend()
     ax.grid(linestyle="--", color="grey", linewidth=0.5)
 
-    plt.savefig(f"plots/{name}.png")
+    plt.savefig(f"../plots/{'_'.join(name)}.png")
     plt.show()
 
 def make_counts(times_df, timeouts, solvers):
@@ -38,10 +40,38 @@ def make_counts(times_df, timeouts, solvers):
     return counts
 
 if __name__ == "__main__":
-    benchmark_name = sys.argv[1]
-    times_df = pd.read_csv(f"./results/{benchmark_name}/times.csv")
+    benchmarks = []
 
-    counts = make_counts(times_df, [0.25, 0.5, 1, 2, 4], solvers)
-    total = len(times_df)
+    if len(sys.argv) < 2:
+        print("Usage: python3 plot.py <benchmark_name>")
+        exit()
 
-    plot([0.25, 0.5, 1, 2, 4], counts, total, benchmark_name)
+    if sys.argv[1] == "ALL":
+        benchmarks = os.listdir("../results/")
+    else:
+        for i in range(1, len(sys.argv)):
+            benchmarks.append(sys.argv[i])
+
+    counts = None
+    total = 0
+
+    for bench in benchmarks:
+        if not os.path.exists(f"../results/{bench}/count.pkl"):
+            times_df = pd.read_csv(f"../results/{bench}/times.csv")
+            c = make_counts(times_df, [0.25, 0.5, 1, 2, 4, 8], solvers)
+            t = len(times_df)
+
+            with open(f"../results/{bench}/count.pkl", "wb") as f:
+                pickle.dump((c, t), f)
+        else:
+            with open(f"../results/{bench}/count.pkl", "rb") as f:
+                c, t = pickle.load(f)
+        
+        total += t
+        if counts is None:
+            counts = c
+        else:
+            for key in counts:
+                counts[key] = [x + y for x, y in zip(counts[key], c[key])]
+
+    plot([0.25, 0.5, 1, 2, 4, 8], counts, total, benchmarks)
