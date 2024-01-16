@@ -23,4 +23,5 @@ if __name__ == "__main__":
         print("All files are correct!")
     else:
         print("Incorrect files:")
-        print("\n".join(incorrect_files))
+        for f in incorrect_files:
+            print(f"File: {f}, CEGAR: {results_df[results_df['File'] == f]['CEGAR'].values[0]}, Cheetah: {results_df[results_df['File'] == f]['Cheetah'].values[0]}, S52SAT: {results_df[results_df['File'] == f]['S52SAT'].values[0]}")
