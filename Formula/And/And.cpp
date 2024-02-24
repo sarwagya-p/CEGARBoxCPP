@@ -68,7 +68,16 @@ shared_ptr<Formula> And::negate() {
 shared_ptr<Formula> And::simplify() {
   formula_set newAndSet;
   for (shared_ptr<Formula> formula : andSet_) {
-    newAndSet.insert(formula->simplify());
+    shared_ptr<Formula> simplified = formula->simplify();
+    if (simplified->getType() == FAnd){
+      And *a = dynamic_cast<And *>(simplified.get());
+
+      for (shared_ptr<Formula> subformula : a->getSubformulas()){
+        newAndSet.insert(subformula);
+      }
+      continue;
+    }
+    newAndSet.insert(simplified);
   }
   andSet_ = newAndSet;
 

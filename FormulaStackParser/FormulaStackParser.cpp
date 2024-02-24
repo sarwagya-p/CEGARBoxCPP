@@ -259,7 +259,7 @@ shared_ptr<Formula> FormulaStackParser::parse(){
                     cerr << "Error: Binary operator or EOF expected at line number " << pos.first << " index " << pos.second << endl;
                     exit(1);
                 }
-                for (c = getChar(); c != EOF; c = getChar()){
+                for (; c != EOF; c = getChar()){
                     if (c == '>'){
                         op_stack.push_back(DIA);
                         break;
@@ -339,6 +339,7 @@ shared_ptr<Formula> FormulaStackParser::parse(){
                 for (; isalnum(lookahead())  || lookahead() == '$'; c = getChar()){
                     atom_name.push_back(c);
                 }
+                atom_name.push_back(c);
 
                 if (atom_name == "$true"){
                     subf_stack.push_back(True::create());
@@ -349,7 +350,6 @@ shared_ptr<Formula> FormulaStackParser::parse(){
                     expect_binary_op = true;
                 }
                 else {
-                    atom_name.push_back(c);
                     subf_stack.push_back(Atom::create(atom_name));
                     expect_binary_op = true;
                 }

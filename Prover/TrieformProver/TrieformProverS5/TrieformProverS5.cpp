@@ -61,22 +61,20 @@ Solution TrieformProverS5::prove(literal_set assumptions = literal_set()) {
 
   Solution soln = prover->solve(assumptions);
 
-  if (!soln.satisfiable){
-    return soln;
-  }
+  while(soln.satisfiable){
+    bool allModalitiesSatisfied = true;
 
-  prover->calculateTriggeredDiamondsClauses();
-  modal_literal_map triggeredDiamonds = prover->getTriggeredDiamondClauses();
+    prover->calculateTriggeredDiamondsClauses();
+    modal_literal_map triggeredDiamonds = prover->getTriggeredDiamondClauses();
 
-  if (triggeredDiamonds.size() == 0){
-    return {true, literal_set()};
-  }
+    if (triggeredDiamonds.size() == 0){
+      return {true, literal_set()};
+    }
 
-  prover->calculateTriggeredBoxClauses();
-  modal_literal_map triggeredBoxes = prover->getTriggeredBoxClauses();
-
-  for (auto modalityDiamonds : triggeredDiamonds) {
-    // Handle each modality
+    prover->calculateTriggeredBoxClauses();
+    modal_literal_map triggeredBoxes = prover->getTriggeredBoxClauses();
+  
+    auto modalityDiamonds = *triggeredDiamonds.begin();
     if (modalityDiamonds.second.size() == 0) {
       // If there are no triggered diamonds of a certain modality we can skip
       // it
@@ -136,7 +134,14 @@ Solution TrieformProverS5::prove(literal_set assumptions = literal_set()) {
         }
 
         // Find new result
-        return prove(assumptions);
+        // return prove(assumptions);
+        allModalitiesSatisfied = false;
+        soln = prover->solve(assumptions);
+        break;
+    }
+
+    if (allModalitiesSatisfied){
+      return soln;
     }
   }
   // At this point, all modalities are satisfied

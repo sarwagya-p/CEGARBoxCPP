@@ -66,7 +66,17 @@ shared_ptr<Formula> Or::negate() {
 shared_ptr<Formula> Or::simplify() {
   formula_set newOrSet;
   for (shared_ptr<Formula> formula : orSet_) {
-    newOrSet.insert(formula->simplify());
+    shared_ptr<Formula> simplified = formula->simplify();
+
+    if (simplified->getType() == FOr){
+      Or* orFormula = dynamic_cast<Or*>(simplified.get());
+
+      for (shared_ptr<Formula> subformula : orFormula->getSubformulas()){
+        newOrSet.insert(subformula);
+      }
+      continue;
+    }
+    newOrSet.insert(simplified);
   }
   orSet_ = newOrSet;
 

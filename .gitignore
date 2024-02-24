@@ -21,3 +21,5 @@ S5Experiments/benchmarks/
 S5Experiments/scripts/S52SAT
 S5Experiments/scripts/S5Cheetah
 S5Experiments/scripts/LWB-benchmark-generator
+S5Experiments/lckS5Prover
+S5Experiments/ksp-0.1.6

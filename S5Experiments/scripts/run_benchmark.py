@@ -3,78 +3,7 @@ import sys
 import subprocess
 import pandas as pd
 import numpy as np
-
-def cegar_cmd(filename):
-    subprocess.call(
-        f"sed '1d' {filename} | sed '2d' | sed 's/r//g' | sed 's/-/=/g' | sed 's/false/$false/g' | sed 's/true/$true/g' > cegar_file.tmp", 
-        shell=True
-        )
-    
-    return ["../../main", "-tb4", "-f", "cegar_file.tmp"]
-
-def cheetah_cmd(filename):
-    subprocess.call(
-        f"sed 's/v/p/g' {filename} | sed 's/p0/p99999/g' > cheetah_file.tmp", 
-        shell=True
-        )
-    return ["./S5Cheetah", "cheetah_file.tmp"]
-
-def s52sat_cmd(filename):
-    subprocess.call(
-        f"sed 's/v/p/g' {filename} | sed 's/p0/p99999/g' > s52sat_file.tmp", 
-        shell=True
-        )
-    return ["./S52SAT", "s52sat_file.tmp", "-diamondDegree", "-caching"]
-
-
-def check_out_CEGAR(process):
-    if process.decode("utf-8") == "Satisfiable\n":
-        return "SAT"
-    else:
-        return "UNSAT"
-    
-def check_out_Cheetah(process):
-    if process.decode("utf-8").split("\n")[-3] == "s SATISFIABLE":
-        return "SAT"
-    else:
-        return "UNSAT"
-    
-def check_out_S52SAT(process):
-    if process.decode("utf-8").split("\n")[-8] == "s SATISFIABLE":
-        return "SAT"
-    else:
-        return "UNSAT"
-    
-solvers = ["CEGAR", "Cheetah", "S52SAT"]
-
-solvers_cmd = {
-    "CEGAR": cegar_cmd,
-    "Cheetah": cheetah_cmd,
-    "S52SAT": s52sat_cmd
-}
-    
-solvers_out_check = {
-    "CEGAR": check_out_CEGAR,
-    "Cheetah": check_out_Cheetah,
-    "S52SAT": check_out_S52SAT
-}
-
-def run(cmd, timeout, checkOutput):
-    try:
-        process = subprocess.check_output(cmd, timeout=timeout)
-
-        print(f"OK: {checkOutput(process)}")
-        return checkOutput(process)
-
-    except subprocess.CalledProcessError as e:
-        print(e.output)
-        print(f"ERROR in execution")
-        # exit(1)
-        return "ERROR"
-        
-    except subprocess.TimeoutExpired:
-        print(f"TIMEOUT")
-        return "TIMEOUT"
+from run_file import solvers, solvers_cmd, solvers_out_check, run
 
 def compare_solve_count(file_dir, timeouts, out_dir, correct_ans = "UNKNOWN"):
     file_list = os.listdir(path=path)
