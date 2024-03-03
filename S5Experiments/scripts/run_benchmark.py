@@ -51,7 +51,7 @@ def run_files(file_list, file_dir, timeout, out_dir, results, times, curr_solver
 if __name__ == "__main__":
     if len(sys.argv) < 2:
         print(len(sys.argv))
-        print("Usage: python3 run_benchmark.py <benchmark_name> optional: <timeout> <solver1> <solver2> ... <solverN>")
+        print("Usage: python3 run_benchmark.py <benchmark_name> optional: <timeout> <solver1> <solver2> ... <solverN> or ALL for all benchmarks")
         sys.exit(1)
 
     if len(sys.argv) > 2:
@@ -60,7 +60,7 @@ if __name__ == "__main__":
         timeouts = 8
     
     if len(sys.argv) > 3:
-        if sys.argv[3] == "all":
+        if sys.argv[3] == "ALL":
             curr_solvers = solvers
         else:
             curr_solvers = sys.argv[3:]

@@ -4,14 +4,15 @@ import os
 import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.ticker
+from run_file import solvers
 
 solvers = ["CEGAR", "Cheetah", "S52SAT"]
 
-def plot(timeouts, counts, total, name):
+def plot(timeouts, counts, total, name, curr_solvers = solvers):
     fig, ax = plt.subplots()
     colours = ["#B931FC", "#5CD2E6", "#FF9800"]
 
-    for i, solver in enumerate(solvers):
+    for i, solver in enumerate(curr_solvers):
         ax.plot(timeouts, counts[solver], label=solver, c = colours[i])
     # ax.plot(timeouts, [x[0] for x in counts], label="CEGAR", c = "#B931FC")
     # ax.plot(timeouts, [x[1] for x in counts], label="Cheetah", c = "#5CD2E6")
@@ -43,14 +44,21 @@ if __name__ == "__main__":
     benchmarks = []
 
     if len(sys.argv) < 2:
-        print("Usage: python3 plot.py <benchmark_name>")
+        print("Usage: python3 plot.py <benchmark_name> optional: <timeout> <solver1> <solver2> ... <solverN> or ALL for all benchmarks")
         exit()
 
-    if sys.argv[1] == "ALL":
-        benchmarks = os.listdir("../results/")
+    if len(sys.argv) > 2:
+        timeout = int(sys.argv[2])
     else:
-        for i in range(1, len(sys.argv)):
-            benchmarks.append(sys.argv[i])
+        timeout = 8
+
+    timeouts = [timeout/(2**i) for i in range(5, -1, -1)]
+    
+    if len(sys.argv) > 3:
+        if sys.argv[3] == "ALL":
+            curr_solvers = solvers
+        else:
+            curr_solvers = sys.argv[3:]
 
     counts = None
     total = 0
@@ -74,4 +82,4 @@ if __name__ == "__main__":
             for key in counts:
                 counts[key] = [x + y for x, y in zip(counts[key], c[key])]
 
-    plot([0.25, 0.5, 1, 2, 4, 8], counts, total, benchmarks)
+    plot(timeouts, counts, total, benchmarks, curr_solvers)
