@@ -11,7 +11,7 @@ def cegar_cmd(filename):
     with open("cegar_file.tmp", "w") as f:
         f.write(inp)
 
-    return ["../../main", "-tb4", "-f", "cegar_file.tmp"]
+    return {"args": ["time", "../../main", "-tb4", "-f", "cegar_file.tmp"]}
 
 def cheetah_cmd(filename):
     with open(filename, "r") as f:
@@ -22,7 +22,7 @@ def cheetah_cmd(filename):
     with open("cheetah_file.tmp", "w") as f:
         f.write(inp)
 
-    return ["./S5Cheetah", "cheetah_file.tmp"]
+    return {"args": ["time", "./S5Cheetah", "cheetah_file.tmp"]}
 
 def s52sat_cmd(filename):
     with open(filename, "r") as f:
@@ -33,7 +33,7 @@ def s52sat_cmd(filename):
     with open("s52sat_file.tmp", "w") as f:
         f.write(inp)
 
-    return ["./S52SAT", "s52sat_file.tmp", "-diamondDegree", "-caching"]
+    return {"args": ["time", "./S52SAT", "s52sat_file.tmp", "-diamondDegree", "-caching"]}
 
 def lck_cmd(filename):
     with open(filename, "r") as f:
@@ -42,8 +42,7 @@ def lck_cmd(filename):
     inp = "1:" + inp.split("\n")[1]
     inp = inp.replace("r1", "E").replace("-", "=").replace("false", "False").replace("true", "True")
     
-    print(inp)
-    return f'echo "{inp}"| ../lckS5Prover/lck graph '
+    return {"args": ["time", "../lckS5Prover/lck", "graph"], "input": inp.encode()}
 
 def ksp_cmp(filename):
     with open(filename, "r") as f:
@@ -51,11 +50,11 @@ def ksp_cmp(filename):
 
     file_input = file_input.split("\n")[1]
     file_input = file_input.replace("[r1]", " box ").replace("<r1>", " dia ")
-    print(file_input)
-    return ["../ksp-0.1.6/ksp", "-c", "../ksp-0.1.6/conf.files/cade-28/S5_euc1_euc2_ref.conf", "-c", "../ksp-0.1.6/conf.files/cade-28/cord_ple_ires_K.conf", "-f", file_input]
+    cmd = ["time", "../ksp-0.1.7-beta/ksp", "-c", "../ksp-0.1.7-beta/conf.files/cade-28/S5_euc1_euc2_ref.conf", "-c", "../ksp-0.1.7-beta/conf.files/cade-28/cord_ple_ires_K.conf", "-f", file_input]
+    return {"args":cmd}
 
 def check_out_CEGAR(process):
-    if process.decode("utf-8") == "Satisfiable\n":
+    if process.decode("utf-8").split("\n") == "Satisfiable\n":
         return "SAT"
     else:
         return "UNSAT"
@@ -87,7 +86,7 @@ def check_out_KSP(process):
     else:
         return "ERROR"
     
-solvers = ["CEGAR", "Cheetah", "S52SAT", "LCK"]
+solvers = ["CEGAR", "Cheetah", "S52SAT", "LCK", "KSP"]
 
 solvers_cmd = {
     "CEGAR": cegar_cmd,
@@ -105,22 +104,35 @@ solvers_out_check = {
     "KSP": check_out_KSP
 }
 
-def run(cmd, timeout, checkOutput, use_shell = False):
+def check_time(stderr):
+    # Format: x:yy.yy, to turn into seconds
+    elapsed = stderr.decode("utf-8").split(" ")[2][:7].split(":")
+
+    return float(elapsed[0]) * 60 + float(elapsed[1])
+    
+
+def run(cmd, timeout, checkOutput):
     try:
-        process = subprocess.check_output(cmd, timeout=timeout, shell=use_shell)
+        process = subprocess.run(timeout=timeout, stdout=subprocess.PIPE, stderr=subprocess.PIPE, **cmd)
 
-        print(f"OK: {checkOutput(process)}")
-        return checkOutput(process)
-
-    except subprocess.CalledProcessError as e:
-        print(e.output)
-        print(f"ERROR in execution")
-        # exit(1)
-        return "ERROR"
+        if process.returncode != 0:
+            return "ERROR", process.stderr.decode("utf-8")
+        
+        ans, time = checkOutput(process.stdout), check_time(process.stderr)
+        return ans, time
         
     except subprocess.TimeoutExpired:
-        print(f"TIMEOUT")
         return "TIMEOUT"
+    
+def print_output(out):
+    if out ==  "TIMEOUT":
+        print("TIMEOUT")
+
+    elif out[0] == "ERROR":
+        print("ERROR in execution: ", out[1])
+
+    else:
+        print("OK: Ans: ", out[0], " Time: ", out[1], "s")
 
 if __name__ == "__main__":
     if len(sys.argv) < 3:
@@ -131,4 +143,5 @@ if __name__ == "__main__":
     file_path = sys.argv[2]
 
     cmd = solvers_cmd[solver](file_path)
-    out = run(cmd, None, solvers_out_check[solver], use_shell = (solver == "LCK"))
+    out = run(cmd, None, solvers_out_check[solver])
+    print_output(out)

@@ -112,8 +112,8 @@ CNF_form TrieformProverS5::convertToCNF(shared_ptr<Formula> d1_formula){
       }
 
       // Name the subformula
-      shared_ptr<Formula> name = cache->createVariable();
-      // shared_ptr<Formula> name = cache->getVariableOrCreate(CNF_to_formula(subf_cnf));
+      // shared_ptr<Formula> name = cache->createVariable();
+      shared_ptr<Formula> name = cache->getVariableOrCreate(CNF_to_formula(subf_cnf));
       for (formula_set& clause: subf_cnf){
         clause.insert(name->negate());
         subformulas_cnf.push_back(clause);
@@ -139,8 +139,8 @@ void orCNFToCNF(vector<CNF_form>& cnfs, shared_ptr<Cache> cache, CNF_form& total
   for (CNF_form cnf: cnfs){
     if (cnf.size() == 1) mainClause.insert(cnf[0].begin(),cnf[0].end());
     else {
-      shared_ptr<Formula> z = cache->createVariable();
-      // shared_ptr<Formula> z = cache->getVariableOrCreate(CNF_to_formula(cnf));
+      // shared_ptr<Formula> z = cache->createVariable();
+      shared_ptr<Formula> z = cache->getVariableOrCreate(CNF_to_formula(cnf));
       mainClause.insert(z);
 
       for (formula_set clause: cnf){
@@ -264,8 +264,8 @@ CNF_form TrieformProverS5::DepthReduceDiamond(shared_ptr<Formula> inp_formula){
     <>(C1 & C2 ... Cn) == <>z & [](z => C1 & z=> C2 & ... z=> Cn)
     */
     CNF_form cnf_subf = DepthReduce(And::create(prop_subf));
-    shared_ptr<Formula> z = cache->createVariable();
-    // shared_ptr<Formula> z = cache->getVariableOrCreate(CNF_to_formula(cnf_subf));
+    // shared_ptr<Formula> z = cache->createVariable();
+    shared_ptr<Formula> z = cache->getVariableOrCreate(CNF_to_formula(cnf_subf));
 
     for (formula_set& subf_clause: cnf_subf){
       subf_clause.insert(z->negate());

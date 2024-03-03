@@ -58,5 +58,11 @@ def compare(solver1 = "CEGAR", solver2 = "Cheetah"):
                             print("\n\n")
                             return
 
+import sys
+
 if __name__ == "__main__":
-    compare("CEGAR", "KSP")
+    if len(sys.argv) != 3:
+        print("Usage: python3 random_formulae.py <solver1> <solver2>")
+        exit(1)
+
+    compare(sys.argv[1], sys.argv[2])
