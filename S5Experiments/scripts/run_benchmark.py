@@ -10,12 +10,22 @@ def compare_solve_count(file_dir, timeouts, out_dir, curr_solvers):
     file_list.sort()
     num_files = len(file_list)
 
-    results = pd.DataFrame({solver: -np.ones(num_files) for solver in solvers}, dtype=int)
-    results["File"] = file_list
-    results.set_index("File", inplace=True)
-    times = pd.DataFrame({solver: -np.ones(num_files) for solver in solvers}, dtype=float)
-    times["File"] = file_list
-    times.set_index("File", inplace=True)
+    # If results.csv and times.csv already exist, load them
+    if os.path.exists(f"{out_dir}/results.csv") and os.path.exists(f"{out_dir}/times.csv"):
+        results = pd.read_csv(f"{out_dir}/results.csv", index_col="File")
+        times = pd.read_csv(f"{out_dir}/times.csv", index_col="File")
+        if len(results.columns) < len(curr_solvers):
+            for solver in curr_solvers:
+                if solver not in results.columns:
+                    results[solver] = -np.ones(num_files)
+                    times[solver] = -np.ones(num_files)
+    else:
+        results = pd.DataFrame({solver: -np.ones(num_files) for solver in solvers}, dtype=int)
+        results["File"] = file_list
+        results.set_index("File", inplace=True)
+        times = pd.DataFrame({solver: -np.ones(num_files) for solver in solvers}, dtype=float)
+        times["File"] = file_list
+        times.set_index("File", inplace=True)
 
     run_files(file_list, file_dir, timeouts, out_dir, results, times, curr_solvers)
 

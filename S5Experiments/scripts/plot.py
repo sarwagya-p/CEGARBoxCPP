@@ -31,9 +31,10 @@ def plot(timeouts, counts, total, name, curr_solvers = solvers):
     plt.savefig(f"../plots/{'_'.join(name)}.png")
     plt.show()
 
-def make_counts(times_df, timeouts, solvers):
-    counts = {solver: [] for solver in solvers}
+def make_counts(times_df, timeouts, curr_solvers):
+    counts = {solver: [] for solver in curr_solvers}
     
+    print(f"Making counts for {len(times_df)} instances: {timeouts}")
     for solver in solvers:
         for timeout in timeouts:
             counts[solver].append(((times_df[solver] <= timeout) & (times_df[solver] != -1)).sum())
@@ -41,18 +42,19 @@ def make_counts(times_df, timeouts, solvers):
     return counts
 
 if __name__ == "__main__":
-    benchmarks = []
-
     if len(sys.argv) < 2:
         print("Usage: python3 plot.py <benchmark_name> optional: <timeout> <solver1> <solver2> ... <solverN> or ALL for all benchmarks")
         exit()
 
+    benchmarks = [sys.argv[1]]
+    print(benchmarks)
     if len(sys.argv) > 2:
         timeout = int(sys.argv[2])
     else:
         timeout = 8
 
     timeouts = [timeout/(2**i) for i in range(5, -1, -1)]
+    print(timeouts)
     
     if len(sys.argv) > 3:
         if sys.argv[3] == "ALL":
@@ -64,16 +66,9 @@ if __name__ == "__main__":
     total = 0
 
     for bench in benchmarks:
-        if not os.path.exists(f"../results/{bench}/count.pkl"):
-            times_df = pd.read_csv(f"../results/{bench}/times.csv")
-            c = make_counts(times_df, [0.25, 0.5, 1, 2, 4, 8], solvers)
-            t = len(times_df)
-
-            with open(f"../results/{bench}/count.pkl", "wb") as f:
-                pickle.dump((c, t), f)
-        else:
-            with open(f"../results/{bench}/count.pkl", "rb") as f:
-                c, t = pickle.load(f)
+        times_df = pd.read_csv(f"../results/{bench}/times.csv")
+        c = make_counts(times_df, timeouts, solvers)
+        t = len(times_df)
         
         total += t
         if counts is None:
@@ -81,5 +76,7 @@ if __name__ == "__main__":
         else:
             for key in counts:
                 counts[key] = [x + y for x, y in zip(counts[key], c[key])]
+
+    print(counts)
 
     plot(timeouts, counts, total, benchmarks, curr_solvers)

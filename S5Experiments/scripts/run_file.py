@@ -1,6 +1,8 @@
 import subprocess
 import sys
 
+MAX_VIRTUAL_MEM = 1024 * 1024 * 1024 * 1 # 1GB
+
 def cegar_cmd(filename):
     with open(filename, "r") as f:
         inp = f.read()
@@ -50,7 +52,12 @@ def ksp_cmp(filename):
 
     file_input = file_input.split("\n")[1]
     file_input = file_input.replace("[r1]", " box ").replace("<r1>", " dia ")
-    cmd = ["time", "../ksp-0.1.7-beta/ksp", "-c", "../ksp-0.1.7-beta/conf.files/cade-28/S5_euc1_euc2_ref.conf", "-c", "../ksp-0.1.7-beta/conf.files/cade-28/cord_ple_ires_K.conf", "-f", file_input]
+
+    with open("ksp_file.tmp", "w") as f:
+        f.write(file_input)
+
+    cmd = ["time", "../ksp-0.1.7-beta/ksp", "-c", "../ksp-0.1.7-beta/conf.files/cade-28/S5_euc1_euc2_ref.conf", 
+           "-c", "../ksp-0.1.7-beta/conf.files/cade-28/cord_ple_ires_K.conf", "-i", "ksp_file.tmp"]
     return {"args":cmd}
 
 def check_out_CEGAR(process):
@@ -109,11 +116,16 @@ def check_time(stderr):
     elapsed = stderr.decode("utf-8").split(" ")[2][:7].split(":")
 
     return float(elapsed[0]) * 60 + float(elapsed[1])
+
+import resource
+    
+def limit_mem(max_mem = MAX_VIRTUAL_MEM):
+    resource.setrlimit(resource.RLIMIT_AS, (max_mem, resource.RLIM_INFINITY))
     
 
 def run(cmd, timeout, checkOutput):
     try:
-        process = subprocess.run(timeout=timeout, stdout=subprocess.PIPE, stderr=subprocess.PIPE, **cmd)
+        process = subprocess.run(timeout=timeout, stdout=subprocess.PIPE, stderr=subprocess.PIPE, preexec_fn=limit_mem, **cmd)
 
         if process.returncode != 0:
             return "ERROR", process.stderr.decode("utf-8")

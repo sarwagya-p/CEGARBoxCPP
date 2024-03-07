@@ -22,6 +22,15 @@ To run the scripts, following files are required:
     - Link: http://www.cril.univ-artois.fr/~montmirail/s52SAT/
     - Reference: Caridroit, Thomas & Lagniez, Jean-Marie & Le Berre, Daniel & Lima, Tiago & Montmirail, Valentin. (2017). A SAT-Based Approach for Solving the Modal Logic S5-Satisfiability Problem. 
 
+3. *KSP* - Resolution Calculus based Prover
+    - Link: https://nalon.org/#software
+    - Pattinson, D., Olivetti, N., Nalon, C. (2023). Resolution Calculi for Non-normal Modal Logics. In: Ramanayake, R., Urban, J. (eds) Automated Reasoning with Analytic Tableaux and Related Methods. TABLEAUX 2023. Lecture Notes in Computer Science(), vol 14278. Springer, Cham. https://doi.org/10.1007/978-3-031-43513-3_18
+    - Note: place 
+
+4. *LCKS5* - 
+    - Link: Old link is down, use way back machine for this link: http://users.cecs.anu.edu.au/~rpg/software.html
+    - Abate, P., Goré, R. and Widmann, F., 2007, July. Cut-free single-pass tableaux for the logic of common knowledge. In Workshop on Agents and Deduction at TABLEAUX (Vol. 2007).
+
 3. *QS5* - benchmark files
     - Link: https://drive.google.com/drive/folders/1BlUZ_Zm5jFzmkpYTjvvI_iyxx0gNQKPx
     - Note: Place extracted files in folder ./benchmarks/QS5

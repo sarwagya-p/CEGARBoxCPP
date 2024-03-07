@@ -265,7 +265,7 @@ def make_df(commands):
     results_df.set_index("File", inplace=True)
     return time_df, results_df
 
-def run_lwb(timeouts, out_dir):
+def run_lwb(timeout, curr_solvers, out_dir):
     time_df, results_df = make_df(problem_sets)
     
     for problem_set in problem_sets:
@@ -278,10 +278,21 @@ def run_lwb(timeouts, out_dir):
         file_list = os.listdir(path=benchmark_file_dir)
         file_list.sort()
 
-        rb.run_files(file_list, benchmark_file_dir, timeouts, out_dir, results_df, time_df)
+        rb.run_files(file_list, benchmark_file_dir, timeout, out_dir, results_df, time_df, curr_solvers)
+
+import sys
 
 if __name__ == "__main__":
-    timeouts = [0.25, 0.5, 1, 2, 4, 8]
+    if len(sys.argv) > 1:
+        timeout = int(sys.argv[1])
+    else:
+        timeout = 8
+
+    if len(sys.argv) > 2:
+        curr_solvers = sys.argv[2:]
+    else:
+        curr_solvers = rb.solvers
+
     out_dir = "../results/LWB"
 
-    run_lwb(timeouts, out_dir)
+    run_lwb(timeout, curr_solvers, out_dir)
