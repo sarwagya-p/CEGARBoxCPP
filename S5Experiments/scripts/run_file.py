@@ -54,7 +54,9 @@ def ksp_cmp(filename):
     file_input = file_input.replace("[r1]", " box ").replace("<r1>", " dia ")
 
     with open("ksp_file.tmp", "w") as f:
+        f.write("sos(formulas).\n")
         f.write(file_input)
+        f.write(".\nend_of_list.\n")
 
     cmd = ["time", "../ksp-0.1.7-beta/ksp", "-c", "../ksp-0.1.7-beta/conf.files/cade-28/S5_euc1_euc2_ref.conf", 
            "-c", "../ksp-0.1.7-beta/conf.files/cade-28/cord_ple_ires_K.conf", "-i", "ksp_file.tmp"]

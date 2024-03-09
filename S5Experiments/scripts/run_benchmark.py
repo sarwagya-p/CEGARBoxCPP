@@ -59,6 +59,8 @@ def run_files(file_list, file_dir, timeout, out_dir, results, times, curr_solver
 
 
 if __name__ == "__main__":
+    reset = input("Reset results and times? (y/n): ")
+
     if len(sys.argv) < 2:
         print(len(sys.argv))
         print("Usage: python3 run_benchmark.py <benchmark_name> optional: <timeout> <solver1> <solver2> ... <solverN> or ALL for all benchmarks")
@@ -77,12 +79,26 @@ if __name__ == "__main__":
     else:
         curr_solvers = solvers
 
-    name = sys.argv[1]
+    bench_name = sys.argv[1]
 
-    path = f"../benchmarks/{name}/"
-    out_dir = f"../results/{name}/"
+    if bench_name == "ALL":
+        benchmarks = ["QS5", "3CNF", "MQBF"]
+    else:
+        benchmarks = [bench_name]
 
-    if not os.path.exists(out_dir):
-        os.makedirs(out_dir)
+    for name in benchmarks:
+        if reset == "y":
+            if os.path.exists(f"../results/{name}/results.csv"):
+                os.remove(f"../results/{name}/results.csv")
+            if os.path.exists(f"../results/{name}/times.csv"):
+                os.remove(f"../results/{name}/times.csv")
+                
+        print("Running benchmark: ", name, "...\n\n\n")   
 
-    compare_solve_count(path, timeouts, out_dir, curr_solvers)
+        path = f"../benchmarks/{name}/"
+        out_dir = f"../results/{name}/"
+
+        if not os.path.exists(out_dir):
+            os.makedirs(out_dir)
+
+        compare_solve_count(path, timeouts, out_dir, curr_solvers)
