@@ -63,7 +63,7 @@ def ksp_cmp(filename):
     return {"args":cmd}
 
 def check_out_CEGAR(process):
-    if process.decode("utf-8").split("\n") == "Satisfiable\n":
+    if process.decode("utf-8").split("\n")[0] == "Satisfiable":
         return "SAT"
     else:
         return "UNSAT"
