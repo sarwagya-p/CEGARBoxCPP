@@ -9,7 +9,7 @@
 *.cf
 *.hf
 .vscode
-main
+main[]
 .cache
 callgrind*
 .ccls
@@ -21,5 +21,7 @@ S5Experiments/benchmarks/
 S5Experiments/scripts/S52SAT
 S5Experiments/scripts/S5Cheetah
 S5Experiments/scripts/LWB-benchmark-generator
-S5Experiments/lckS5Prover
+S5Experiments/scripts/lck
 S5Experiments/ksp-*
+*/__pycache__
+minisat_lib/

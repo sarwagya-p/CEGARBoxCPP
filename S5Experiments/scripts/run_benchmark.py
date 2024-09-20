@@ -59,12 +59,11 @@ def run_files(file_list, file_dir, timeout, out_dir, results, times, curr_solver
 
 
 if __name__ == "__main__":
-    reset = input("Reset results and times? (y/n): ")
-
     if len(sys.argv) < 2:
-        print(len(sys.argv))
         print("Usage: python3 run_benchmark.py <benchmark_name> optional: <timeout> <solver1> <solver2> ... <solverN> or ALL for all benchmarks")
         sys.exit(1)
+        
+    reset = input("Reset results and times? (y/n): ")
 
     if len(sys.argv) > 2:
         timeouts = int(sys.argv[2])

@@ -1,6 +1,7 @@
 CC = g++
-CFLAGS = -std=c++17 -Wall -g -ggdb -O3 -mavx2 -fopenmp -static
-LIBS = -L/usr/local/lib -lminisat #-ltcmalloc #-lprofiler #-Wl --no-as-needed
+CFLAGS = -std=c++17 -Wall -g -ggdb -O3 -fopenmp #-mavx2
+INCLUDE = -I./minisat_lib/include/ -I/opt/homebrew/Cellar/argp-standalone/1.5.0/include
+LIBS = -L./minisat_lib/lib/ -lminisat -L/opt/homebrew/Cellar/argp-standalone/1.5.0/lib -largp #-ltcmalloc #-lprofiler #-Wl --no-as-needed
 
 SRCDIR = .
 SOURCES = $(shell find $(SRCDIR) -name "*.cpp")
@@ -13,7 +14,7 @@ $(EXECUTABLE): $(OBJECTS)
 	$(CC) $(CFLAGS) $(OBJECTS) -o $(EXECUTABLE) $(LIBS)
 
 .cpp.o:
-	$(CC) $(CFLAGS) -c $< -o $@
+	$(CC) $(CFLAGS) $(INCLUDE) -c $< -o $@
 
 clean:
 	rm -f $(OBJECTS) $(EXECUTABLE)

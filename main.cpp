@@ -26,7 +26,7 @@
 #include "ParseFormulaNew/ParseFormulaNew.h"
 #include "Prover/TrieformProver/TrieformProverK/TrieformProverK.h"
 #include "Prover/TrieformProver/TrieformProverKGlobal/TrieformProverKGlobal.h"
-#include "Prover/TrieformProver/TrieformProverKt/TrieformProverKt.h"
+#include "Prover/TrieformProver/TrieformProverKtense/TrieformProverKtense.h"
 
 #include "FormulaStackParser/FormulaStackParser.h"
 
