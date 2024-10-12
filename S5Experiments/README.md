@@ -28,7 +28,7 @@ To run the scripts, following files are required:
     - Note: place 
 
 4. *LCKS5* - 
-    - Link: Old link is down, use way back machine for this link: http://users.cecs.anu.edu.au/~rpg/software.html
+    - Link: Old link is down, use way back machine for this link: http://rsise.anu.edu.au/~rpg/LCKS5TabProver/lckS5Prover_r1368.tar
     - Abate, P., Goré, R. and Widmann, F., 2007, July. Cut-free single-pass tableaux for the logic of common knowledge. In Workshop on Agents and Deduction at TABLEAUX (Vol. 2007).
 
 3. *QS5* - benchmark files
