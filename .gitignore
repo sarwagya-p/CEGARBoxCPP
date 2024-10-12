@@ -19,6 +19,7 @@ massif*
 *.tmp
 *__pycache__*
 *.pyc
+*.DS_Store
 S5Experiments/benchmarks/
 S5Experiments/scripts/S52SAT
 S5Experiments/scripts/S5Cheetah
