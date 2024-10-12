@@ -31,15 +31,17 @@ def compare_solve_count(file_dir, timeouts, out_dir, curr_solvers):
 
 
 def run_files(file_list, file_dir, timeout, out_dir, results, times, curr_solvers, write_df = True):
+    # file_list = [file_list[0]] * 500
+    file_list = file_list[:10]
     for iter, file in enumerate(file_list):
-        print(f"\nRunning {file}...")
+        print(f"\n{iter}. Running {file}...")
 
         for solver in curr_solvers:
             print(f"Running {solver}...")
             
-            if results.loc[file, solver] != -1:
-                print("Solved before")
-                continue
+            # if results.loc[file, solver] != -1:
+            #     print("Solved before")
+            #     continue
 
             cmd = solvers_cmd[solver](os.path.join(file_dir, file))
             out = run(cmd, timeout, solvers_out_check[solver])
@@ -51,9 +53,11 @@ def run_files(file_list, file_dir, timeout, out_dir, results, times, curr_solver
             results.loc[file, solver] = 1 if out[0] == "SAT" else 0
             times.loc[file, solver] = out[1]
 
-        if write_df and iter % 10 == 0:
+        if write_df and (iter % 5 == 0 or iter == len(file_list)-1):
             results.to_csv(f"{out_dir}/results.csv")
             times.to_csv(f"{out_dir}/times.csv")  
+    results.to_csv(f"{out_dir}/results.csv")
+    times.to_csv(f"{out_dir}/times.csv") 
 
     return times, results 
 

@@ -6,11 +6,12 @@ import matplotlib.pyplot as plt
 import matplotlib.ticker
 from run_file import solvers
 
-solvers = ["CEGAR", "Cheetah", "S52SAT"]
+solvers = ["CEGAR", "Cheetah", "S52SAT", "LCK", "KSP"]
+all_benchmarks = ["QS5", "3CNF", "MQBF"]
 
 def plot(timeouts, counts, total, name, curr_solvers = solvers):
     fig, ax = plt.subplots()
-    colours = ["#B931FC", "#5CD2E6", "#FF9800"]
+    colours = ["#B931FC", "#5CD2E6", "#FF9800", "#A22C29", "#56E39F"]
 
     for i, solver in enumerate(curr_solvers):
         ax.plot(timeouts, counts[solver], label=solver, c = colours[i])
@@ -43,10 +44,12 @@ def make_counts(times_df, timeouts, curr_solvers):
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        print("Usage: python3 plot.py <benchmark_name> optional: <timeout> <solver1> <solver2> ... <solverN> or ALL for all benchmarks")
+        print("Usage: python3 plot.py <benchmark_name or ALL for all benchmarks> optional: <timeout>")
         exit()
 
     benchmarks = [sys.argv[1]]
+    if benchmarks == ["ALL"]:
+        benchmarks = all_benchmarks
     print(benchmarks)
     if len(sys.argv) > 2:
         timeout = int(sys.argv[2])
@@ -56,11 +59,10 @@ if __name__ == "__main__":
     timeouts = [timeout/(2**i) for i in range(5, -1, -1)]
     print(timeouts)
     
-    if len(sys.argv) > 3:
-        if sys.argv[3] == "ALL":
-            curr_solvers = solvers
-        else:
-            curr_solvers = sys.argv[3:]
+    if len(sys.argv) > 3 and sys.argv[3] != "ALL":
+        curr_solvers = sys.argv[3:]
+    else:
+        curr_solvers = solvers
 
     counts = None
     total = 0

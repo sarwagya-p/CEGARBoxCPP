@@ -2,6 +2,7 @@ import subprocess
 import os
 import shutil
 import pandas as pd
+import run_benchmark as rb
 
 generator_dir = "./LWB-benchmark-generator/"
 benchmark_file_dir = "../benchmarks/LWB/"
@@ -243,8 +244,6 @@ problem_sets = [
     "k_t4p_p 8000 15000 1000"
 ]
 
-import run_benchmark as rb
-
 def make_df(commands):
     time_df = pd.DataFrame(columns=["File", "Logic Domain"]+rb.solvers)
     results_df = pd.DataFrame(columns=["File"]+rb.solvers)
@@ -283,6 +282,9 @@ def run_lwb(timeout, curr_solvers, out_dir):
 import sys
 
 if __name__ == "__main__":
+    if len(sys.argv) > 1 and sys.argv[1] == "--help":
+        print("Usage: python3 run_lwb.py optional: <timeout> <solver1> <solver2> ... <solverN>")
+        
     if len(sys.argv) > 1:
         timeout = int(sys.argv[1])
     else:
