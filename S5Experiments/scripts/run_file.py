@@ -2,7 +2,6 @@ import subprocess
 import sys
 import time
 
-# MAX_VIRTUAL_MEM = 1024 * 1024 * 1024 * 1 # 1GB
 MAX_VIRTUAL_MEM = 1024 * 1 # 1GB
 
 def cegar_cmd(filename):
@@ -16,7 +15,7 @@ def cegar_cmd(filename):
     with open("cegar_file.tmp", "w") as f:
         f.write(inp)
 
-    return {"args": ["../../main", "-tb4", "-f", "cegar_file.tmp"]}
+    return {"args": ["prlimit", f"--rss={MAX_VIRTUAL_MEM}M", "../../main", "-tb4", "-f", "cegar_file.tmp"]}
 
 def cheetah_cmd(filename):
     with open(filename, "r") as f:
@@ -27,7 +26,7 @@ def cheetah_cmd(filename):
     with open("cheetah_file.tmp", "w") as f:
         f.write(inp)
 
-    return {"args": ["./S5Cheetah", "cheetah_file.tmp"]}
+    return {"args": ["prlimit", f"--rss={MAX_VIRTUAL_MEM}M", "./S5Cheetah", "cheetah_file.tmp"]}
 
 def s52sat_cmd(filename):
     with open(filename, "r") as f:
@@ -38,7 +37,7 @@ def s52sat_cmd(filename):
     with open("s52sat_file.tmp", "w") as f:
         f.write(inp)
 
-    return {"args": ["./S52SAT", "s52sat_file.tmp", "-diamondDegree", "-caching"]}
+    return {"args": ["prlimit", f"--rss={MAX_VIRTUAL_MEM}M", "./S52SAT", "s52sat_file.tmp", "-diamondDegree", "-caching"]}
 
 def lck_cmd(filename):
     with open(filename, "r") as f:
@@ -47,7 +46,7 @@ def lck_cmd(filename):
     inp = "1:" + inp.split("\n")[1]
     inp = inp.replace("r1", "E").replace("-", "=").replace("false", "False").replace("true", "True")
     
-    return {"args": ["./lck", "graph"], "input": inp.encode()}
+    return {"args": ["prlimit", f"--rss={MAX_VIRTUAL_MEM}M", "./lck", "graph"], "input": inp.encode()}
 
 def ksp_cmp(filename):
     with open(filename, "r") as f:
@@ -61,7 +60,7 @@ def ksp_cmp(filename):
         f.write(file_input)
         f.write(".\nend_of_list.\n")
 
-    cmd = ["../ksp-0.1.6/ksp", "-c", "../ksp-0.1.6/conf.files/cade-28/S5_euc1_euc2_ref.conf", 
+    cmd = ["prlimit", f"--rss={MAX_VIRTUAL_MEM}M", "../ksp-0.1.6/ksp", "-c", "../ksp-0.1.6/conf.files/cade-28/S5_euc1_euc2_ref.conf", 
            "-c", "../ksp-0.1.6/conf.files/cade-28/cord_ple_ires_K.conf", "-i", "ksp_file.tmp"]
     return {"args":cmd}
 
@@ -116,16 +115,10 @@ solvers_out_check = {
     "KSP": check_out_KSP
 }
 
-# def check_time(stderr):
-#     # Format: x:yy.yy, to turn into seconds
-#     elapsed = stderr.decode("utf-8").split(" ")[2][:7].split(":")
-
-#     return float(elapsed[0]) * 60 + float(elapsed[1])
-
-import resource
+# import resource
     
-def limit_mem(max_mem = MAX_VIRTUAL_MEM):
-    resource.setrlimit(resource.RLIMIT_AS, (max_mem, resource.RLIM_INFINITY))
+# def limit_mem(max_mem = MAX_VIRTUAL_MEM):
+#     resource.setrlimit(resource.RLIMIT_AS, (max_mem, resource.RLIM_INFINITY))
     
 
 def run(cmd, timeout, checkOutput):
