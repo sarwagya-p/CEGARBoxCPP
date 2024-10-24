@@ -73,12 +73,11 @@ Solution TrieformProverS5::prove(literal_set assumptions = literal_set()) {
 
     prover->calculateTriggeredBoxClauses();
     modal_literal_map triggeredBoxes = prover->getTriggeredBoxClauses();
-  
+
+    // Since currectly only dealing with one modality, this is only set of triggered dias
     auto modalityDiamonds = *triggeredDiamonds.begin();
     if (modalityDiamonds.second.size() == 0) {
-      // If there are no triggered diamonds of a certain modality we can skip
-      // it
-      continue;
+      return {true, literal_set()};
     }
     // Note in the cases diamonds are a subset of boxes then we don't need to
     // create any worlds (reflexivity satisfies this)
