@@ -16,7 +16,7 @@ def cegar_cmd(filename):
     with open("cegar_file.tmp", "w") as f:
         f.write(inp)
 
-    return {"args": ["../../main", "-tb4", "-f", "cegar_file.tmp"]}
+    return {"args": ["prlimit", f"-rss={MAX_VIRTUAL_MEM}M", "../../main", "-tb4", "-f", "cegar_file.tmp"]}
 
 def cheetah_cmd(filename):
     with open(filename, "r") as f:
@@ -27,7 +27,7 @@ def cheetah_cmd(filename):
     with open("cheetah_file.tmp", "w") as f:
         f.write(inp)
 
-    return {"args": ["./S5Cheetah", "cheetah_file.tmp"]}
+    return {"args": ["prlimit", f"-rss={MAX_VIRTUAL_MEM}M", "./S5Cheetah", "cheetah_file.tmp"]}
 
 def s52sat_cmd(filename):
     with open(filename, "r") as f:
@@ -38,7 +38,7 @@ def s52sat_cmd(filename):
     with open("s52sat_file.tmp", "w") as f:
         f.write(inp)
 
-    return {"args": ["./S52SAT", "s52sat_file.tmp", "-diamondDegree", "-caching"]}
+    return {"args": ["prlimit", f"-rss={MAX_VIRTUAL_MEM}M", "./S52SAT", "s52sat_file.tmp", "-diamondDegree", "-caching"]}
 
 def lck_cmd(filename):
     with open(filename, "r") as f:
@@ -47,7 +47,7 @@ def lck_cmd(filename):
     inp = "1:" + inp.split("\n")[1]
     inp = inp.replace("r1", "E").replace("-", "=").replace("false", "False").replace("true", "True")
     
-    return {"args": ["./lck", "graph"], "input": inp.encode()}
+    return {"args": ["prlimit", f"-rss={MAX_VIRTUAL_MEM}M", "./lck", "graph"], "input": inp.encode()}
 
 def ksp_cmp(filename):
     with open(filename, "r") as f:
@@ -61,7 +61,7 @@ def ksp_cmp(filename):
         f.write(file_input)
         f.write(".\nend_of_list.\n")
 
-    cmd = ["../ksp-0.1.6/ksp", "-c", "../ksp-0.1.6/conf.files/cade-28/S5_euc1_euc2_ref.conf", 
+    cmd = ["prlimit", f"-rss={MAX_VIRTUAL_MEM}M", "../ksp-0.1.6/ksp", "-c", "../ksp-0.1.6/conf.files/cade-28/S5_euc1_euc2_ref.conf", 
            "-c", "../ksp-0.1.6/conf.files/cade-28/cord_ple_ires_K.conf", "-i", "ksp_file.tmp"]
     return {"args":cmd}
 
