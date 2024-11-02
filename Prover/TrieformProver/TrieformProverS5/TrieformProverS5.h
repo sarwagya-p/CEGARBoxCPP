@@ -33,6 +33,8 @@ private:
   void splitClause(formula_set clause, formula_set& modal_lits, formula_set& prop_lits);
   void propagateOneClause(formula_set clause);
 
+  void learnClauseOnFailure(Solution& soln, Literal diamond, int modality);
+
   
 protected:
   static unsigned int assumptionsSize;

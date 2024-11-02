@@ -58,6 +58,23 @@ void TrieformProverS5::prepareSAT(name_set extra) {
   }
 }
 
+void TrieformProverS5::learnClauseOnFailure(Solution& soln, Literal diamond, int modality){
+  // If it returns unsat, find conflict
+  vector<literal_set> badImplications = prover->getNotProblemBoxClauses(
+      modality, soln.conflict);
+
+  // The diamond clause, either on its own or together with box clauses,
+    // caused a conflict. We must add diamond implies OR NOT problem box
+    // clauses.
+    prover->updateLastFail(diamond);
+    badImplications.push_back(
+        prover->getNotDiamondLeft(modality, diamond));
+
+    for (literal_set learnClause : generateClauses(badImplications)) {
+      prover->addClause(learnClause);
+    }
+}
+
 Solution TrieformProverS5::prove(literal_set assumptions = literal_set()) {
 
   Solution soln = prover->solve(assumptions);
@@ -65,144 +82,91 @@ Solution TrieformProverS5::prove(literal_set assumptions = literal_set()) {
   // If this is a leaf, exit
   if (getTrieMap().empty()) return soln;
 
-  int num_its = 0;
-  while(soln.satisfiable){
-    num_its++;
-    bool allModalitiesSatisfied = true;
+  // Else, prove for the subtrie
+  prover->calculateTriggeredDiamondsClauses();
+  modal_literal_map triggeredDiamonds = prover->getTriggeredDiamondClauses();
 
-    prover->calculateTriggeredDiamondsClauses();
-    modal_literal_map triggeredDiamonds = prover->getTriggeredDiamondClauses();
+  if (triggeredDiamonds.size() == 0){
+    return {true, literal_set()};
+  }
 
-    if (triggeredDiamonds.size() == 0){
-      cout << "Num its: " <<  num_its << endl;
-      return {true, literal_set()};
+  prover->calculateTriggeredBoxClauses();
+  literal_set triggeredBoxes = prover->getTriggeredBoxClauses().begin()->second;
+
+  // Since currectly only dealing with one modality, this is only set of triggered dias
+  auto modalityDiamonds = triggeredDiamonds.begin();
+  if (modalityDiamonds->second.size() == 0) {
+    return {true, literal_set()};
+  }
+
+  // Try making a world with all the diamonds
+  // cout << "Trying for all dias" << endl;
+  shared_ptr<Trieform> subtrie = getSubtrie(modalityDiamonds->first);
+
+  // Keep track of dias that are not boxes, to know when to stop trying
+  literal_set no_conflict_dias = modalityDiamonds->second;
+
+  // cout << "Inserting and deleting" << endl;
+
+  for (auto assump: triggeredBoxes){
+    if (no_conflict_dias.find(assump) != no_conflict_dias.end()){
+      no_conflict_dias.erase(assump);
     }
+  }
 
-    prover->calculateTriggeredBoxClauses();
-    literal_set triggeredBoxes = prover->getTriggeredBoxClauses().begin()->second;
+  literal_set no_conflict_assumptions = triggeredBoxes;
+  no_conflict_assumptions.insert(no_conflict_dias.begin(), no_conflict_dias.end());
 
-    // Since currectly only dealing with one modality, this is only set of triggered dias
-    auto modalityDiamonds = triggeredDiamonds.begin();
-    if (modalityDiamonds->second.size() == 0) {
-      cout << "Num its: " <<  num_its << endl;
-      return {true, literal_set()};
-    }
+  Solution subtrie_soln = subtrie->prove(no_conflict_assumptions);
 
-    // Try making a world with all the diamonds
-    // cout << "Trying for all dias" << endl;
-    shared_ptr<Trieform> subtrie = getSubtrie(modalityDiamonds->first);
+  // While we do not get a sat, keep removing trouble diamonds and retrying
+  // cout << "Running while loop" << endl;
+  bool conflict_dia_exists = true;
 
-    literal_set no_conflict_assumptions = triggeredBoxes;
-    // Keep track of dias that are not boxes, to know when to stop trying
-    literal_set no_conflict_dias = modalityDiamonds->second;
-
-    // cout << "Inserting and deleting" << endl;
-
-    for (auto assump: triggeredBoxes){
-      if (no_conflict_dias.find(assump) != no_conflict_dias.end()){
-        no_conflict_dias.erase(assump);
-      }
-    }
-
-    no_conflict_assumptions.insert(no_conflict_dias.begin(), no_conflict_dias.end());
-
-    Solution no_conflict_soln = subtrie->prove(no_conflict_assumptions);
-
-    // While we do not get a sat, keep removing trouble diamonds and retrying
-    // cout << "Running while loop" << endl;
-    bool updated = true;
-
-    while (updated && !no_conflict_soln.satisfiable && !no_conflict_dias.empty()){
-      // cout << "Size of no_conflict_dias: " << no_conflict_dias.size() << endl;
-      updated = true;
-      for (auto assump: no_conflict_soln.conflict){
-        if (triggeredBoxes.find(assump) != triggeredBoxes.end())
-          continue;
-        updated = false;
-
-        no_conflict_assumptions.erase(assump);
-        no_conflict_dias.erase(assump);
-      }
-      no_conflict_soln = subtrie->prove(no_conflict_assumptions);
-    }
-    // cout << "Loop over" << endl;
-    // Note in the cases diamonds are a subset of boxes then we don't need to
-    // create any worlds (reflexivity satisfies this)
-    diamond_set diamondPriority =
-        prover->getPrioritisedTriggeredDiamondsSet(
-          modalityDiamonds->first, 
-          triggeredBoxes, 
-          modalityDiamonds->second);
-
-    if (no_conflict_soln.satisfiable){
-      for (auto it=diamondPriority.begin(); it != diamondPriority.end();){
-        if (subtrie->getProver()->modelSatisfiesAssump(it->literal)){
-          it = diamondPriority.erase(it);
-        }
-        else {
-          ++it;
-        }
-      }
-    }
-    
-    while (!diamondPriority.empty()) {
-      // Create a world for each diamond if necessary
-      Literal diamond = (*diamondPriority.rbegin()).literal;
-      diamondPriority.erase(prev(diamondPriority.end()));
-
-      if (prover->modelSatisfiesAssump(diamond)) {
+  while (conflict_dia_exists && !subtrie_soln.satisfiable && !no_conflict_dias.empty()){
+    conflict_dia_exists = false;
+    for (auto assump: subtrie_soln.conflict){
+      if (triggeredBoxes.find(assump) != triggeredBoxes.end())
         continue;
-      }
+      conflict_dia_exists = true;
 
-      literal_set childAssumptions = triggeredBoxes;
-      childAssumptions.insert(diamond);
+      // Try assump:
+      triggeredBoxes.insert(assump);
+      Solution assump_soln = subtrie->prove(triggeredBoxes);
+      triggeredBoxes.erase(assump);
 
-      Solution childSoln = subtrie->prove(childAssumptions);
-
-      if (childSoln.satisfiable){
-        // If satisfiable, check if other diamonds can be satisfied with this model
-        for (auto it=diamondPriority.begin(); it != diamondPriority.end();){
-          if (subtrie->getProver()->modelSatisfiesAssump(it->literal)){
-            it = diamondPriority.erase(it);
+      if (assump_soln.satisfiable){
+        for (auto it=no_conflict_dias.begin(); it != no_conflict_dias.end(); ){
+          if (subtrie->getProver()->modelSatisfiesAssump(*it)){
+            no_conflict_assumptions.erase(*it);
+            it = no_conflict_dias.erase(it);
           }
-          else {
+          else{
             ++it;
           }
         }
-        // Create world for remaining
-        continue;
       }
-
-      // If it returns unsat, find conflict
-      vector<literal_set> badImplications = prover->getNotProblemBoxClauses(
-          modalityDiamonds->first, childSoln.conflict);
-
-      // The diamond clause, either on its own or together with box clauses,
-        // caused a conflict. We must add diamond implies OR NOT problem box
-        // clauses.
-        prover->updateLastFail(diamond);
-        badImplications.push_back(
-            prover->getNotDiamondLeft(modalityDiamonds->first, diamond));
-
-        for (literal_set learnClause : generateClauses(badImplications)) {
-          prover->addClause(learnClause);
-        }
-
-        // Find new result
-        // return prove(assumptions);
-        allModalitiesSatisfied = false;
-        soln = prover->solve(assumptions);
-        break;
+      else {
+        learnClauseOnFailure(assump_soln, assump, modalityDiamonds->first);
+        return prove(assumptions);
+      }
     }
-
-    if (allModalitiesSatisfied){
-      cout << "Num its: " <<  num_its << endl;
-      return soln;
-    }
+    subtrie_soln = subtrie->prove(no_conflict_assumptions);
   }
-  cout << "Num its: " <<  num_its << endl;
-  // At this point, all modalities are satisfied
-  return soln;
+
+  // At this point, either subtrie_soln is satisfiable, or we found
+  // a UC containing only boxes
+  if (subtrie_soln.satisfiable){
+    return soln;
+  }
+  vector<literal_set> badImplications = prover->getNotProblemBoxClauses(
+      modalityDiamonds->first, subtrie_soln.conflict);
+
+  for (literal_set learnClause : generateClauses(badImplications)) {
+    prover->addClause(learnClause);
+  }
+
+  return prove(assumptions);
 }
 
 void TrieformProverS5::reflexiveHandleBoxClauses(){
