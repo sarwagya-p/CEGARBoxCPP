@@ -16,9 +16,8 @@ A statically compiled file is already available in the repo - compiled on Ubuntu
 However, if you want to recreate our results, you will need to compile CEGARBoxCPP for your machine. To do this, follow the instructions below:
 
 1. Install minisat. The main one doesn't work, so instead use this [fork](https://github.com/agurfinkel/minisat)
-2. Install an ipasir compliant SAT solver, and put `libipasir.a` in `/Prover/IpasirProver/libipasir.a`. I use [cadical](https://github.com/arminbiere/cadical) but it doesn't matter, as Minisat was used for our experiments.
-3. Remove the `-static` flag in the makefile
-4. Run ``make`` to compile CEGARBox
+2. Remove the `-static` flag in the makefile
+3. Run ``make`` to compile CEGARBox
 
 
 ## Input Formula

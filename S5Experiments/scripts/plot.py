@@ -6,12 +6,12 @@ import matplotlib.pyplot as plt
 import matplotlib.ticker
 from run_file import solvers
 
-solvers = ["CEGAR", "Cheetah", "S52SAT", "LCK", "KSP"]
+solvers = ["CEGAR", "Cheetah", "S52SAT", "LCK", "KSP", "CEGAR_old"]
 all_benchmarks = ["QS5", "3CNF", "MQBF"]
 
 def plot(timeouts, counts, total, name, curr_solvers = solvers):
     fig, ax = plt.subplots()
-    colours = ["#B931FC", "#5CD2E6", "#FF9800", "#A22C29", "#56E39F"]
+    colours = ["#B931FC", "#5CD2E6", "#FF9800", "#A22C29", "#56E39F", "#56E39F"]
 
     for i, solver in enumerate(curr_solvers):
         ax.plot(timeouts, counts[solver], label=solver, c = colours[i])

@@ -27,3 +27,5 @@ S5Experiments/scripts/LWB-benchmark-generator
 S5Experiments/scripts/lck
 S5Experiments/ksp-*
 minisat_lib
+minisat_lib_mac
+paper

@@ -1,4 +1,5 @@
 #include "TrieformProverS5.h"
+#include <fstream>
 
 unsigned int TrieformProverS5::assumptionsSize = 0;
 unordered_map<string, unsigned int> TrieformProverS5::idMap =
@@ -61,34 +62,89 @@ Solution TrieformProverS5::prove(literal_set assumptions = literal_set()) {
 
   Solution soln = prover->solve(assumptions);
 
+  // If this is a leaf, exit
+  if (getTrieMap().empty()) return soln;
+
+  int num_its = 0;
   while(soln.satisfiable){
+    num_its++;
     bool allModalitiesSatisfied = true;
 
     prover->calculateTriggeredDiamondsClauses();
     modal_literal_map triggeredDiamonds = prover->getTriggeredDiamondClauses();
 
     if (triggeredDiamonds.size() == 0){
+      cout << "Num its: " <<  num_its << endl;
       return {true, literal_set()};
     }
 
     prover->calculateTriggeredBoxClauses();
-    modal_literal_map triggeredBoxes = prover->getTriggeredBoxClauses();
+    literal_set triggeredBoxes = prover->getTriggeredBoxClauses().begin()->second;
 
     // Since currectly only dealing with one modality, this is only set of triggered dias
-    auto modalityDiamonds = *triggeredDiamonds.begin();
-    if (modalityDiamonds.second.size() == 0) {
+    auto modalityDiamonds = triggeredDiamonds.begin();
+    if (modalityDiamonds->second.size() == 0) {
+      cout << "Num its: " <<  num_its << endl;
       return {true, literal_set()};
     }
+
+    // Try making a world with all the diamonds
+    // cout << "Trying for all dias" << endl;
+    shared_ptr<Trieform> subtrie = getSubtrie(modalityDiamonds->first);
+
+    literal_set no_conflict_assumptions = triggeredBoxes;
+    // Keep track of dias that are not boxes, to know when to stop trying
+    literal_set no_conflict_dias = modalityDiamonds->second;
+
+    // cout << "Inserting and deleting" << endl;
+
+    for (auto assump: triggeredBoxes){
+      if (no_conflict_dias.find(assump) != no_conflict_dias.end()){
+        no_conflict_dias.erase(assump);
+      }
+    }
+
+    no_conflict_assumptions.insert(no_conflict_dias.begin(), no_conflict_dias.end());
+
+    Solution no_conflict_soln = subtrie->prove(no_conflict_assumptions);
+
+    // While we do not get a sat, keep removing trouble diamonds and retrying
+    // cout << "Running while loop" << endl;
+    bool updated = true;
+
+    while (updated && !no_conflict_soln.satisfiable && !no_conflict_dias.empty()){
+      // cout << "Size of no_conflict_dias: " << no_conflict_dias.size() << endl;
+      updated = true;
+      for (auto assump: no_conflict_soln.conflict){
+        if (triggeredBoxes.find(assump) != triggeredBoxes.end())
+          continue;
+        updated = false;
+
+        no_conflict_assumptions.erase(assump);
+        no_conflict_dias.erase(assump);
+      }
+      no_conflict_soln = subtrie->prove(no_conflict_assumptions);
+    }
+    // cout << "Loop over" << endl;
     // Note in the cases diamonds are a subset of boxes then we don't need to
     // create any worlds (reflexivity satisfies this)
     diamond_set diamondPriority =
         prover->getPrioritisedTriggeredDiamondsSet(
-          modalityDiamonds.first, 
-          triggeredBoxes[modalityDiamonds.first], 
-          modalityDiamonds.second);
+          modalityDiamonds->first, 
+          triggeredBoxes, 
+          modalityDiamonds->second);
 
-    shared_ptr<Trieform> subtrie = getSubtrie(modalityDiamonds.first);
-
+    if (no_conflict_soln.satisfiable){
+      for (auto it=diamondPriority.begin(); it != diamondPriority.end();){
+        if (subtrie->getProver()->modelSatisfiesAssump(it->literal)){
+          it = diamondPriority.erase(it);
+        }
+        else {
+          ++it;
+        }
+      }
+    }
+    
     while (!diamondPriority.empty()) {
       // Create a world for each diamond if necessary
       Literal diamond = (*diamondPriority.rbegin()).literal;
@@ -98,7 +154,7 @@ Solution TrieformProverS5::prove(literal_set assumptions = literal_set()) {
         continue;
       }
 
-      literal_set childAssumptions = triggeredBoxes[modalityDiamonds.first];
+      literal_set childAssumptions = triggeredBoxes;
       childAssumptions.insert(diamond);
 
       Solution childSoln = subtrie->prove(childAssumptions);
@@ -119,14 +175,14 @@ Solution TrieformProverS5::prove(literal_set assumptions = literal_set()) {
 
       // If it returns unsat, find conflict
       vector<literal_set> badImplications = prover->getNotProblemBoxClauses(
-          modalityDiamonds.first, childSoln.conflict);
+          modalityDiamonds->first, childSoln.conflict);
 
       // The diamond clause, either on its own or together with box clauses,
         // caused a conflict. We must add diamond implies OR NOT problem box
         // clauses.
         prover->updateLastFail(diamond);
         badImplications.push_back(
-            prover->getNotDiamondLeft(modalityDiamonds.first, diamond));
+            prover->getNotDiamondLeft(modalityDiamonds->first, diamond));
 
         for (literal_set learnClause : generateClauses(badImplications)) {
           prover->addClause(learnClause);
@@ -140,9 +196,11 @@ Solution TrieformProverS5::prove(literal_set assumptions = literal_set()) {
     }
 
     if (allModalitiesSatisfied){
+      cout << "Num its: " <<  num_its << endl;
       return soln;
     }
   }
+  cout << "Num its: " <<  num_its << endl;
   // At this point, all modalities are satisfied
   return soln;
 }

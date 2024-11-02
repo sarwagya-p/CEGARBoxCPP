@@ -1,12 +1,17 @@
 import subprocess
 import sys
 import time
+import platform
 
 # MAX_VIRTUAL_MEM = 1024 * 1024 * 1024 * 1 # 1GB
 MAX_VIRTUAL_MEM = 1024 * 1 # 1GB
 
-def cegar_cmd(filename):
-    print(filename)
+mem_lim_cmd = ["prlimit", f"-rss={MAX_VIRTUAL_MEM}M"]
+if platform.system() == "Darwin":
+    # mem_lim_cmd = ["ulimit", "-v", f"{MAX_VIRTUAL_MEM * 1024}"]
+    mem_lim_cmd = []
+
+def cegar_cmd(filename, main_name = "main"):
     with open(filename, "r") as f:
         inp = f.read()
 
@@ -16,7 +21,8 @@ def cegar_cmd(filename):
     with open("cegar_file.tmp", "w") as f:
         f.write(inp)
 
-    return {"args": ["prlimit", f"-rss={MAX_VIRTUAL_MEM}M", "../../main", "-tb4", "-f", "cegar_file.tmp"]}
+    return {"args": mem_lim_cmd+[f"../../{main_name}", "-tb4", "-f", "cegar_file.tmp"]}
+
 
 def cheetah_cmd(filename):
     with open(filename, "r") as f:
@@ -27,7 +33,7 @@ def cheetah_cmd(filename):
     with open("cheetah_file.tmp", "w") as f:
         f.write(inp)
 
-    return {"args": ["prlimit", f"-rss={MAX_VIRTUAL_MEM}M", "./S5Cheetah", "cheetah_file.tmp"]}
+    return {"args": mem_lim_cmd+["./S5Cheetah", "cheetah_file.tmp"]}
 
 def s52sat_cmd(filename):
     with open(filename, "r") as f:
@@ -38,7 +44,7 @@ def s52sat_cmd(filename):
     with open("s52sat_file.tmp", "w") as f:
         f.write(inp)
 
-    return {"args": ["prlimit", f"-rss={MAX_VIRTUAL_MEM}M", "./S52SAT", "s52sat_file.tmp", "-diamondDegree", "-caching"]}
+    return {"args": mem_lim_cmd+["./S52SAT", "s52sat_file.tmp", "-diamondDegree", "-caching"]}
 
 def lck_cmd(filename):
     with open(filename, "r") as f:
@@ -47,7 +53,7 @@ def lck_cmd(filename):
     inp = "1:" + inp.split("\n")[1]
     inp = inp.replace("r1", "E").replace("-", "=").replace("false", "False").replace("true", "True")
     
-    return {"args": ["prlimit", f"-rss={MAX_VIRTUAL_MEM}M", "./lck", "graph"], "input": inp.encode()}
+    return {"args": mem_lim_cmd+["./lck", "graph"], "input": inp.encode()}
 
 def ksp_cmp(filename):
     with open(filename, "r") as f:
@@ -61,7 +67,7 @@ def ksp_cmp(filename):
         f.write(file_input)
         f.write(".\nend_of_list.\n")
 
-    cmd = ["prlimit", f"-rss={MAX_VIRTUAL_MEM}M", "../ksp-0.1.6/ksp", "-c", "../ksp-0.1.6/conf.files/cade-28/S5_euc1_euc2_ref.conf", 
+    cmd = mem_lim_cmd+["../ksp-0.1.6/ksp", "-c", "../ksp-0.1.6/conf.files/cade-28/S5_euc1_euc2_ref.conf", 
            "-c", "../ksp-0.1.6/conf.files/cade-28/cord_ple_ires_K.conf", "-i", "ksp_file.tmp"]
     return {"args":cmd}
 
@@ -98,14 +104,15 @@ def check_out_KSP(process):
     else:
         return "ERROR"
     
-solvers = ["CEGAR", "Cheetah", "S52SAT", "LCK", "KSP"]
+solvers = ["CEGAR", "Cheetah", "S52SAT", "LCK", "KSP", "CEGAR_old"]
 
 solvers_cmd = {
     "CEGAR": cegar_cmd,
     "Cheetah": cheetah_cmd,
     "S52SAT": s52sat_cmd,
     "LCK": lck_cmd,
-    "KSP": ksp_cmp
+    "KSP": ksp_cmp,
+    "CEGAR_old": lambda x: cegar_cmd(x, "main_old")
 }
     
 solvers_out_check = {
@@ -113,7 +120,8 @@ solvers_out_check = {
     "Cheetah": check_out_Cheetah,
     "S52SAT": check_out_S52SAT,
     "LCK": check_out_LCK,
-    "KSP": check_out_KSP
+    "KSP": check_out_KSP,
+    "CEGAR_old": check_out_CEGAR
 }
 
 # def check_time(stderr):

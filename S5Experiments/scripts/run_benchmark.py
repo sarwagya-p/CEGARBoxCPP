@@ -31,8 +31,6 @@ def compare_solve_count(file_dir, timeouts, out_dir, curr_solvers):
 
 
 def run_files(file_list, file_dir, timeout, out_dir, results, times, curr_solvers, write_df = True):
-    # file_list = [file_list[0]] * 500
-    file_list = file_list[:10]
     for iter, file in enumerate(file_list):
         print(f"\n{iter}. Running {file}...")
 
@@ -80,7 +78,8 @@ if __name__ == "__main__":
         else:
             curr_solvers = sys.argv[3:]
     else:
-        curr_solvers = solvers
+        # Remove last for CEGAR_old
+        curr_solvers = solvers[:-1]
 
     bench_name = sys.argv[1]
 
