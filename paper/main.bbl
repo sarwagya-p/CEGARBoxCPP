@@ -1,0 +1,104 @@
+% $ biblatex auxiliary file $
+% $ biblatex bbl format version 3.2 $
+% Do not modify the above lines!
+%
+% This is an auxiliary file used by the 'biblatex' package.
+% This file may safely be deleted. It will be recreated by
+% biber as required.
+%
+\begingroup
+\makeatletter
+\@ifundefined{ver@biblatex.sty}
+  {\@latex@error
+     {Missing 'biblatex' package}
+     {The bibliography requires the 'biblatex' package.}
+      \aftergroup\endinput}
+  {}
+\endgroup
+
+
+\refsection{0}
+  \datalist[entry]{ynt/global//global/global}
+    \entry{Gorenguyen2009}{article}{}
+      \name{author}{2}{}{%
+        {{hash=8c4ba0a2bbed11bccf9d81ded27b3f1f}{%
+           family={Goré},
+           familyi={G\bibinitperiod},
+           given={Rajeev},
+           giveni={R\bibinitperiod}}}%
+        {{hash=5c40ecece8fcbb4ea0e0ded6eb0f84d6}{%
+           family={Nguyen},
+           familyi={N\bibinitperiod},
+           given={Linh\bibnamedelima Anh},
+           giveni={L\bibinitperiod\bibinitdelim A\bibinitperiod}}}%
+      }
+      \list{location}{1}{%
+        {NLD}%
+      }
+      \list{publisher}{1}{%
+        {IOS Press}%
+      }
+      \strng{namehash}{84704e7c3b8525a6d33e71eead0c3b22}
+      \strng{fullhash}{84704e7c3b8525a6d33e71eead0c3b22}
+      \strng{bibnamehash}{84704e7c3b8525a6d33e71eead0c3b22}
+      \strng{authorbibnamehash}{84704e7c3b8525a6d33e71eead0c3b22}
+      \strng{authornamehash}{84704e7c3b8525a6d33e71eead0c3b22}
+      \strng{authorfullhash}{84704e7c3b8525a6d33e71eead0c3b22}
+      \field{labelalpha}{GN09}
+      \field{sortinit}{2}
+      \field{sortinithash}{8b555b3791beccb63322c22f3320aa9a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{abstract}{We develop clausal tableau calculi for six multimodal logics variously designed for reasoning about multi-degree belief, reasoning about distributed systems of belief and for reasoning about epistemic states of agents in multi-agent systems. Our tableau calculi are sound, complete, cut-free and have the analytic superformula property, thereby giving decision procedures for all of these logics. We also use our calculi to obtain complexity results for five of these logics. The complexity of the remaining logic was known.}
+      \field{issn}{0169-2968}
+      \field{journaltitle}{Fundam. Inf.}
+      \field{month}{1}
+      \field{number}{1}
+      \field{title}{Clausal Tableaux for Multimodal Logics of Belief}
+      \field{volume}{94}
+      \field{year}{2009}
+      \field{pages}{21\bibrangedash 40}
+      \range{pages}{20}
+      \keyw{theorem proving for modal logics,modal logics for agent-based systems,complexity and decidability of modal logics}
+    \endentry
+    \entry{GoreKikkert21}{inproceedings}{}
+      \name{author}{2}{}{%
+        {{hash=8c4ba0a2bbed11bccf9d81ded27b3f1f}{%
+           family={Goré},
+           familyi={G\bibinitperiod},
+           given={Rajeev},
+           giveni={R\bibinitperiod}}}%
+        {{hash=2bd714bc5a38e62bc0ba3743dd81e9f1}{%
+           family={Kikkert},
+           familyi={K\bibinitperiod},
+           given={Cormac},
+           giveni={C\bibinitperiod}}}%
+      }
+      \list{location}{1}{%
+        {Cham}%
+      }
+      \list{publisher}{1}{%
+        {Springer International Publishing}%
+      }
+      \strng{namehash}{e572d816eb39a3f2fb28109b0cda1864}
+      \strng{fullhash}{e572d816eb39a3f2fb28109b0cda1864}
+      \strng{bibnamehash}{e572d816eb39a3f2fb28109b0cda1864}
+      \strng{authorbibnamehash}{e572d816eb39a3f2fb28109b0cda1864}
+      \strng{authornamehash}{e572d816eb39a3f2fb28109b0cda1864}
+      \strng{authorfullhash}{e572d816eb39a3f2fb28109b0cda1864}
+      \field{labelalpha}{GK21}
+      \field{sortinit}{2}
+      \field{sortinithash}{8b555b3791beccb63322c22f3320aa9a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{abstract}{We present CEGAR-Tableaux, a tableaux-like method for propositional modal logics utilising SAT-solvers, modal clause-learning and multiple optimisations from modal and description logic tableaux calculi. We use the standard Counter-example Guided Abstract Refinement (CEGAR) strategy for SAT-solvers to mimic a tableau-like search strategy that explores a rooted tree-model with the classical propositional logic part of each Kripke world evaluated using a SAT-solver. Unlike modal SAT-solvers and modal resolution methods, we do not explicitly represent the accessibility relation but track it implicitly via recursion. By using ``satisfiability under unit assumptions'', we can iterate rather than ``backtrack'' over the satisfiable diamonds at the same modal level (context) of the tree model with one SAT-solver. By keeping modal contexts separate from one another, we add further refinements for reflexivity and transitivity which manipulate modal contexts once only. Our solver CEGARBox is, overall, the best for modal logics K, KT and S4 over the standard benchmarks, sometimes by orders of magnitude.}
+      \field{booktitle}{Automated Reasoning with Analytic Tableaux and Related Methods}
+      \field{title}{CEGAR-Tableaux: Improved Modal Satisfiability via Modal Clause-Learning and SAT}
+      \field{year}{2021}
+      \field{pages}{74\bibrangedash 91}
+      \range{pages}{18}
+    \endentry
+  \enddatalist
+\endrefsection
+\endinput
+

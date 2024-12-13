@@ -1,0 +1,162 @@
+\documentclass{article}
+\usepackage{graphicx} % Required for inserting images
+% \usepackage[left=1in, right=1in, top=1in, bottom=1in]{geometry}
+
+\usepackage{titling}
+\usepackage{lipsum}
+\usepackage{mathtools}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{xcolor}
+
+\definecolor{citegreen}{rgb}{0,0.6,0}
+
+\usepackage[
+backend=biber,
+style=alphabetic,
+sorting=ynt
+]{biblatex}
+\addbibresource{refs.bib}
+
+\usepackage[hidelinks, colorlinks=true,linkcolor=black, citecolor=citegreen]{hyperref}
+
+\newcommand{\defeq}{\vcentcolon=}
+\newcommand{\eqdef}{=\vcentcolon}
+
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{definition}{Definition}[section]
+\newcommand{\raj}[1]{{\color{blue}#1\color{black}}}
+\begin{document}
+
+\begin{center}
+  {\huge\bfseries S5 Modal Logic Satisfiability with CEGAR-tableaux\par\vspace{\baselineskip}
+  \raj{try to make the title more informative e.g. ``Improved'' or some other word.}}
+{\Large \bfseries Rajeev Gor\'e\textsuperscript{1} and Sarwagya Prasad\textsuperscript{2}
+\par\vspace{\baselineskip}}
+\textsuperscript{2} Indian Institute of Technology, Delhi\par
+\end{center}
+
+\begin{center}
+    \begin{minipage}{0.7\textwidth}
+      \textbf{Abstract: }
+      \raj{My notation for explicit changes is ``x := y'' to mean ``replace x by y''.}
+      We extend the \verb|CEGARBox++| \raj{implementation := method (because some idiot reviewer may say "Oh
+        they just hacked the original implementation so how is this new?", so we have to make it clear that it is more than just
+        ``hacking''.)} of CEGAR-tableaux prover for Modal Logic by Gor\'e and Kikkert \cite{GoreKikkert21}, to handle Modal Logic
+      S5. The structure of S5 allows us to reduce formulae into simpler form, \raj{so the normal forming and the reductions are well-known, and the others also use them, so what have you done that makes a difference?} thereby allowing CEGAR-tableaux to work fast and
+      enabling some optimizations \raj{are these optimisations your secret? If so, say so.}. Our experiments show that \verb|CEGARBoxS5| is outperforming all available provers for S5.
+    \end{minipage}
+\end{center}
+
+\tableofcontents
+\newpage
+
+\section{Introduction}
+%\input{src/1_introduction}
+
+Modal Logic and in particular S5 Logic \textbf{..Applications..}
+
+\textbf{..Motivation..}
+\section{Related Work}
+%\input{src/2_related_work}
+
+Types of provers 
+
+LCK
+
+KSP
+
+S52SAT and S5Cheetah
+\section{Preliminaries}
+%\input{src/3_preliminaries}
+
+We first describe the system \raj{what is a system? The traditional way of defining a logic is to give axioms and inference rules, and these are called Hilbert calculi. So I suggest you start by describing that. This fixes the logic. Then you can move to the semantics. So
+something like: Syntax, Hilbert calculus, Semantics} and semantics of S5 Logic, which is a modal logic system. The set of valid formulae $\phi$ for a modal logic system is defined by the usual propositional logic formulae, extended with two new unary operators $\Diamond$ (possibly) and $\Box$ (necessarily) called modal operators. Given a (countable) set of propositional variables $\mathcal{P}$, and $p \in \mathcal{P}$, the grammar for syntactically correct formulae can be written as:
+
+\[
+\phi \defeq \bot \, \vert \, \top \, \vert \, p \, \vert \, \neg \phi \, \vert \, \phi \wedge \phi \, \vert \, \phi \vee \phi \, \vert \, \phi \Rightarrow \phi \, \vert \, \phi \Leftrightarrow \phi \, \vert \, \Diamond \phi \, \vert \, \Box \phi
+\]
+
+Moreover, we have the normal propositional logic axioms along with the \textbf{K}-axiom:
+\[
+K. \quad \Box \left(\phi \Rightarrow \psi\right) \Rightarrow \left(\Box \phi \Rightarrow \Box \psi\right)
+\]
+
+\raj{what does it mean to have an axiom? what does the axiom live in? It lives inside a Hilbert calculus for K. Try to explain how that defines a logic. Look it up in the encyclopaedia of modal logic if you wish.}
+
+\raj{I could tell you what to write, but this is not good for you. I am deliberately asking ``nasty'' questions to try to lead you to the solution rather than tell you the solution.}
+
+\raj{So there is a different way to define a modal logic. How does this define a logic? Look in my lecture notes that I sent to you. The first two lectures are relevant.}
+To understand the semantics of a modal formula, we describe the notion of \textbf{Kripke Semantics}. A Kripke frame is a directed graph $\left(W, R\right)$, where W is a \raj{non-empty (it is essential)}set of worlds, $R \subseteq W \times W$ is a binary relation over W. A valuation $\nu$ on a Kripke frame is defined as function $W \times \mathcal{P} \rightarrow \{0, 1\}$ \raj{should probably explain what the powerset notation means.} which assigns a particular truth value to each propositional variable at each world. Equivalently, the valuation function $\nu$ can be viewed a s function from $W \rightarrow 2^{\mathcal{P}}$, where $\nu(w) = \{p \vert \text{ p is true in world w}\}$.A Kripke frame along with a valuation is called a Kripke model. 
+
+The semantic validity of a formula $\phi$ in a model $\mathcal{M} = \left(W, R, \nu\right)$ at a world $w$ is defined similar to propositional logic for classical propositional operators, along with the two rules for each modal operator:
+
+\begin{align*}
+    \mathcal{M}, w &\vDash \Box \phi \text{ iff } \forall v \in W: wRv \Rightarrow \mathcal{M}, v \vDash \phi \\
+    \mathcal{M}, w &\vDash \Diamond \phi \text{ iff } \exists v \in W: wRv \text{ and } \mathcal{M}, v \vDash \phi
+\end{align*}
+
+S5 Logic builds upon modal logic by adding the following axiom schema:
+\raj{now you jump back to the axiomatic system. Try to give a comprehensive account of each separately.}
+
+\begin{align*}
+    T.& \quad \Box \phi \Rightarrow \phi \\
+    B.& \quad \phi \Rightarrow \Diamond \Box \phi \\
+    4.& \quad \Box \phi \Rightarrow \Box \Box \phi
+\end{align*}
+
+It can be shown \raj{this is called ``correspondence between axioms and relational conditions''} that these axioms imply that the relation R in a Kripke frame of S5 is an equivalence relation (T implies \textbf{reflexivity}, B implies \textbf{symmetricity}, 4 implies \textbf{transitivity}). Thus, in S5, the semantic rule becomes:
+
+\begin{align*}
+    w &\vDash \Box \phi \text{ iff } \forall v \in W: v \vDash \phi \\
+    w &\vDash \Diamond \phi \text{ iff } \exists v \in W: v \vDash \phi
+\end{align*}
+
+\noindent We wish to build efficient solvers of the \textbf{S5-SAT} problem:
+
+\begin{definition}
+    \textbf{S5-SAT Problem: } Given an instance of an S5 formula $\phi$, does there exist a S5 Kripke model $\mathcal{M}$ such that $\mathcal{M} \vDash \phi$?
+\end{definition}
+
+\raj{What is ``satisfiability'' How is it defined? It should be in the original cegar-tableaux paper. It's fine for you to parrot some of this stuff because it is standard. Just try to put it in your own words.}
+\section{Normal Form and Simplification for S5}
+%\input{src/4_normal_form}
+
+\subsection{Modal Clausal Normal Form for S5}
+
+An arbitrary modal formula can have too many cases \raj{in what sense? this is too vague} to handle, thus we aim to define a normal form which is a smaller class of formula that will be input to the algorithm, while also being able to translate any arbitrary modal formula $\phi $ into a normal form $\psi$ such that $\phi$ is satisfiable iff $\psi$ is satisfiable.
+
+We state the Modal Clausal Form defined by Gor\'e and Kikkert \cite{GoreKikkert21} following Gor\'e and Nguyen \cite{Gorenguyen2009}:
+\raj{it actually goes back to Grigori Mints so look up the citations in the Gore-Nguyen paper and cite that instead.}
+
+\begin{definition}
+    \textbf{Literal: } klj
+\end{definition}
+\subsection{Simplification to Depth 1}
+\subsection{Conversion to MCNF}
+
+
+\section{Our Algorithm}
+%\input{src/5_algorithm}
+
+
+\section{Experimental Results}
+%\input{src/6_experiments}
+
+
+\section{Conclusion}
+%\input{src/7_conclusion}
+
+
+% \section*{Acknowledgements}
+% \section*{References}
+% \begin{description}
+%     \item [GK21] Rajeev Goré, Cormac Kikkert: CEGAR-Tableaux: Improved Modal Satisfiability via Modal Clause-Learning and SAT. TABLEAUX 2021: 74-91
+%     \item [GN09] Rajeev Goré and Linh Anh Nguyen. Clausal tableaux for multimodal logics of
+% belief. Fundam. Informaticae, 94(1):21–40, 2009
+% \end{description}
+
+ % \bibliographystyle{plain}
+ % \bibliography{refs}
+\printbibliography
+\end{document}

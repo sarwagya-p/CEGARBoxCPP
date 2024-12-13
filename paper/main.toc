@@ -1,0 +1,10 @@
+\contentsline {section}{\numberline {1}Introduction}{3}{section.1}%
+\contentsline {section}{\numberline {2}Related Work}{3}{section.2}%
+\contentsline {section}{\numberline {3}Preliminaries}{3}{section.3}%
+\contentsline {section}{\numberline {4}Normal Form and Simplification for S5}{4}{section.4}%
+\contentsline {subsection}{\numberline {4.1}Modal Clausal Normal Form for S5}{4}{subsection.4.1}%
+\contentsline {subsection}{\numberline {4.2}Simplification to Depth 1}{5}{subsection.4.2}%
+\contentsline {subsection}{\numberline {4.3}Conversion to MCNF}{5}{subsection.4.3}%
+\contentsline {section}{\numberline {5}Our Algorithm}{5}{section.5}%
+\contentsline {section}{\numberline {6}Experimental Results}{5}{section.6}%
+\contentsline {section}{\numberline {7}Conclusion}{5}{section.7}%
