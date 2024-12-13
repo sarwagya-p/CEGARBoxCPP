@@ -30,6 +30,9 @@ private:
 
   string cnfToString(CNF_form cnf_formula);
 
+  Solution prove_one_dia(literal_set assumptions);
+  Solution prove_group_dia(literal_set assumptions);
+
   void splitClause(formula_set clause, formula_set& modal_lits, formula_set& prop_lits);
   void propagateOneClause(formula_set clause);
 
@@ -46,6 +49,7 @@ protected:
   virtual void propagateClauses(const shared_ptr<Formula> &formula);
 
 public:
+  static bool useGroupDia;
   TrieformProverS5();
   ~TrieformProverS5();
 

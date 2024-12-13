@@ -49,6 +49,7 @@ static struct argp_option options[] = {
     {"localReduction", 'l', 0, 0, "Perform a local reduction into K"},
     {"globalReduction", 'g', 0, 0, "Perform a global reduction into K"},
     {"verbose", 'v', 0, 0, "Verbosity."},
+    {"S5oneDia", 'o', 0, 0, "Use One Dia Implementation of S5 rather than Group Dia."},
     {0, 0, 0, 0, 0, 0}};
 
 struct arguments_struct {
@@ -96,6 +97,9 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
             break;
         case 'g':
             arguments->settings.globalReduction = true;
+            break;
+        case 'o':
+            arguments->settings.S5oneDia = true;
             break;
         case ARGP_KEY_ARG:
             return 0;
