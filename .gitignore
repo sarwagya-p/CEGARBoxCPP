@@ -20,7 +20,7 @@ massif*
 *__pycache__*
 *.pyc
 *.DS_Store
-S5Experiments/benchmarks/*
+# S5Experiments/benchmarks/*
 # S5Experiments/scripts/S52SAT
 # S5Experiments/scripts/S5Cheetah
 # S5Experiments/scripts/LWB-benchmark-generator
