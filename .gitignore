@@ -4,7 +4,7 @@
 *.1cf
 *.out
 *.txt
-*.intohylo
+# *.intohylo
 *.a
 *.cf
 *.hf
