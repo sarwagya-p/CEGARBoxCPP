@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import matplotlib.ticker
 from run_file import solvers
 
-solvers = ["CEGAR", "Cheetah", "S52SAT", "LCK", "KSP", "CEGAR_old"]
+solvers = ["CEGAR", "Cheetah", "S52SAT", "LCK", "KSP", "CEGAR_onedia"]
 all_benchmarks = ["QS5", "3CNF", "MQBF"]
 
 def plot(timeouts, counts, total, name, curr_solvers = solvers):
@@ -29,7 +29,7 @@ def plot(timeouts, counts, total, name, curr_solvers = solvers):
     ax.legend()
     ax.grid(linestyle="--", color="grey", linewidth=0.5)
 
-    plt.savefig(f"../plots/{'_'.join(name)}.png")
+    plt.savefig(f"../plots/{name}.png", dpi=800)
     plt.show()
 
 def make_counts(times_df, timeouts, curr_solvers):
@@ -44,7 +44,7 @@ def make_counts(times_df, timeouts, curr_solvers):
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        print("Usage: python3 plot.py <benchmark_name or ALL for all benchmarks> optional: <timeout>")
+        print("Usage: python3 plot.py <benchmark_name or ALL for all benchmarks> optional: <timeout> <name_suffix> <solvers>")
         exit()
 
     benchmarks = [sys.argv[1]]
@@ -55,12 +55,17 @@ if __name__ == "__main__":
         timeout = int(sys.argv[2])
     else:
         timeout = 8
+    
+    if len(sys.argv) > 3:
+        name_suffix = sys.argv[3]
+    else:
+        name_suffix = ""
 
     timeouts = [timeout/(2**i) for i in range(5, -1, -1)]
     print(timeouts)
     
-    if len(sys.argv) > 3 and sys.argv[3] != "ALL":
-        curr_solvers = sys.argv[3:]
+    if len(sys.argv) > 4 and sys.argv[4] != "ALL":
+        curr_solvers = sys.argv[4:]
     else:
         curr_solvers = solvers
 
@@ -81,4 +86,4 @@ if __name__ == "__main__":
 
     print(counts)
 
-    plot(timeouts, counts, total, benchmarks, curr_solvers)
+    plot(timeouts, counts, total, "_".join(benchmarks)+name_suffix, curr_solvers)
