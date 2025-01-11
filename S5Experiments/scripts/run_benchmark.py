@@ -37,9 +37,9 @@ def run_files(file_list, file_dir, timeout, out_dir, results, times, curr_solver
         for solver in curr_solvers:
             print(f"Running {solver}...")
             
-            # if results.loc[file, solver] != -1:
-            #     print("Solved before")
-            #     continue
+            if results.loc[file, solver] != -1:
+                print("Solved before")
+                continue
 
             cmd = solvers_cmd[solver](os.path.join(file_dir, file))
             out = run(cmd, timeout, solvers_out_check[solver])
