@@ -5,7 +5,7 @@ import pandas as pd
 import run_benchmark as rb
 
 generator_dir = "./LWB-benchmark-generator/"
-benchmark_file_dir = "../benchmarks/LWB/"
+benchmark_file_dir = os.path.join(os.getcwd(), "../benchmarks/LWB/")
 
 problem_sets = [
     # ---------------------------------
@@ -244,6 +244,14 @@ problem_sets = [
     "k_t4p_p 8000 15000 1000"
 ]
 
+progress = [0,0] # index of current problem set, 0 if generated, 1 if ran
+with open("../results/LWB/progress.txt", "r") as file:
+  progress = eval(file.read())
+  
+def write_progress():
+  with open("../results/LWB/progress.txt", "w") as file:
+    file.write(str(progress))
+
 def make_df(commands):
     time_df = pd.DataFrame(columns=["File", "Logic Domain"]+rb.solvers)
     results_df = pd.DataFrame(columns=["File"]+rb.solvers)
@@ -266,20 +274,33 @@ def make_df(commands):
 
 def run_lwb(timeout, curr_solvers, out_dir):
     time_df, results_df = make_df(problem_sets)
-    
-    for problem_set in problem_sets:
-        print(f"Running SET: {problem_set}...")
-
-        shutil.rmtree(benchmark_file_dir)
-        os.makedirs(benchmark_file_dir)
-        subprocess.call(f"python3 {os.path.join(generator_dir, 'generate.py')} {problem_set}", shell=True)
+    global progress
+    for iter, problem_set in enumerate(problem_sets[progress[0]:]):
+        print(f"Running SET: {problem_set}...", "progress: ", progress)
+        if progress[1] == 1:
+          print("Already generated")
+        else:
+          if os.path.exists(benchmark_file_dir):
+            shutil.rmtree(benchmark_file_dir)
+          
+          print("Creating benchmarks files directory:")
+          os.makedirs(benchmark_file_dir)
+          print([f"python", f"{os.path.join(generator_dir, 'generate.py')}"]+ problem_set.split())
+          subprocess.call([f"python", f"{os.path.join(generator_dir, 'generate.py')}"]+ problem_set.split())
+          progress[1] = 1
+          write_progress()
 
         file_list = os.listdir(path=benchmark_file_dir)
         file_list.sort()
 
         rb.run_files(file_list, benchmark_file_dir, timeout, out_dir, results_df, time_df, curr_solvers)
+        progress[0] += 1
+        progress[1] = 0
+        write_progress()
+        
 
 import sys
+sys.setrecursionlimit(10000)
 
 if __name__ == "__main__":
     if len(sys.argv) > 1 and sys.argv[1] == "--help":
@@ -297,4 +318,6 @@ if __name__ == "__main__":
 
     out_dir = "../results/LWB"
 
+    if input("Reset times? (y/n): ") == "y":
+      progress = [0,0]
     run_lwb(timeout, curr_solvers, out_dir)
