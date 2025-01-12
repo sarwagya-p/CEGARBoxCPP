@@ -37,8 +37,12 @@ def run_files(file_list, file_dir, timeout, out_dir, results, times, curr_solver
         for solver in curr_solvers:
             print(f"Running {solver}...")
             
-            if results.loc[file, solver] != -1:
+            if results.loc[file, solver] in [0, 1]:
                 print("Solved before")
+                continue
+            
+            if results.loc[file, solver] == -2:
+                print("Timeout before")
                 continue
 
             cmd = solvers_cmd[solver](os.path.join(file_dir, file))
@@ -46,12 +50,12 @@ def run_files(file_list, file_dir, timeout, out_dir, results, times, curr_solver
 
             print_output(out)
             if out == "TIMEOUT" or out[0] == "ERROR":
-                continue
+                results.loc[file, solver] = -2
 
             results.loc[file, solver] = 1 if out[0] == "SAT" else 0
             times.loc[file, solver] = out[1]
 
-        if write_df and (iter % 5 == 0 or iter == len(file_list)-1):
+        if write_df:
             results.to_csv(f"{out_dir}/results.csv")
             times.to_csv(f"{out_dir}/times.csv")  
     results.to_csv(f"{out_dir}/results.csv")
@@ -70,7 +74,7 @@ if __name__ == "__main__":
     if len(sys.argv) > 2:
         timeouts = int(sys.argv[2])
     else:
-        timeouts = 8
+        timeouts = 128
     
     if len(sys.argv) > 3:
         if sys.argv[3] == "ALL":

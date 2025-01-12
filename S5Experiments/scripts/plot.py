@@ -74,6 +74,8 @@ if __name__ == "__main__":
 
     for bench in benchmarks:
         times_df = pd.read_csv(f"../results/{bench}/times.csv")
+        for solv in solvers:
+            times_df[solv] = pd.to_numeric(times_df[solv], errors="coerce")
         c = make_counts(times_df, timeouts, solvers)
         t = len(times_df)
         
