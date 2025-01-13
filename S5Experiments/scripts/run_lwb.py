@@ -280,12 +280,11 @@ def run_lwb(timeout, curr_solvers, out_dir):
         if progress[1] == 1:
           print("Already generated")
         else:
-          if os.path.exists(benchmark_file_dir):
-            shutil.rmtree(benchmark_file_dir)
-          
-          print("Creating benchmarks files directory:")
-          os.makedirs(benchmark_file_dir)
-          print([f"python", f"{os.path.join(generator_dir, 'generate.py')}"]+ problem_set.split())
+          for filename in os.listdir(benchmark_file_dir):
+            file_path = os.path.join(benchmark_file_dir, filename)
+            if os.path.isfile(file_path):
+                os.remove(file_path)
+                
           subprocess.call([f"python", f"{os.path.join(generator_dir, 'generate.py')}"]+ problem_set.split())
           progress[1] = 1
           write_progress()
